@@ -205,7 +205,13 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text, mentorId: mentor.id }),
       });
-      if (!res.ok) { setPreparingAudioId(null); return; }
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        console.error('[TTS] Hata:', res.status, errData);
+        setPreparingAudioId(null);
+        alert(`Ses çalınamadı (${res.status}). ElevenLabs hesabında bu sesi "My Voices"a eklemen gerekebilir.`);
+        return;
+      }
       const data = await res.json() as { audioBase64: string; wordTimings: Array<{ word: string; start: number; end: number }> };
       wordTimingsRef.current.set(messageId, data.wordTimings ?? []);
       const audioBytes = Uint8Array.from(atob(data.audioBase64), (c) => c.charCodeAt(0));
