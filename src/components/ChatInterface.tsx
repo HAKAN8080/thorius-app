@@ -6,7 +6,7 @@ import { TextStreamChatTransport } from 'ai';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Loader2, Sparkles, AlertTriangle, Lock, Crown, Volume2, VolumeX } from 'lucide-react';
+import { Send, Loader2, Sparkles, AlertTriangle, Lock, Crown, Volume2, VolumeX, Star, CheckCircle2 } from 'lucide-react';
 import { Mentor } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
@@ -21,7 +21,8 @@ interface ChatInterfaceProps {
 
 async function saveSession(
   mentor: Mentor,
-  messages: Array<{ role: string; content?: string; parts?: Array<{ type: string; text?: string }> }>
+  messages: Array<{ role: string; content?: string; parts?: Array<{ type: string; text?: string }> }>,
+  onSessionSaved?: (id: string) => void
 ) {
   // İlk gerçek kullanıcı mesajını gündem olarak kaydet
   const firstUserMsg = messages.find(
@@ -30,7 +31,7 @@ async function saveSession(
   const agenda = firstUserMsg ? getTextContent(firstUserMsg).slice(0, 300) : null;
 
   try {
-    await fetch('/api/sessions', {
+    const res = await fetch('/api/sessions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -41,6 +42,10 @@ async function saveSession(
         agenda,
       }),
     });
+    const data = await res.json();
+    if (data.id && onSessionSaved) {
+      onSessionSaved(data.id);
+    }
   } catch {
     // sessiz hata — kullanıcıyı etkilemesin
   }
@@ -78,6 +83,70 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
   const wordTimingsRef = useRef<Map<string, Array<{ word: string; start: number; end: number }>>>(new Map());
+
+  // Rating state
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [showRating, setShowRating] = useState(false);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [ratingLoading, setRatingLoading] = useState(false);
+  const [ratings, setRatings] = useState({
+    contentQuality: 0,
+    sessionDuration: 0,
+    responseSpeed: 0,
+    communication: 0,
+    overall: 0,
+  });
+
+  const RATING_QUESTIONS = [
+    { key: 'contentQuality', label: 'İçerik Yeterliliği', desc: 'Verilen bilgiler faydalı mıydı?' },
+    { key: 'sessionDuration', label: 'Süre Yeterliliği', desc: 'Seans süresi yeterli miydi?' },
+    { key: 'responseSpeed', label: 'Yanıt Hızı', desc: 'Yanıtlar yeterince hızlı mıydı?' },
+    { key: 'communication', label: 'İletişim Kalitesi', desc: 'Sorunlarınıza odaklanıldı mı?' },
+    { key: 'overall', label: 'Genel Değerlendirme', desc: 'Seansı genel olarak nasıl buldunuz?' },
+  ] as const;
+
+  const allRated = Object.values(ratings).every(r => r > 0);
+
+  async function submitRating() {
+    if (!sessionId || !allRated) return;
+    setRatingLoading(true);
+    try {
+      await fetch('/api/sessions/rate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, ratings }),
+      });
+      setRatingSubmitted(true);
+    } catch {
+      // Sessiz hata
+    } finally {
+      setRatingLoading(false);
+    }
+  }
+
+  function StarRating({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+    return (
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            type="button"
+            onClick={() => onChange(star)}
+            className="transition-transform hover:scale-110 focus:outline-none"
+          >
+            <Star
+              className={cn(
+                'h-6 w-6 transition-colors',
+                star <= value
+                  ? 'fill-amber-400 text-amber-400'
+                  : 'fill-transparent text-muted-foreground/40 hover:text-amber-300'
+              )}
+            />
+          </button>
+        ))}
+      </div>
+    );
+  }
 
   async function handleSpeak(messageId: string, text: string) {
     if (playingId === messageId) {
@@ -199,7 +268,10 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
     const lastMsg = messages[messages.length - 1];
     if (lastMsg?.role !== 'assistant') return;
     setSessionSaved(true);
-    saveSession(mentor, messages as Parameters<typeof saveSession>[1]);
+    saveSession(mentor, messages as Parameters<typeof saveSession>[1], (id) => {
+      setSessionId(id);
+      setShowRating(true);
+    });
   }, [closingSent, sessionSaved, isLoading, messages, mentor]);
 
   const onSubmit = (e: React.FormEvent) => {
@@ -451,18 +523,68 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
             )}
 
             {sessionEnded && sessionSaved && (
-              <div className="flex flex-col items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 px-6 py-6 text-center">
-                <Lock className="h-8 w-8 text-primary/60" />
-                <div>
-                  <p className="font-semibold">Seans tamamlandı</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Bu seansta {MAX_USER_MESSAGES} sorunuzu kullandınız.
-                    Yeni bir seans başlatmak için sayfayı yenileyin.
-                  </p>
+              <div className="rounded-2xl border border-primary/20 bg-gradient-to-b from-primary/5 to-transparent px-6 py-6">
+                {/* Rating Form */}
+                {showRating && !ratingSubmitted && (
+                  <div className="mb-6">
+                    <div className="mb-4 text-center">
+                      <h4 className="font-semibold text-foreground">Seansı Değerlendir</h4>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Geri bildiriminiz hizmetimizi geliştirmemize yardımcı olur
+                      </p>
+                    </div>
+                    <div className="space-y-4">
+                      {RATING_QUESTIONS.map(({ key, label, desc }) => (
+                        <div key={key} className="flex items-center justify-between gap-4 rounded-xl bg-card/50 px-4 py-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground">{label}</p>
+                            <p className="text-xs text-muted-foreground truncate">{desc}</p>
+                          </div>
+                          <StarRating
+                            value={ratings[key as keyof typeof ratings]}
+                            onChange={(v) => setRatings(prev => ({ ...prev, [key]: v }))}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <Button
+                      onClick={submitRating}
+                      disabled={!allRated || ratingLoading}
+                      className="mt-4 w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                    >
+                      {ratingLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <>Değerlendirmeyi Gönder</>
+                      )}
+                    </Button>
+                  </div>
+                )}
+
+                {/* Rating Submitted */}
+                {ratingSubmitted && (
+                  <div className="mb-6 flex flex-col items-center gap-2 text-center">
+                    <CheckCircle2 className="h-10 w-10 text-green-500" />
+                    <p className="font-semibold text-foreground">Teşekkürler!</p>
+                    <p className="text-sm text-muted-foreground">
+                      Değerlendirmeniz kaydedildi.
+                    </p>
+                  </div>
+                )}
+
+                {/* Session Complete Info */}
+                <div className="flex flex-col items-center gap-3 text-center">
+                  <Lock className="h-6 w-6 text-primary/60" />
+                  <div>
+                    <p className="font-semibold">Seans tamamlandı</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Bu seansta {MAX_USER_MESSAGES} sorunuzu kullandınız.
+                    </p>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => window.location.reload()} className="mt-1">
+                    Yeni Seans Başlat
+                  </Button>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => window.location.reload()} className="mt-1">
-                  Yeni Seans Başlat
-                </Button>
               </div>
             )}
           </div>
