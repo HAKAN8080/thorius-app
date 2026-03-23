@@ -66,8 +66,9 @@ export async function POST(req: Request) {
   const mentor = DEFAULT_MENTORS.find(m => m.id === mentorId);
   let systemPrompt = customSystemPrompt || mentor?.systemPrompt || 'Sen yardımcı bir asistansın.';
 
-  // Düşünce liderleri ve kitap bilgilerini ekle
-  const books = getAllBooksForMentor(mentorId);
+  // Düşünce liderleri ve kitap bilgilerini ekle (öğrenci koçu hariç)
+  const isStudentCoach = mentorId === 'student-coach';
+  const books = isStudentCoach ? [] : getAllBooksForMentor(mentorId);
   const bookList = books.slice(0, 3).map(b => `• "${b.title}" – ${b.author}`).join('\n');
 
   // 2 rastgele düşünce lideri seç (daha az, daha odaklı)
@@ -85,9 +86,12 @@ export async function POST(req: Request) {
   // AI'a seans durumunu bildir
   const sessionStatus = `\n\n📊 **SEANS DURUMU:** Bu ${currentMessageNum}. soru. Kullanıcının ${remainingQuestions} sorusu daha var. ${remainingQuestions > 2 ? 'KAPANIŞ YAPMA, konuyu derinleştir ve soru sor!' : ''}`;
 
-  const quoteInstruction = shouldUseQuote
-    ? `\n\n🎯 **BU YANIT İÇİN:** Aşağıdaki alıntılardan BİRİNİ MUTLAKA kullan. Doğal şekilde konuya bağla.\n\nALINTILAR:\n${leaderInfo}\n\nKİTAPLAR:\n${bookList}`
-    : `\n\n📚 Kullanabileceğin kaynaklar:\n${leaderInfo}\n${bookList}`;
+  // Öğrenci koçu için kitap önerisi yok
+  const quoteInstruction = isStudentCoach
+    ? (shouldUseQuote ? `\n\n🎯 **BU YANIT İÇİN:** Aşağıdaki alıntılardan BİRİNİ kullanabilirsin (zorunlu değil). KİTAP ÖNERİSİ YAPMA.\n\nALINTILAR:\n${leaderInfo}` : '')
+    : (shouldUseQuote
+      ? `\n\n🎯 **BU YANIT İÇİN:** Aşağıdaki alıntılardan BİRİNİ MUTLAKA kullan. Doğal şekilde konuya bağla.\n\nALINTILAR:\n${leaderInfo}\n\nKİTAPLAR:\n${bookList}`
+      : `\n\n📚 Kullanabileceğin kaynaklar:\n${leaderInfo}\n${bookList}`);
 
   systemPrompt += sessionStatus + quoteInstruction;
 
