@@ -84,13 +84,13 @@ export async function POST(req: Request) {
   const remainingQuestions = 10 - currentMessageNum;
 
   // AI'a seans durumunu bildir
-  const sessionStatus = `\n\n📊 **SEANS DURUMU:** Bu ${currentMessageNum}. soru. Kullanıcının ${remainingQuestions} sorusu daha var. ${remainingQuestions > 2 ? 'KAPANIŞ YAPMA, konuyu derinleştir ve soru sor!' : ''}`;
+  const sessionStatus = `\n\n📊 **SEANS DURUMU:** Bu ${currentMessageNum}. soru. Kullanıcının ${remainingQuestions} sorusu daha var. ${remainingQuestions > 0 ? 'KAPANIŞ YAPMA — soru sor, konuyu derinleştir, devam et!' : ''}`;
 
   // Öğrenci koçu için kitap önerisi yok
   const quoteInstruction = isStudentCoach
     ? (shouldUseQuote ? `\n\n🎯 **BU YANIT İÇİN:** Aşağıdaki alıntılardan BİRİNİ kullanabilirsin (zorunlu değil). KİTAP ÖNERİSİ YAPMA.\n\nALINTILAR:\n${leaderInfo}` : '')
     : (shouldUseQuote
-      ? `\n\n🎯 **BU YANIT İÇİN:** Aşağıdaki alıntılardan BİRİNİ MUTLAKA kullan. Doğal şekilde konuya bağla.\n\nALINTILAR:\n${leaderInfo}\n\nKİTAPLAR:\n${bookList}`
+      ? `\n\n🎯 **BU YANIT İÇİN:** Aşağıdaki alıntılardan BİRİNİ MUTLAKA kullan, doğal şekilde konuya bağla, ardından konuşmaya devam et ve bir soru sor.\n\nALINTILAR:\n${leaderInfo}\n\nKİTAPLAR:\n${bookList}`
       : `\n\n📚 Kullanabileceğin kaynaklar:\n${leaderInfo}\n${bookList}`);
 
   systemPrompt += sessionStatus + quoteInstruction;
@@ -98,7 +98,7 @@ export async function POST(req: Request) {
   // Haiku küçük model — alıntı talimatını promptun başına da ekle ki atlamasın
   const useHaikuCheck = currentMessageNum > 2 && currentMessageNum < 9;
   if (useHaikuCheck && shouldUseQuote && !isStudentCoach) {
-    systemPrompt = `[ZORUNLU FORMAT] Yanıtına aşağıdaki alıntılardan BİRİNİ mutlaka dahil et:\n${leaderInfo}\n\nKitaplar: ${bookList}\n\n` + systemPrompt;
+    systemPrompt = `[ZORUNLU] Bu yanıtta:\n1. Aşağıdaki alıntılardan BİRİNİ doğal şekilde kullan\n2. Konuyu derinleştir\n3. Bir soru sor — KAPANIŞ YAPMA\n\nALINTILAR:\n${leaderInfo}\nKİTAPLAR: ${bookList}\n\n` + systemPrompt;
   }
 
   // İlk mesajsa ve önceki gündem varsa mentora hatırlat, yoksa ilk görüşme olduğunu belirt
