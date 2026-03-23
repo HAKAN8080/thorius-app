@@ -501,23 +501,6 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
                 {userMessageCount}/{MAX_USER_MESSAGES}
               </span>
             </div>
-            {/* Ses/Metin Toggle */}
-            <button
-              onClick={() => {
-                if (voiceMode) { audioRef.current?.pause(); setPlayingId(null); }
-                setVoiceMode((v) => !v);
-              }}
-              title={voiceMode ? 'Sesi kapat (metin modu)' : 'Sesi aç (sesli mod)'}
-              className={cn(
-                'flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-semibold transition-all',
-                voiceMode
-                  ? 'border-primary/50 bg-primary/10 text-primary shadow-sm shadow-primary/20 hover:bg-primary/20'
-                  : 'border-border bg-muted/50 text-muted-foreground hover:bg-muted'
-              )}
-            >
-              {voiceMode ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-              {voiceMode ? 'Sesli' : 'Metin'}
-            </button>
           </div>
         </div>
 
