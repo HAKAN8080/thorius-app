@@ -13,6 +13,10 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "Thorius - AI Koç & Mentor Platformu",
   description: "Claude AI destekli profesyonel koçluk ve mentorluk platformu. Kişisel gelişim, kariyer ve iş hedeflerinize ulaşın.",
+  icons: {
+    icon: '/icon.svg',
+    apple: '/apple-icon.svg',
+  },
 };
 
 export default function RootLayout({
