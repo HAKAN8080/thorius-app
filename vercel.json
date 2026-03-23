@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/homework-reminder",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/progress-check",
+      "schedule": "0 9 * * 1"
+    },
+    {
+      "path": "/api/cron/session-reminder",
+      "schedule": "0 7 * * *"
+    }
+  ]
+}
