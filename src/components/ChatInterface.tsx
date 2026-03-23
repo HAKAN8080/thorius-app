@@ -134,18 +134,26 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
 
   const allRated = Object.values(ratings).every(r => r > 0) && npsScore !== null;
 
+  const [ratingError, setRatingError] = useState<string | null>(null);
+
   async function submitRating() {
     if (!sessionId || !allRated) return;
     setRatingLoading(true);
+    setRatingError(null);
     try {
-      await fetch('/api/sessions/rate', {
+      const res = await fetch('/api/sessions/rate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, ratings, npsScore, comment: feedbackComment }),
       });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Değerlendirme kaydedilemedi');
+      }
       setRatingSubmitted(true);
-    } catch {
-      // Sessiz hata
+    } catch (err) {
+      setRatingError(err instanceof Error ? err.message : 'Bir hata oluştu');
+      console.error('Rating submit error:', err);
     } finally {
       setRatingLoading(false);
     }
@@ -676,6 +684,9 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
                         <>Değerlendirmeyi Gönder</>
                       )}
                     </Button>
+                    {ratingError && (
+                      <p className="mt-2 text-center text-sm text-red-500">{ratingError}</p>
+                    )}
                   </div>
                 )}
 

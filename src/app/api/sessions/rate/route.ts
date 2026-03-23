@@ -14,12 +14,14 @@ export interface SessionRating {
 }
 
 export async function POST(req: Request) {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: 'Yetkisiz' }, { status: 401 });
-  }
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Yetkisiz' }, { status: 401 });
+    }
 
-  const { sessionId, ratings, npsScore, comment } = await req.json();
+    const { sessionId, ratings, npsScore, comment } = await req.json();
+    console.log('[RATE] Değerlendirme isteği:', { sessionId, userId: user.id, ratings, npsScore });
 
   if (!sessionId || !ratings) {
     return NextResponse.json({ error: 'Seans ID ve değerlendirmeler gerekli' }, { status: 400 });
@@ -69,5 +71,10 @@ export async function POST(req: Request) {
   // Ortalama hesapla
   const average = (contentQuality + sessionDuration + responseSpeed + communication + overall) / 5;
 
+  console.log('[RATE] Değerlendirme kaydedildi:', { sessionId, average });
   return NextResponse.json({ success: true, average: Math.round(average * 10) / 10 });
+  } catch (err) {
+    console.error('[RATE] Hata:', err);
+    return NextResponse.json({ error: 'Değerlendirme kaydedilemedi' }, { status: 500 });
+  }
 }
