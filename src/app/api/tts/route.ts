@@ -141,8 +141,19 @@ export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Yetkisiz' }, { status: 401 });
 
-  const { text, mentorId } = await req.json();
+  const { text, mentorId, messageNumber } = await req.json();
   if (!text) return NextResponse.json({ error: 'Metin gerekli' }, { status: 400 });
+
+  // TTS yalnızca premium kullanıcılara açık; free/essential sadece ilk mesajda sesli
+  const isPremium = user.plan === 'premium';
+  const msgNum: number = typeof messageNumber === 'number' ? messageNumber : 1;
+  const isAllowed = isPremium
+    ? (msgNum <= 2 || msgNum >= 9)  // premium: ilk 2 + son 2
+    : msgNum === 1;                  // essential/free: sadece ilk mesaj
+
+  if (!isAllowed) {
+    return NextResponse.json({ error: 'SILENT_MODE' }, { status: 403 });
+  }
 
   const apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey) return NextResponse.json({ error: 'TTS yapılandırılmamış' }, { status: 500 });

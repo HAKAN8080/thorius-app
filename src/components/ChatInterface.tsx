@@ -109,6 +109,8 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
   const wordTimingsRef = useRef<Map<string, Array<{ word: string; start: number; end: number }>>>(new Map());
+  const [silentBannerShown, setSilentBannerShown] = useState(false);
+  const [showSilentBanner, setShowSilentBanner] = useState(false);
 
   // Rating state
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -203,13 +205,13 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
       const res = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, mentorId: mentor.id }),
+        body: JSON.stringify({ text, mentorId: mentor.id, messageNumber: userMessageCount }),
       });
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
+        if (errData?.error === 'SILENT_MODE') { setPreparingAudioId(null); return; }
         console.error('[TTS] Hata:', res.status, errData);
         setPreparingAudioId(null);
-        alert(`Ses çalınamadı (${res.status}). ElevenLabs hesabında bu sesi "My Voices"a eklemen gerekebilir.`);
         return;
       }
       const data = await res.json() as { audioBase64: string; wordTimings: Array<{ word: string; start: number; end: number }> };
@@ -312,6 +314,12 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
     sendMessage({ role: 'user', parts: [{ type: 'text', text: '__KAPANIS__' }] });
   }, [sessionEnded, closingSent, isLoading, messages, sendMessage]);
 
+  // Karma ses mantığı: premium ilk 2 + son 2, essential sadece ilk 1
+  function shouldAutoVoice(msgNum: number, plan: string | null | undefined): boolean {
+    if (plan === 'premium') return msgNum <= 2 || msgNum >= 9;
+    return msgNum === 1; // essential / free / null
+  }
+
   // Ses modu açıksa yeni asistan mesajını otomatik oynat
   useEffect(() => {
     if (!voiceMode || isLoading) return;
@@ -321,7 +329,14 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
     if (!text) return;
     if (lastSpokenIdRef.current === lastMsg.id) return;
     lastSpokenIdRef.current = lastMsg.id;
-    handleSpeak(lastMsg.id, text);
+
+    if (shouldAutoVoice(userMessageCount, limitInfo?.plan)) {
+      handleSpeak(lastMsg.id, text);
+    } else if (!silentBannerShown) {
+      setSilentBannerShown(true);
+      setShowSilentBanner(true);
+      setTimeout(() => setShowSilentBanner(false), 6000);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, voiceMode]);
 
@@ -505,6 +520,25 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
             </button>
           </div>
         </div>
+
+        {/* Sessiz mod bildirimi */}
+        {showSilentBanner && (
+          <div className="mx-4 mt-1 flex items-start gap-2 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-primary/80 shadow-sm">
+            <VolumeX className="mt-0.5 h-4 w-4 shrink-0 opacity-70" />
+            <p>
+              <span className="font-semibold">Odak modu aktif.</span>{' '}
+              {limitInfo?.plan === 'premium'
+                ? 'Seansın ortasında sessizlik düşünmeye alan açar. Kapanışta ses geri dönecek.'
+                : 'Sessizlik odaklanmayı artırır. Premium'da kapanış mesajları da sesli olur.'}{' '}
+              <button
+                onClick={() => setShowSilentBanner(false)}
+                className="ml-1 underline underline-offset-2 opacity-60 hover:opacity-100"
+              >
+                Tamam
+              </button>
+            </p>
+          </div>
+        )}
 
         {/* Messages */}
         <ScrollArea ref={scrollRef} className="min-h-0 flex-1 p-4">
