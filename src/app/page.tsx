@@ -312,7 +312,7 @@ export default async function HomePage() {
               Seans içerikleri gizlidir; izinsiz kopyalanamaz, çoğaltılamaz ve hiçbir mecrada paylaşılamaz.
             </p>
             <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
-              <span>Claude AI ile güçlendirilmiştir</span>
+              <span>Anthropic ile desteklenmektedir</span>
               <span>·</span>
               <span>Uluslararası Koçluk Etik Standartları</span>
               <span>·</span>
