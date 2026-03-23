@@ -529,7 +529,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
               <span className="font-semibold">Odak modu aktif.</span>{' '}
               {limitInfo?.plan === 'premium'
                 ? 'Seansın ortasında sessizlik düşünmeye alan açar. Kapanışta ses geri dönecek.'
-                : 'Sessizlik odaklanmayı artırır. Premium'da kapanış mesajları da sesli olur.'}{' '}
+                : 'Sessizlik odaklanmayı artırır. Premium\u2019da kapanış mesajları da sesli olur.'}{' '}
               <button
                 onClick={() => setShowSilentBanner(false)}
                 className="ml-1 underline underline-offset-2 opacity-60 hover:opacity-100"
