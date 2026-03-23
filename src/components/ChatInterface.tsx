@@ -93,6 +93,7 @@ interface LimitInfo {
 
 export function ChatInterface({ mentor }: ChatInterfaceProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState('');
   const [sessionStarted, setSessionStarted] = useState(false);
   const [sessionCompleted, setSessionCompleted] = useState(false);
@@ -289,11 +290,10 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   const userMessageCount = messages.filter((m) => m.role === 'user' && getTextContent(m as Parameters<typeof getTextContent>[0]) !== '__KAPANIS__').length;
   const sessionEnded = userMessageCount >= MAX_USER_MESSAGES;
 
+  // Mesajlar değiştiğinde otomatik aşağı kay
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, status]);
 
   // 10 soruya ulaşınca otomatik kapanış mesajı gönder
   useEffect(() => {
@@ -726,6 +726,8 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
                 </div>
               </div>
             )}
+            {/* Otomatik scroll için anchor */}
+            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
 
