@@ -739,7 +739,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
           )}
           <p className="mt-3 text-center text-xs font-medium text-muted-foreground">
             <Sparkles className="mr-1 inline h-3 w-3 text-primary" />
-            Claude Sonnet 4.6 ile desteklenmektedir
+            Özel eğitilmiş koç ve mentorlarımız Claude Sonnet 4.6 ile desteklenmektedir
           </p>
         </form>
       </div>
