@@ -3,7 +3,7 @@ import { streamText } from 'ai';
 import { DEFAULT_MENTORS, PREMIUM_MENTOR_IDS } from '@/lib/types';
 import { getCurrentUser, PLAN_LIMITS } from '@/lib/auth';
 import { getDb } from '@/lib/db';
-import { getBookForMentor } from '@/lib/books';
+import { getBookForMentor, getAllBooksForMentor, getThoughtLeaderForMentor, THOUGHT_LEADERS } from '@/lib/books';
 
 export const maxDuration = 60;
 
@@ -49,6 +49,20 @@ export async function POST(req: Request) {
 
   const mentor = DEFAULT_MENTORS.find(m => m.id === mentorId);
   let systemPrompt = customSystemPrompt || mentor?.systemPrompt || 'Sen yardımcı bir asistansın.';
+
+  // Düşünce liderleri ve kitap bilgilerini ekle
+  const books = getAllBooksForMentor(mentorId);
+  const bookList = books.slice(0, 5).map(b => `• "${b.title}" – ${b.author}`).join('\n');
+
+  // 3 rastgele düşünce lideri seç
+  const shuffledLeaders = [...THOUGHT_LEADERS].sort(() => Math.random() - 0.5).slice(0, 3);
+  const leaderInfo = shuffledLeaders.map(l => {
+    const randomQuotes = l.quotes.sort(() => Math.random() - 0.5).slice(0, 2);
+    const randomIdea = l.keyIdeas[Math.floor(Math.random() * l.keyIdeas.length)];
+    return `**${l.name}** (${l.title}):\n  Alıntılar: "${randomQuotes[0]}" | "${randomQuotes[1]}"\n  Anahtar Fikir: ${randomIdea}`;
+  }).join('\n\n');
+
+  systemPrompt += `\n\n## KULLANACAĞIN KİTAP ÖNERİLERİ:\n${bookList}\n\n## KULLANACAĞIN DÜŞÜNCE LİDERLERİ VE ALINTILARI:\n${leaderInfo}`;
 
   // İlk mesajsa ve önceki gündem varsa mentora hatırlat
   if (previousAgenda) {
