@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { FreeTrialBanner } from '@/components/FreeTrialBanner';
 import { getCurrentUser } from '@/lib/auth';
+import { CherryBlossom } from '@/components/CherryBlossom';
 
 export default async function HomePage() {
   const user = await getCurrentUser();
@@ -20,6 +21,9 @@ export default async function HomePage() {
 
       {/* ── Hero ────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
+        {/* Kiraz çiçeği animasyonu */}
+        <CherryBlossom />
+
         {/* Subtle lila gradient arka plan */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute -top-40 left-1/2 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-gradient-to-b from-primary/8 to-transparent blur-3xl" />

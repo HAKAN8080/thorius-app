@@ -2,16 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 
 const MENTOR_VOICES: Record<string, string> = {
-  'executive-coach':    'pNInz6obpgDQGcFmaJgB',
-  'career-coach':       'EXAVITQu4vr4xnSDxMaL',
-  'student-coach':      'MF3mGyEYCl7XYWbV9V6O',
-  'tech-mentor':        'TxGEqnHWrfWFTfGW9XjX',
-  'business-mentor':    'VR6AewLTigWG4xSOukaG',
-  'entrepreneur-mentor':'yoZ06UM52cGeYr0cd1gS',
-  'reverse-mentor':     'otKlcYhsm8jfsCjDAfhX',
+  // Erkek sesler
+  'executive-coach':    'pNInz6obpgDQGcFmaJgB',  // Adam - derin, güvenilir
+  'tech-mentor':        'TxGEqnHWrfWFTfGW9XjX',  // Josh - teknik, net
+  'business-mentor':    'VR6AewLTigWG4xSOukaG',  // Arnold - otoriteli
+  'entrepreneur-mentor':'yoZ06UM52cGeYr0cd1gS',  // Erkek - enerjik
+  'brand-mentor':       'ErXwobaYiN019PkySvjV',  // Antoni - yaratıcı, sıcak erkek
+  'ai-future-mentor':   'TxGEqnHWrfWFTfGW9XjX',  // Josh - teknoloji odaklı
+  // Kadın sesler
+  'career-coach':       'EXAVITQu4vr4xnSDxMaL',  // Bella - profesyonel kadın
+  'student-coach':      'MF3mGyEYCl7XYWbV9V6O',  // Emily - genç, enerjik
+  'reverse-mentor':     'otKlcYhsm8jfsCjDAfhX',  // Z kuşağı - genç
+  'life-balance-coach': 'pFZP5JQG7iQjIQuC4Bku', // Lily - sakin, huzurlu kadın
+  'communication-coach':'jBpfuIE2acCO8z3wKNLl', // Gigi - net, etkili kadın
+  'business-development-coach': 'oWAxZDx7w5VEj9dCyTzz', // Grace - enerjik kadın
 };
 
-// Her mentor için ses ayarları — reverse-mentor daha enerjik ve hızlı
+// Her mentor için ses ayarları
 const VOICE_SETTINGS: Record<string, object> = {
   'reverse-mentor': {
     stability: 0.25,
@@ -19,6 +26,41 @@ const VOICE_SETTINGS: Record<string, object> = {
     style: 0.65,
     use_speaker_boost: true,
     speed: 1.15,
+  },
+  'life-balance-coach': {
+    stability: 0.45,  // daha sakin
+    similarity_boost: 0.85,
+    style: 0.40,      // yumuşak
+    use_speaker_boost: true,
+    speed: 0.95,      // yavaş, huzurlu
+  },
+  'communication-coach': {
+    stability: 0.35,
+    similarity_boost: 0.85,
+    style: 0.55,
+    use_speaker_boost: true,
+    speed: 1.05,
+  },
+  'business-development-coach': {
+    stability: 0.30,
+    similarity_boost: 0.85,
+    style: 0.60,      // enerjik
+    use_speaker_boost: true,
+    speed: 1.10,
+  },
+  'brand-mentor': {
+    stability: 0.35,
+    similarity_boost: 0.85,
+    style: 0.55,      // yaratıcı
+    use_speaker_boost: true,
+    speed: 1.05,
+  },
+  'ai-future-mentor': {
+    stability: 0.40,
+    similarity_boost: 0.85,
+    style: 0.50,
+    use_speaker_boost: true,
+    speed: 1.08,
   },
 };
 
