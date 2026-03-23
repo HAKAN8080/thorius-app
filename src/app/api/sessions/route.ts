@@ -33,7 +33,72 @@ export async function POST(req: Request) {
     return new Response(JSON.stringify({ error: 'Yetkisiz' }), { status: 401 });
   }
 
-  const { mentorId, mentorName, mentorTitle, messages, agenda } = await req.json();
+  const { sessionId, mentorId, mentorName, mentorTitle, messages, agenda } = await req.json();
+
+  // Eğer sessionId varsa, mevcut seansı tamamla (güncelle)
+  if (sessionId) {
+    const sessionRef = getDb().collection('sessions').doc(sessionId);
+    const sessionDoc = await sessionRef.get();
+
+    if (!sessionDoc.exists || sessionDoc.data()?.userId !== user.id) {
+      return new Response(JSON.stringify({ error: 'Seans bulunamadı' }), { status: 404 });
+    }
+
+    // Konuşma metnini oluştur
+    const conversation = messages
+      .filter((m: { role: string; text: string }) => m.text?.trim())
+      .map((m: { role: string; text: string }) =>
+        `${m.role === 'user' ? 'Kullanıcı' : 'Koç/Mentor'}: ${m.text}`
+      )
+      .join('\n\n');
+
+    // Claude ile özet + ödev üret
+    let summary = '';
+    let homeworkItems: string[] = [];
+
+    try {
+      const { text } = await generateText({
+        model: anthropic('claude-haiku-4-5-20251001'),
+        prompt: `Aşağıdaki koçluk/mentorluk görüşmesini analiz et. Türkçe olarak SADECE JSON formatında yanıtla, başka hiçbir şey yazma:
+
+{"summary":"2-3 cümlelik özet","homework":["ödev 1","ödev 2"]}
+
+Kurallar:
+- summary: görüşmede ne konuşuldu, ne üzerinde çalışıldı (2-3 cümle)
+- homework: kişinin taahhüt ettiği veya yapması gereken 2-4 somut, uygulanabilir eylem adımı
+- Eğer net eylem adımı yoksa genel gelişim önerileri yaz
+
+Görüşme:
+${conversation}`,
+        maxOutputTokens: 400,
+      });
+
+      const cleaned = text.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+      const json = JSON.parse(cleaned);
+      summary = json.summary ?? '';
+      homeworkItems = json.homework ?? [];
+    } catch {
+      summary = 'Seans tamamlandı.';
+      homeworkItems = [];
+    }
+
+    const homework = homeworkItems.map((text: string, i: number) => ({
+      id: `hw_${i}`,
+      text,
+      completed: false,
+    }));
+
+    await sessionRef.update({
+      status: 'completed',
+      completedAt: new Date().toISOString(),
+      summary,
+      homework,
+      messageCount: messages.length,
+      messages: messages.map((m: { role: string; text: string }) => ({ role: m.role, text: m.text })),
+    });
+
+    return Response.json({ id: sessionId, summary, homework });
+  }
 
   // Konuşma metnini oluştur
   const conversation = messages

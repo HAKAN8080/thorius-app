@@ -19,35 +19,57 @@ interface ChatInterfaceProps {
   mentor: Mentor;
 }
 
-async function saveSession(
+// İlk mesajda seansı başlat
+async function startSession(
   mentor: Mentor,
-  messages: Array<{ role: string; content?: string; parts?: Array<{ type: string; text?: string }> }>,
-  onSessionSaved?: (id: string) => void
+  firstMessage: string,
+  onSessionStarted?: (id: string) => void
 ) {
-  // İlk gerçek kullanıcı mesajını gündem olarak kaydet
-  const firstUserMsg = messages.find(
-    (m) => m.role === 'user' && getTextContent(m) !== '__KAPANIS__' && getTextContent(m).trim()
-  );
-  const agenda = firstUserMsg ? getTextContent(firstUserMsg).slice(0, 300) : null;
-
   try {
-    const res = await fetch('/api/sessions', {
+    const res = await fetch('/api/sessions/start', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         mentorId: mentor.id,
         mentorName: mentor.name,
         mentorTitle: mentor.title,
-        messages: messages.map((m) => ({ role: m.role, text: getTextContent(m) })),
-        agenda,
+        firstMessage,
       }),
     });
     const data = await res.json();
-    if (data.id && onSessionSaved) {
-      onSessionSaved(data.id);
+    if (data.id && onSessionStarted) {
+      onSessionStarted(data.id);
+    }
+    return data.id;
+  } catch {
+    return null;
+  }
+}
+
+// Seansı tamamla (özet ve ödev oluştur)
+async function completeSession(
+  sessionId: string,
+  mentor: Mentor,
+  messages: Array<{ role: string; content?: string; parts?: Array<{ type: string; text?: string }> }>,
+  onSessionCompleted?: () => void
+) {
+  try {
+    await fetch('/api/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId,
+        mentorId: mentor.id,
+        mentorName: mentor.name,
+        mentorTitle: mentor.title,
+        messages: messages.map((m) => ({ role: m.role, text: getTextContent(m) })),
+      }),
+    });
+    if (onSessionCompleted) {
+      onSessionCompleted();
     }
   } catch {
-    // sessiz hata — kullanıcıyı etkilemesin
+    // sessiz hata
   }
 }
 
@@ -72,7 +94,9 @@ interface LimitInfo {
 export function ChatInterface({ mentor }: ChatInterfaceProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState('');
-  const [sessionSaved, setSessionSaved] = useState(false);
+  const [sessionStarted, setSessionStarted] = useState(false);
+  const [sessionCompleted, setSessionCompleted] = useState(false);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [limitInfo, setLimitInfo] = useState<LimitInfo | null>(null);
 
   const [closingSent, setClosingSent] = useState(false);
@@ -221,6 +245,21 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
       .catch(() => {});
   }, []);
 
+  // Seans aktifken sayfa değişikliğinde uyarı ver
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (sessionStarted && !sessionCompleted) {
+        e.preventDefault();
+        // Modern tarayıcılar custom mesaj göstermiyor ama returnValue gerekli
+        e.returnValue = 'Seans hakkınız düştü. Seans bitmeden çıkış yapmak istediğinize emin misiniz?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [sessionStarted, sessionCompleted]);
+
   const { messages, sendMessage, status } = useChat({
     transport: new TextStreamChatTransport({
       api: '/api/chat',
@@ -264,22 +303,40 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, voiceMode]);
 
-  // Kapanış cevabı gelince kaydet
+  // Kapanış cevabı gelince seansı tamamla
   useEffect(() => {
-    if (!closingSent || sessionSaved || isLoading || messages.length <= 1) return;
+    if (!closingSent || sessionCompleted || isLoading || messages.length <= 1) return;
+    if (!activeSessionId) return; // seans başlatılmamışsa
     const lastMsg = messages[messages.length - 1];
     if (lastMsg?.role !== 'assistant') return;
-    setSessionSaved(true);
-    saveSession(mentor, messages as Parameters<typeof saveSession>[1], (id) => {
-      setSessionId(id);
-      setShowRating(true);
+    setSessionCompleted(true);
+    setSessionId(activeSessionId);
+    setShowRating(true);
+    completeSession(activeSessionId, mentor, messages as Parameters<typeof completeSession>[2], () => {
+      // Tamamlandı
     });
-  }, [closingSent, sessionSaved, isLoading, messages, mentor]);
+  }, [closingSent, sessionCompleted, isLoading, messages, mentor, activeSessionId]);
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading || sessionEnded) return;
-    sendMessage({ role: 'user', parts: [{ type: 'text', text: input }] });
+
+    const messageText = input.trim();
+
+    // İlk mesajda seansı başlat (hak düşsün)
+    if (!sessionStarted && userMessageCount === 0) {
+      setSessionStarted(true);
+      const id = await startSession(mentor, messageText, (sessionId) => {
+        setActiveSessionId(sessionId);
+      });
+      if (!id) {
+        // Seans başlatılamadı (limit dolmuş olabilir)
+        setSessionStarted(false);
+        return;
+      }
+    }
+
+    sendMessage({ role: 'user', parts: [{ type: 'text', text: messageText }] });
     setInput('');
   };
 
@@ -524,7 +581,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
               null
             )}
 
-            {sessionEnded && sessionSaved && (
+            {sessionEnded && sessionCompleted && (
               <div className="rounded-2xl border border-primary/20 bg-gradient-to-b from-primary/5 to-transparent px-6 py-6">
                 {/* Rating Form */}
                 {showRating && !ratingSubmitted && (

@@ -16,17 +16,27 @@ export async function POST(req: Request) {
     });
   }
 
-  // Seans limiti kontrolü — user.sessionLimit öncelikli, fallback plan bazlı
-  const sessionLimit = user.sessionLimit ?? (user.plan ? PLAN_LIMITS[user.plan] : 1);
-  const snap = await getDb().collection('sessions').where('userId', '==', user.id).get();
-  if (snap.size >= sessionLimit) {
-    return new Response(
-      JSON.stringify({ error: 'SESSION_LIMIT_REACHED', plan: user.plan ?? 'free' }),
-      { status: 403, headers: { 'Content-Type': 'application/json' } }
-    );
-  }
-
   const { messages, mentorId, customSystemPrompt, isLastMessage: isLastMsg } = await req.json();
+
+  // Kullanıcının seanslarını al
+  const snap = await getDb().collection('sessions').where('userId', '==', user.id).get();
+
+  // Bu mentor ile aktif seans var mı kontrol et
+  const activeSession = snap.docs.find(d =>
+    d.data().mentorId === mentorId && d.data().status === 'active'
+  );
+
+  // Aktif seans yoksa ve bu ilk mesaj değilse, limit kontrolü yap
+  if (!activeSession) {
+    const sessionLimit = user.sessionLimit ?? (user.plan ? PLAN_LIMITS[user.plan] : 1);
+    // Tamamlanmış + aktif seansları say
+    if (snap.size >= sessionLimit) {
+      return new Response(
+        JSON.stringify({ error: 'SESSION_LIMIT_REACHED', plan: user.plan ?? 'free' }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+  }
 
   // Bu mentor ile önceki seansin gündemini bul (hafıza)
   const userMessages = messages.filter((m: { role: string }) => m.role === 'user');

@@ -29,6 +29,19 @@ export interface User {
   sessionLimit?: number;
   isPremium?: boolean;
   emailVerified?: boolean;
+  isAdmin?: boolean;
+}
+
+// Admin email listesi
+const ADMIN_EMAILS = [
+  'admin@thorius.com.tr',
+  'destek@thorius.com.tr',
+  // Buraya admin emaillerini ekle
+];
+
+export function isAdminUser(user: User | null): boolean {
+  if (!user) return false;
+  return user.isAdmin === true || ADMIN_EMAILS.includes(user.email.toLowerCase());
 }
 
 export interface StoredUser extends User {
