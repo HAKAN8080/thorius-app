@@ -64,12 +64,16 @@ export async function POST(req: Request) {
   // Kaçıncı mesaj olduğuna göre alıntı kullanımını zorla
   const currentMessageNum = userMessages.length;
   const shouldUseQuote = currentMessageNum >= 2; // 2. mesajdan itibaren alıntı kullan
+  const remainingQuestions = 10 - currentMessageNum;
+
+  // AI'a seans durumunu bildir
+  const sessionStatus = `\n\n📊 **SEANS DURUMU:** Bu ${currentMessageNum}. soru. Kullanıcının ${remainingQuestions} sorusu daha var. ${remainingQuestions > 2 ? 'KAPANIŞ YAPMA, konuyu derinleştir ve soru sor!' : ''}`;
 
   const quoteInstruction = shouldUseQuote
-    ? `\n\n🎯 **ÖNEMLİ - BU YANIT İÇİN:** Yanıtında aşağıdaki alıntılardan BİRİNİ MUTLAKA kullan. Alıntıyı doğal şekilde konuya bağla, örneğin: "${shuffledLeaders[0]?.name || 'Bir düşünür'}'ün dediği gibi: '...'" şeklinde.\n\nKULLANABİLECEĞİN ALINTILAR:\n${leaderInfo}\n\nKİTAP ÖNERİLERİ (uygun anlarda öner):\n${bookList}`
-    : `\n\n📚 Sohbet sırasında kullanabileceğin kaynaklar:\n${leaderInfo}\n${bookList}`;
+    ? `\n\n🎯 **BU YANIT İÇİN:** Aşağıdaki alıntılardan BİRİNİ MUTLAKA kullan. Doğal şekilde konuya bağla.\n\nALINTILAR:\n${leaderInfo}\n\nKİTAPLAR:\n${bookList}`
+    : `\n\n📚 Kullanabileceğin kaynaklar:\n${leaderInfo}\n${bookList}`;
 
-  systemPrompt += quoteInstruction;
+  systemPrompt += sessionStatus + quoteInstruction;
 
   // İlk mesajsa ve önceki gündem varsa mentora hatırlat
   if (previousAgenda) {
