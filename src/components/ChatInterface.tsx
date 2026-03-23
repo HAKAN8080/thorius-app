@@ -137,10 +137,15 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   const [ratingError, setRatingError] = useState<string | null>(null);
 
   async function submitRating() {
-    if (!sessionId || !allRated) return;
+    console.log('[DEBUG] submitRating called, sessionId:', sessionId, 'allRated:', allRated);
+    if (!sessionId || !allRated) {
+      console.log('[DEBUG] submitRating aborted - missing sessionId or not all rated');
+      return;
+    }
     setRatingLoading(true);
     setRatingError(null);
     try {
+      console.log('[DEBUG] Sending rating request:', { sessionId, ratings, npsScore });
       const res = await fetch('/api/sessions/rate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -317,9 +322,13 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   // Kapanış cevabı gelince seansı tamamla
   useEffect(() => {
     if (!closingSent || sessionCompleted || isLoading || messages.length <= 1) return;
-    if (!activeSessionId) return; // seans başlatılmamışsa
+    if (!activeSessionId) {
+      console.log('[DEBUG] activeSessionId yok, session completion atlanıyor');
+      return;
+    }
     const lastMsg = messages[messages.length - 1];
     if (lastMsg?.role !== 'assistant') return;
+    console.log('[DEBUG] Session completing, activeSessionId:', activeSessionId);
     setSessionCompleted(true);
     setSessionId(activeSessionId);
     setShowRating(true);
@@ -341,6 +350,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
     if (!sessionStarted && userMessageCount === 0) {
       setSessionStarted(true);
       const id = await startSession(mentor, messageText, (sessionId) => {
+        console.log('[DEBUG] Session started, activeSessionId set to:', sessionId);
         setActiveSessionId(sessionId);
       });
       if (!id) {
