@@ -2,20 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 
 const MENTOR_VOICES: Record<string, string> = {
-  // Erkek sesler
-  'executive-coach':    'dDcfsSsiSzmphdMGCECb',  // Tok, otoriter erkek sesi
-  'tech-mentor':        'TxGEqnHWrfWFTfGW9XjX',  // Josh - teknik, net
-  'business-mentor':    'VR6AewLTigWG4xSOukaG',  // Arnold - otoriteli
-  'entrepreneur-mentor':'yoZ06UM52cGeYr0cd1gS',  // Erkek - enerjik
-  'brand-mentor':       'ErXwobaYiN019PkySvjV',  // Antoni - yaratıcı, sıcak erkek
-  'ai-future-mentor':   'TxGEqnHWrfWFTfGW9XjX',  // Josh - teknoloji odaklı
-  // Kadın sesler
-  'career-coach':       '8WPhqbK1tiExOyeiOUT0',  // AI Koç 2 özel sesi
-  'student-coach':      'pFZP5JQG7iQjIQuC4Bku',  // Lily - sakin, huzurlu (öğrenci koçu için)
-  'reverse-mentor':     'otKlcYhsm8jfsCjDAfhX',  // Z kuşağı - genç
-  'life-balance-coach': 'pFZP5JQG7iQjIQuC4Bku', // Lily - sakin, huzurlu kadın
-  'communication-coach':'jBpfuIE2acCO8z3wKNLl', // Gigi - net, etkili kadın
-  'business-development-coach': 'oWAxZDx7w5VEj9dCyTzz', // Grace - enerjik kadın
+  'executive-coach':            'dDcfsSsiSzmphdMGCECb',  // AI Koç 1 — tok, otoriter
+  'career-coach':               '8WPhqbK1tiExOyeiOUT0',  // AI Koç 2 — özel ses
+  'student-coach':              'LtPsVjX1k0Kl4StEMZPK',  // AI Koç 3 — özel ses
+  'life-balance-coach':         'pFZP5JQG7iQjIQuC4Bku',  // AI Koç 4 — sakin, huzurlu
+  'communication-coach':        'AtCqglsS9sXaXLbu0Zco',  // AI Koç 5 — özel ses
+  'business-development-coach': 'QttbagfgqUCm9K0VgUyT',  // AI Koç 6 — özel ses
+  'tech-mentor':                'PdYVUd1CAGSXsTvZZTNn',  // AI Mentor 1 — özel ses
+  'business-mentor':            'VR6AewLTigWG4xSOukaG',  // AI Mentor 2 — Arnold
+  'entrepreneur-mentor':        'KbaseEXyT9EE0CQLEfbB',  // AI Mentor 3 — özel ses
+  'reverse-mentor':             'UgBBYS2sOqTuMpoF3BR0',  // AI Mentor 4 — özel ses
+  'brand-mentor':               'j9K9HnBcmgA6xNWqjlX0',  // AI Mentor 5 — özel ses
+  'ai-future-mentor':           'j9K9HnBcmgA6xNWqjlX0',  // AI Mentor 6 — özel ses
 };
 
 // Her mentor için ses ayarları
