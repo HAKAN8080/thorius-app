@@ -22,9 +22,6 @@ export async function proxy(req: NextRequest) {
   const isProtected = PROTECTED_PATHS.some((path) => pathname.startsWith(path));
   const isAdmin = ADMIN_PATHS.some((path) => pathname.startsWith(path));
 
-  // Setup endpoint'i herkese açık (bir kerelik kullanım)
-  if (pathname === '/api/admin/setup') return NextResponse.next();
-
   // Admin veya protected değilse geç
   if (!isProtected && !isAdmin) return NextResponse.next();
 
