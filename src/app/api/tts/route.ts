@@ -11,7 +11,7 @@ const MENTOR_VOICES: Record<string, string> = {
   'ai-future-mentor':   'TxGEqnHWrfWFTfGW9XjX',  // Josh - teknoloji odaklı
   // Kadın sesler
   'career-coach':       'EXAVITQu4vr4xnSDxMaL',  // Bella - profesyonel kadın
-  'student-coach':      'MF3mGyEYCl7XYWbV9V6O',  // Emily - genç, enerjik
+  'student-coach':      'pFZP5JQG7iQjIQuC4Bku',  // Lily - sakin, huzurlu (öğrenci koçu için)
   'reverse-mentor':     'otKlcYhsm8jfsCjDAfhX',  // Z kuşağı - genç
   'life-balance-coach': 'pFZP5JQG7iQjIQuC4Bku', // Lily - sakin, huzurlu kadın
   'communication-coach':'jBpfuIE2acCO8z3wKNLl', // Gigi - net, etkili kadın
@@ -20,6 +20,13 @@ const MENTOR_VOICES: Record<string, string> = {
 
 // Her mentor için ses ayarları
 const VOICE_SETTINGS: Record<string, object> = {
+  'student-coach': {
+    stability: 0.50,       // sakin, tutarlı
+    similarity_boost: 0.85,
+    style: 0.35,           // yumuşak, destekleyici
+    use_speaker_boost: true,
+    speed: 0.92,           // yavaş, huzurlu tempo
+  },
   'reverse-mentor': {
     stability: 0.25,
     similarity_boost: 0.80,
