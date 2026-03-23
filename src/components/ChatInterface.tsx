@@ -74,6 +74,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [voiceMode, setVoiceMode] = useState(true);
   const [audioTime, setAudioTime] = useState(0);
+  const [preparingAudioId, setPreparingAudioId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
   const wordTimingsRef = useRef<Map<string, Array<{ word: string; start: number; end: number }>>>(new Map());
@@ -82,10 +83,11 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
     if (playingId === messageId) {
       audioRef.current?.pause();
       setPlayingId(null);
+      setPreparingAudioId(null);
       setAudioTime(0);
       return;
     }
-    setPlayingId(messageId);
+    setPreparingAudioId(messageId);
     setAudioTime(0);
     try {
       const res = await fetch('/api/tts', {
@@ -93,7 +95,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text, mentorId: mentor.id }),
       });
-      if (!res.ok) { setPlayingId(null); return; }
+      if (!res.ok) { setPreparingAudioId(null); return; }
       const data = await res.json() as { audioBase64: string; wordTimings: Array<{ word: string; start: number; end: number }> };
       wordTimingsRef.current.set(messageId, data.wordTimings ?? []);
       const audioBytes = Uint8Array.from(atob(data.audioBase64), (c) => c.charCodeAt(0));
@@ -102,9 +104,11 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
       if (audioRef.current) { audioRef.current.pause(); }
       audioRef.current = new Audio(url);
       audioRef.current.ontimeupdate = () => setAudioTime(audioRef.current?.currentTime ?? 0);
+      setPreparingAudioId(null);
+      setPlayingId(messageId);
       audioRef.current.play();
       audioRef.current.onended = () => { setPlayingId(null); setAudioTime(0); URL.revokeObjectURL(url); };
-    } catch { setPlayingId(null); }
+    } catch { setPreparingAudioId(null); setPlayingId(null); }
   }
 
   function renderHighlightedText(text: string, messageId: string) {
@@ -287,21 +291,41 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
         </p>
       </div>
 
-      <div className="flex h-[calc(100vh-14rem)] flex-col rounded-xl border border-border/50 bg-card/30 backdrop-blur-sm">
+      <div className="flex h-[calc(100vh-14rem)] flex-col rounded-2xl border-2 border-border/80 bg-gradient-to-b from-card/80 to-card/40 shadow-2xl shadow-primary/5 backdrop-blur-md">
         {/* Header */}
-        <div className="flex items-center gap-3 border-b border-border/50 p-4">
-          <MentorAvatar size="md" />
-          <div>
-            <h3 className="font-semibold">{mentor.name}</h3>
-            <p className="text-sm text-muted-foreground">{mentor.title}</p>
+        <div className="flex items-center gap-4 border-b-2 border-border/60 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 px-5 py-4">
+          <div className="relative">
+            <MentorAvatar size="md" />
+            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card bg-green-500" />
           </div>
-          <div className="ml-auto flex items-center gap-3">
-            <span className={cn(
-              'text-xs font-medium tabular-nums',
-              userMessageCount >= 8 ? 'text-amber-500' : 'text-muted-foreground'
+          <div className="flex-1">
+            <h3 className="text-base font-bold tracking-tight">{mentor.name}</h3>
+            <p className="text-sm font-medium text-muted-foreground">{mentor.title}</p>
+          </div>
+          <div className="flex items-center gap-4">
+            {/* Soru Sayacı */}
+            <div className={cn(
+              'flex items-center gap-2 rounded-full border px-3 py-1.5',
+              userMessageCount >= 8
+                ? 'border-amber-500/50 bg-amber-500/10 text-amber-600'
+                : 'border-border bg-muted/50 text-muted-foreground'
             )}>
-              {userMessageCount}/{MAX_USER_MESSAGES} soru
-            </span>
+              <div className="flex gap-0.5">
+                {Array.from({ length: MAX_USER_MESSAGES }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      'h-1.5 w-1.5 rounded-full transition-colors',
+                      i < userMessageCount ? 'bg-primary' : 'bg-border'
+                    )}
+                  />
+                ))}
+              </div>
+              <span className="text-xs font-semibold tabular-nums">
+                {userMessageCount}/{MAX_USER_MESSAGES}
+              </span>
+            </div>
+            {/* Ses/Metin Toggle */}
             <button
               onClick={() => {
                 if (voiceMode) { audioRef.current?.pause(); setPlayingId(null); }
@@ -309,21 +333,15 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
               }}
               title={voiceMode ? 'Sesi kapat (metin modu)' : 'Sesi aç (sesli mod)'}
               className={cn(
-                'flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
+                'flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-semibold transition-all',
                 voiceMode
-                  ? 'bg-primary/15 text-primary hover:bg-primary/25'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  ? 'border-primary/50 bg-primary/10 text-primary shadow-sm shadow-primary/20 hover:bg-primary/20'
+                  : 'border-border bg-muted/50 text-muted-foreground hover:bg-muted'
               )}
             >
-              {voiceMode ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+              {voiceMode ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
               {voiceMode ? 'Sesli' : 'Metin'}
             </button>
-            {!sessionEnded && (
-              <div className="flex items-center gap-1.5 text-xs text-green-500">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
-                Çevrimiçi
-              </div>
-            )}
           </div>
         </div>
 
@@ -332,53 +350,64 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
           <div className="space-y-4">
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="mb-4"><MentorAvatar size="lg" /></div>
-                <h3 className="mb-2 text-lg font-semibold">Merhaba! Ben {mentor.title}</h3>
-                <p className="max-w-md text-sm text-muted-foreground">
+                <div className="relative mb-6">
+                  <div className="absolute -inset-4 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 blur-xl" />
+                  <div className="relative rounded-full border-4 border-primary/20 p-1">
+                    <MentorAvatar size="lg" />
+                  </div>
+                </div>
+                <h3 className="mb-2 text-xl font-bold tracking-tight">Merhaba! Ben {mentor.title}</h3>
+                <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
                   {mentor.description}. Bugün sana nasıl yardımcı olabilirim?
                 </p>
-                <div className="mt-4 flex flex-wrap justify-center gap-2">
+                <div className="mt-5 flex flex-wrap justify-center gap-2">
                   {mentor.expertise.map((skill) => (
-                    <span key={skill} className="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary">
+                    <span key={skill} className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary shadow-sm">
                       {skill}
                     </span>
                   ))}
                 </div>
-                <p className="mt-6 text-xs text-muted-foreground">
-                  Bu seansta <span className="font-medium">{MAX_USER_MESSAGES} soru</span> hakkınız var.
-                </p>
+                <div className="mt-6 flex items-center gap-2 rounded-full border border-border bg-muted/50 px-4 py-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Bu seansta <span className="font-bold text-foreground">{MAX_USER_MESSAGES} soru</span> hakkınız var
+                  </p>
+                </div>
               </div>
             )}
 
             {visibleMessages.map((message) => {
               const text = getTextContent(message as Parameters<typeof getTextContent>[0]);
               if (!text) return null;
-              // Sesli modda: streaming devam eden son asistan mesajını gizle (ses+yazı birlikte gelsin)
+              // Sesli modda: streaming veya ses hazırlanırken mesajı gizle
               const isStreamingThisMsg = voiceMode && status === 'streaming' &&
                 message.role === 'assistant' && message.id === messages[messages.length - 1]?.id;
-              if (isStreamingThisMsg) return null;
+              const isPreparingThisMsg = voiceMode && preparingAudioId === message.id;
+              if (isStreamingThisMsg || isPreparingThisMsg) return null;
               return (
                 <div key={message.id} className={cn('flex gap-3', message.role === 'user' ? 'flex-row-reverse' : '')}>
                   {message.role === 'user' ? (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-secondary/30 to-primary/30 text-sm">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-primary/30 bg-gradient-to-br from-secondary/20 to-primary/20 text-sm shadow-sm">
                       👤
                     </div>
                   ) : (
-                    <div className="shrink-0"><MentorAvatar size="sm" /></div>
+                    <div className="shrink-0 rounded-full ring-2 ring-primary/20 ring-offset-2 ring-offset-background">
+                      <MentorAvatar size="sm" />
+                    </div>
                   )}
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col gap-1.5 max-w-[80%]">
                     <div className={cn(
-                      'max-w-[80%] rounded-2xl px-4 py-2.5',
+                      'rounded-2xl px-4 py-3 shadow-sm',
                       message.role === 'user'
-                        ? 'bg-gradient-to-r from-primary to-secondary text-primary-foreground'
-                        : 'bg-muted/50'
+                        ? 'rounded-br-md bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-primary/20'
+                        : 'rounded-bl-md border border-border/50 bg-card/80 shadow-sm'
                     )}>
                       {message.role === 'assistant' ? renderHighlightedText(text, message.id) : <p className="whitespace-pre-wrap text-sm leading-relaxed">{text}</p>}
                     </div>
                     {message.role === 'assistant' && playingId === message.id && (
                       <button
                         onClick={() => { audioRef.current?.pause(); setPlayingId(null); }}
-                        className="flex items-center gap-1 self-start rounded-full px-2 py-0.5 text-[11px] text-primary transition-colors"
+                        className="flex items-center gap-1.5 self-start rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary transition-colors hover:bg-primary/20"
                       >
                         <VolumeX className="h-3 w-3" /> Durdur
                       </button>
@@ -388,14 +417,31 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
               );
             })}
 
-            {(status === 'submitted' || (voiceMode && status === 'streaming')) && (
+            {(status === 'submitted' || (voiceMode && status === 'streaming') || preparingAudioId) && (
               <div className="flex gap-3">
-                <div className="shrink-0"><MentorAvatar size="sm" /></div>
-                <div className="flex items-center gap-2 rounded-2xl bg-muted/50 px-4 py-2.5">
-                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                  <span className="text-sm text-muted-foreground">
-                    {status === 'streaming' ? 'Hazırlanıyor...' : 'Düşünüyor...'}
-                  </span>
+                <div className="shrink-0 rounded-full ring-2 ring-primary/20 ring-offset-2 ring-offset-background">
+                  <MentorAvatar size="sm" />
+                </div>
+                <div className="flex items-center gap-3 rounded-2xl rounded-bl-md border border-border/50 bg-card/80 px-4 py-3 shadow-sm">
+                  {preparingAudioId ? (
+                    <>
+                      <Volume2 className="h-4 w-4 animate-pulse text-primary" />
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Sesli yanıt hazırlanıyor...
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex gap-1">
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-primary" />
+                      </div>
+                      <span className="text-sm font-medium text-muted-foreground">
+                        {voiceMode && status === 'streaming' ? 'Yanıt oluşturuluyor...' : 'Düşünüyor...'}
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -423,32 +469,34 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
         </ScrollArea>
 
         {/* Input */}
-        <form onSubmit={onSubmit} className="border-t border-border/50 p-4">
-          <div className="flex gap-2">
-            <Textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={sessionEnded ? 'Seans sona erdi.' : 'Mesajınızı yazın...'}
-              className="min-h-[48px] max-h-32 resize-none bg-muted/30"
-              disabled={sessionEnded}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  onSubmit(e);
-                }
-              }}
-            />
+        <form onSubmit={onSubmit} className="border-t-2 border-border/60 bg-gradient-to-r from-muted/30 via-transparent to-muted/30 p-4">
+          <div className="flex gap-3">
+            <div className="relative flex-1">
+              <Textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={sessionEnded ? 'Seans sona erdi.' : 'Mesajınızı yazın...'}
+                className="min-h-[52px] max-h-32 resize-none rounded-xl border-2 border-border/80 bg-card/80 pr-4 text-sm shadow-inner focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+                disabled={sessionEnded}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    onSubmit(e);
+                  }
+                }}
+              />
+            </div>
             <Button
               type="submit"
               size="icon"
               disabled={isLoading || !input.trim() || sessionEnded}
-              className="h-12 w-12 shrink-0 bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+              className="h-[52px] w-[52px] shrink-0 rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary to-secondary shadow-lg shadow-primary/25 transition-all hover:scale-105 hover:shadow-xl hover:shadow-primary/30 disabled:hover:scale-100"
             >
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
             </Button>
           </div>
-          <p className="mt-2 text-center text-xs text-muted-foreground">
-            <Sparkles className="mr-1 inline h-3 w-3" />
+          <p className="mt-3 text-center text-xs font-medium text-muted-foreground">
+            <Sparkles className="mr-1 inline h-3 w-3 text-primary" />
             Claude Sonnet 4.6 ile desteklenmektedir
           </p>
         </form>
