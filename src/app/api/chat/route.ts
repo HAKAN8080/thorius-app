@@ -38,13 +38,19 @@ export async function POST(req: Request) {
     }
   }
 
-  // Bu mentor ile önceki seansin gündemini bul (hafıza)
+  // Bu mentor ile önceki TAMAMLANMIŞ seansin gündemini bul (hafıza)
+  // NOT: Aktif seansları hariç tut - yoksa az önce başlatılan seans "önceki seans" olarak algılanır
   const userMessages = messages.filter((m: { role: string }) => m.role === 'user');
   const isFirstMessage = userMessages.length === 1;
   let previousAgenda: string | null = null;
   if (isFirstMessage) {
     const lastMentorSession = snap.docs
-      .filter((d) => d.data().mentorId === mentorId && d.data().agenda)
+      .filter((d) => {
+        const data = d.data();
+        return data.mentorId === mentorId &&
+               data.agenda &&
+               data.status === 'completed'; // Sadece tamamlanmış seanslar
+      })
       .sort((a, b) => new Date(b.data().createdAt).getTime() - new Date(a.data().createdAt).getTime())[0];
     previousAgenda = lastMentorSession?.data().agenda ?? null;
   }
