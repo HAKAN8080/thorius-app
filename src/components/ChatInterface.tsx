@@ -96,6 +96,8 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
     communication: 0,
     overall: 0,
   });
+  const [npsScore, setNpsScore] = useState<number | null>(null);
+  const [feedbackComment, setFeedbackComment] = useState('');
 
   const RATING_QUESTIONS = [
     { key: 'contentQuality', label: 'İçerik Yeterliliği', desc: 'Verilen bilgiler faydalı mıydı?' },
@@ -105,7 +107,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
     { key: 'overall', label: 'Genel Değerlendirme', desc: 'Seansı genel olarak nasıl buldunuz?' },
   ] as const;
 
-  const allRated = Object.values(ratings).every(r => r > 0);
+  const allRated = Object.values(ratings).every(r => r > 0) && npsScore !== null;
 
   async function submitRating() {
     if (!sessionId || !allRated) return;
@@ -114,7 +116,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
       await fetch('/api/sessions/rate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, ratings }),
+        body: JSON.stringify({ sessionId, ratings, npsScore, comment: feedbackComment }),
       });
       setRatingSubmitted(true);
     } catch {
@@ -533,9 +535,9 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
                         Geri bildiriminiz hizmetimizi geliştirmemize yardımcı olur
                       </p>
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       {RATING_QUESTIONS.map(({ key, label, desc }) => (
-                        <div key={key} className="flex items-center justify-between gap-4 rounded-xl bg-card/50 px-4 py-3">
+                        <div key={key} className="flex items-center justify-between gap-4 rounded-xl bg-card/50 px-4 py-2.5">
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-foreground">{label}</p>
                             <p className="text-xs text-muted-foreground truncate">{desc}</p>
@@ -546,6 +548,59 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
                           />
                         </div>
                       ))}
+
+                      {/* NPS Sorusu */}
+                      <div className="mt-4 rounded-xl border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5 px-4 py-4">
+                        <p className="text-sm font-semibold text-foreground text-center mb-1">
+                          Thorius'u bir arkadaşınıza önerir misiniz?
+                        </p>
+                        <p className="text-xs text-muted-foreground text-center mb-3">
+                          0 = Kesinlikle hayır, 10 = Kesinlikle evet
+                        </p>
+                        <div className="flex justify-center gap-1">
+                          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
+                            <button
+                              key={score}
+                              type="button"
+                              onClick={() => setNpsScore(score)}
+                              className={cn(
+                                'h-8 w-8 rounded-lg text-xs font-bold transition-all',
+                                npsScore === score
+                                  ? score <= 6
+                                    ? 'bg-red-500 text-white scale-110'
+                                    : score <= 8
+                                    ? 'bg-amber-500 text-white scale-110'
+                                    : 'bg-green-500 text-white scale-110'
+                                  : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+                              )}
+                            >
+                              {score}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex justify-between mt-2 text-[10px] text-muted-foreground px-1">
+                          <span>Önermem</span>
+                          <span>Kesinlikle öneririm</span>
+                        </div>
+                      </div>
+
+                      {/* Açık Uçlu Yorum */}
+                      <div className="mt-4">
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Talep, Öneri veya Şikayetiniz
+                          <span className="text-muted-foreground font-normal ml-1">(opsiyonel)</span>
+                        </label>
+                        <Textarea
+                          value={feedbackComment}
+                          onChange={(e) => setFeedbackComment(e.target.value)}
+                          placeholder="Deneyiminizi nasıl geliştirebiliriz? Herhangi bir öneriniz veya şikayetiniz var mı?"
+                          className="min-h-[80px] resize-none rounded-xl border-border/80 bg-card/50 text-sm"
+                          maxLength={500}
+                        />
+                        <p className="mt-1 text-right text-xs text-muted-foreground">
+                          {feedbackComment.length}/500
+                        </p>
+                      </div>
                     </div>
                     <Button
                       onClick={submitRating}

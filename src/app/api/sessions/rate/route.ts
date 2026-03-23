@@ -8,6 +8,7 @@ export interface SessionRating {
   responseSpeed: number;       // Yanıt süresi
   communication: number;       // İletişim ve odaklanma
   overall: number;             // Genel değerlendirme
+  npsScore: number;            // Net Promoter Score (0-10)
   comment?: string;            // Opsiyonel yorum
   createdAt: string;
 }
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Yetkisiz' }, { status: 401 });
   }
 
-  const { sessionId, ratings, comment } = await req.json();
+  const { sessionId, ratings, npsScore, comment } = await req.json();
 
   if (!sessionId || !ratings) {
     return NextResponse.json({ error: 'Seans ID ve değerlendirmeler gerekli' }, { status: 400 });
@@ -30,6 +31,11 @@ export async function POST(req: Request) {
 
   if (allRatings.some(r => typeof r !== 'number' || r < 1 || r > 5)) {
     return NextResponse.json({ error: 'Değerlendirmeler 1-5 arası olmalı' }, { status: 400 });
+  }
+
+  // NPS kontrolü (0-10 arası)
+  if (typeof npsScore !== 'number' || npsScore < 0 || npsScore > 10) {
+    return NextResponse.json({ error: 'Öneri puanı 0-10 arası olmalı' }, { status: 400 });
   }
 
   // Session'ın bu kullanıcıya ait olduğunu kontrol et
@@ -50,6 +56,7 @@ export async function POST(req: Request) {
     responseSpeed,
     communication,
     overall,
+    npsScore,
     comment: comment?.trim() || undefined,
     createdAt: new Date().toISOString(),
   };
