@@ -100,6 +100,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   const [limitInfo, setLimitInfo] = useState<LimitInfo | null>(null);
 
   const [closingSent, setClosingSent] = useState(false);
+  const closingSentRef = useRef(false); // Duplicate gönderimi engellemek için
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [voiceMode, setVoiceMode] = useState(true);
   const [audioTime, setAudioTime] = useState(0);
@@ -283,9 +284,11 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
 
   // 10 soruya ulaşınca otomatik kapanış mesajı gönder
   useEffect(() => {
-    if (!sessionEnded || closingSent || isLoading) return;
+    // Ref ile anında kontrol - state gecikmesinden kaynaklanan duplicate'ı engeller
+    if (!sessionEnded || closingSentRef.current || closingSent || isLoading) return;
     const lastMsg = messages[messages.length - 1];
     if (lastMsg?.role !== 'assistant') return; // son AI cevabı bekliyoruz
+    closingSentRef.current = true; // Anında kilitle
     setClosingSent(true);
     sendMessage({ role: 'user', parts: [{ type: 'text', text: '__KAPANIS__' }] });
   }, [sessionEnded, closingSent, isLoading, messages, sendMessage]);
