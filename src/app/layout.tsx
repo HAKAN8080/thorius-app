@@ -14,8 +14,8 @@ export const metadata: Metadata = {
   title: "Thorius - AI Koç & Mentor Platformu",
   description: "Claude AI destekli profesyonel koçluk ve mentorluk platformu. Kişisel gelişim, kariyer ve iş hedeflerinize ulaşın.",
   icons: {
-    icon: '/favicon.jpg',
-    apple: '/favicon.jpg',
+    icon: '/favicon.svg',
+    apple: '/favicon.svg',
   },
 };
 
