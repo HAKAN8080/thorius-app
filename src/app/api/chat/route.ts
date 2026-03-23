@@ -148,9 +148,15 @@ TEKRAR: Hiçbir soru sormayacaksın. Sadece özet + ödev listesi + veda.\n\n`;
         : '',
   }));
 
+  // İlk 2 ve son 2 mesaj Sonnet, ortası Haiku
+  const useHaiku = currentMessageNum > 2 && currentMessageNum < 9;
+  const selectedModel = useHaiku
+    ? anthropic('claude-haiku-4-5-20251001')
+    : anthropic('claude-sonnet-4-6');
+
   try {
     const result = streamText({
-      model: anthropic('claude-sonnet-4-6'),
+      model: selectedModel,
       system: systemPrompt,
       messages: coreMessages,
       maxOutputTokens: 2048,
