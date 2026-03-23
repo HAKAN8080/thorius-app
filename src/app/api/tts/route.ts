@@ -3,7 +3,7 @@ import { getCurrentUser } from '@/lib/auth';
 
 const MENTOR_VOICES: Record<string, string> = {
   // Erkek sesler
-  'executive-coach':    'pNInz6obpgDQGcFmaJgB',  // Adam - derin, güvenilir
+  'executive-coach':    'dDcfsSsiSzmphdMGCECb',  // Tok, otoriter erkek sesi
   'tech-mentor':        'TxGEqnHWrfWFTfGW9XjX',  // Josh - teknik, net
   'business-mentor':    'VR6AewLTigWG4xSOukaG',  // Arnold - otoriteli
   'entrepreneur-mentor':'yoZ06UM52cGeYr0cd1gS',  // Erkek - enerjik
@@ -20,6 +20,13 @@ const MENTOR_VOICES: Record<string, string> = {
 
 // Her mentor için ses ayarları
 const VOICE_SETTINGS: Record<string, object> = {
+  'executive-coach': {
+    stability: 0.55,        // dengeli kararlılık = tok, tutarlı
+    similarity_boost: 0.90,
+    style: 0.30,            // hafif ekspresif ama ağır başlı
+    use_speaker_boost: true,
+    speed: 0.95,            // hafif yavaş = otoriter his
+  },
   'student-coach': {
     stability: 0.50,       // sakin, tutarlı
     similarity_boost: 0.85,
