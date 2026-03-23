@@ -85,9 +85,13 @@ export async function POST(req: Request) {
 
   systemPrompt += sessionStatus + quoteInstruction;
 
-  // İlk mesajsa ve önceki gündem varsa mentora hatırlat
-  if (previousAgenda) {
-    systemPrompt += `\n\n📌 ÖNCEKİ SEANS GÜNDEMI: "${previousAgenda}"\nBu ilk mesajında MUTLAKA şu şekilde başla: Geçen seanste konuştuğunuz konuyu kısaca hatırlat (1 cümle), ardından "Bugün bununla devam etmek ister misin, yoksa farklı bir gündemin mi var?" diye sor. Sonra kullanıcının cevabına göre devam et.`;
+  // İlk mesajsa ve önceki gündem varsa mentora hatırlat, yoksa ilk görüşme olduğunu belirt
+  if (isFirstMessage) {
+    if (previousAgenda) {
+      systemPrompt += `\n\n📌 ÖNCEKİ SEANS GÜNDEMI: "${previousAgenda}"\nBu ilk mesajında MUTLAKA şu şekilde başla: Geçen seanste konuştuğunuz konuyu kısaca hatırlat (1 cümle), ardından "Bugün bununla devam etmek ister misin, yoksa farklı bir gündemin mi var?" diye sor. Sonra kullanıcının cevabına göre devam et.`;
+    } else {
+      systemPrompt += `\n\n⚠️ ÖNEMLİ: Bu kullanıcıyla İLK KEZ görüşüyorsun. Daha önce hiç seans yapmadınız. "Geçen seans", "daha önce konuştuk", "hatırlarsın" gibi ifadeler KULLANMA. Direkt bugünkü gündemini sor: "Bugün hangi konuda çalışmak istersin?" veya "Bugün seni buraya ne getirdi?" gibi bir açılış yap.`;
+    }
   }
 
   // Kapanış kontrolü: gizli __KAPANIS__ mesajı veya flag
