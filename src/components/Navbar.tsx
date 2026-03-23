@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Menu, LogOut, User, LayoutDashboard, BarChart3, X, ChevronDown } from 'lucide-react';
+import { Menu, LogOut, User, LayoutDashboard, BarChart3, X, ChevronDown, Shield } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -11,6 +11,7 @@ interface AuthUser {
   name: string;
   email: string;
   plan?: string;
+  isAdmin?: boolean;
 }
 
 const NAV_LINKS = [
@@ -154,6 +155,14 @@ export function Navbar() {
                         Gelişim Raporum
                       </button>
                     </Link>
+                    {user.isAdmin && (
+                      <Link href="/admin" onClick={() => setUserMenuOpen(false)}>
+                        <button className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors">
+                          <Shield className="h-4 w-4 text-primary" />
+                          Admin Panel
+                        </button>
+                      </Link>
+                    )}
                     <div className="h-px bg-border my-1" />
                     <button
                       onClick={handleLogout}
@@ -230,6 +239,13 @@ export function Navbar() {
                     <BarChart3 className="h-4 w-4 text-muted-foreground" /> Gelişim Raporum
                   </button>
                 </Link>
+                {user.isAdmin && (
+                  <Link href="/admin" onClick={() => setIsMenuOpen(false)}>
+                    <button className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-muted">
+                      <Shield className="h-4 w-4 text-primary" /> Admin Panel
+                    </button>
+                  </Link>
+                )}
                 <button
                   onClick={() => { handleLogout(); setIsMenuOpen(false); }}
                   className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-red-600 hover:bg-red-50"
