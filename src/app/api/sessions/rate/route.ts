@@ -30,6 +30,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Seans ID ve değerlendirmeler gerekli' }, { status: 400 });
     }
 
+    // SessionId format kontrolü
+    if (typeof sessionId !== 'string' || sessionId.length < 10) {
+      console.log('[RATE] Geçersiz sessionId formatı:', sessionId);
+      return NextResponse.json({ error: 'Geçersiz seans ID formatı' }, { status: 400 });
+    }
+
     // Değerlendirmeleri kontrol et (1-5 arası)
     const { contentQuality, sessionDuration, responseSpeed, communication, overall } = ratings;
     const allRatings = [contentQuality, sessionDuration, responseSpeed, communication, overall];
@@ -70,10 +76,17 @@ export async function POST(req: Request) {
       createdAt: new Date().toISOString(),
     };
 
-    await getDb().collection('sessions').doc(sessionId).update({
-      rating,
-      ratedAt: new Date().toISOString(),
-    });
+    console.log('[RATE] Firestore update başlıyor:', sessionId);
+    try {
+      await getDb().collection('sessions').doc(sessionId).update({
+        rating,
+        ratedAt: new Date().toISOString(),
+      });
+      console.log('[RATE] Firestore update başarılı');
+    } catch (firestoreErr) {
+      console.error('[RATE] Firestore update hatası:', firestoreErr);
+      throw firestoreErr;
+    }
 
     // Ortalama hesapla
     const average = (contentQuality + sessionDuration + responseSpeed + communication + overall) / 5;
