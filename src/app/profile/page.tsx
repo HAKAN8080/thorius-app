@@ -146,20 +146,29 @@ export default function ProfilePage() {
     fetch('/api/auth/me')
       .then((r) => r.json())
       .then((data) => setUser(data.user ?? null))
-      .catch(() => {});
+      .catch((err) => console.error('[PROFILE] Auth error:', err));
 
     fetch('/api/sessions')
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((data) => {
         setSessions(data.sessions ?? []);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error('[PROFILE] Sessions error:', err);
+        setLoading(false);
+      });
 
     fetch('/api/sessions/schedule')
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((data) => setScheduled(data.sessions ?? []))
-      .catch(() => {});
+      .catch((err) => console.error('[PROFILE] Schedule error:', err));
   }, []);
 
   async function handleSchedule() {

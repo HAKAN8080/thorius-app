@@ -4,19 +4,24 @@ import { NextRequest } from 'next/server';
 
 // GET — kullanıcının planlanmış seanslarını getir
 export async function GET() {
-  const user = await getCurrentUser();
-  if (!user) return Response.json({ error: 'Yetkisiz' }, { status: 401 });
+  try {
+    const user = await getCurrentUser();
+    if (!user) return Response.json({ error: 'Yetkisiz' }, { status: 401 });
 
-  const snap = await getDb()
-    .collection('scheduled_sessions')
-    .where('userId', '==', user.id)
-    .get();
+    const snap = await getDb()
+      .collection('scheduled_sessions')
+      .where('userId', '==', user.id)
+      .get();
 
-  const sessions = snap.docs
-    .map((doc) => ({ id: doc.id, ...doc.data() }))
-    .sort((a: any, b: any) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
+    const sessions = snap.docs
+      .map((doc) => ({ id: doc.id, ...doc.data() }))
+      .sort((a: any, b: any) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
 
-  return Response.json({ sessions });
+    return Response.json({ sessions });
+  } catch (err) {
+    console.error('[SCHEDULE GET] Error:', err);
+    return Response.json({ sessions: [], error: String(err) });
+  }
 }
 
 // POST — yeni seans planla
