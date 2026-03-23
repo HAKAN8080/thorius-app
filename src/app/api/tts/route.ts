@@ -10,7 +10,7 @@ const MENTOR_VOICES: Record<string, string> = {
   'brand-mentor':       'ErXwobaYiN019PkySvjV',  // Antoni - yaratıcı, sıcak erkek
   'ai-future-mentor':   'TxGEqnHWrfWFTfGW9XjX',  // Josh - teknoloji odaklı
   // Kadın sesler
-  'career-coach':       'EXAVITQu4vr4xnSDxMaL',  // Bella - profesyonel kadın
+  'career-coach':       '8WPhqbK1tiExOyeiOUT0',  // AI Koç 2 özel sesi
   'student-coach':      'pFZP5JQG7iQjIQuC4Bku',  // Lily - sakin, huzurlu (öğrenci koçu için)
   'reverse-mentor':     'otKlcYhsm8jfsCjDAfhX',  // Z kuşağı - genç
   'life-balance-coach': 'pFZP5JQG7iQjIQuC4Bku', // Lily - sakin, huzurlu kadın
