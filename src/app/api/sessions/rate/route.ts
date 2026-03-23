@@ -64,17 +64,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Bu seans size ait değil' }, { status: 403 });
     }
 
-    // Değerlendirmeyi kaydet
-    const rating: SessionRating = {
+    // Değerlendirmeyi kaydet - Firestore undefined kabul etmez, sadece dolu alanları ekle
+    const rating: Partial<SessionRating> & { contentQuality: number; sessionDuration: number; responseSpeed: number; communication: number; overall: number; npsScore: number; createdAt: string } = {
       contentQuality,
       sessionDuration,
       responseSpeed,
       communication,
       overall,
       npsScore,
-      comment: comment?.trim() || undefined,
       createdAt: new Date().toISOString(),
     };
+
+    // Comment varsa ekle, yoksa ekleme (Firestore undefined kabul etmez)
+    const trimmedComment = comment?.trim();
+    if (trimmedComment) {
+      rating.comment = trimmedComment;
+    }
 
     console.log('[RATE] Firestore update başlıyor:', sessionId);
     try {
