@@ -18,6 +18,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'E-posta veya şifre hatalı.' }, { status: 401 });
   }
 
+  // Email doğrulama kontrolü
+  if (user.emailVerified === false) {
+    return NextResponse.json({
+      error: 'EMAIL_NOT_VERIFIED',
+      message: 'E-posta adresiniz henüz doğrulanmamış. Lütfen e-postanıza gönderilen linke tıklayın.',
+      email: user.email,
+    }, { status: 403 });
+  }
+
   const token = await signToken({ userId: user.id, email: user.email });
 
   const response = NextResponse.json({ success: true, user: { id: user.id, name: user.name, email: user.email } });

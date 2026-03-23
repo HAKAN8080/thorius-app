@@ -28,6 +28,7 @@ export interface User {
   planActivatedAt?: string;
   sessionLimit?: number;
   isPremium?: boolean;
+  emailVerified?: boolean;
 }
 
 export interface StoredUser extends User {

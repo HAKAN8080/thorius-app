@@ -75,8 +75,14 @@ export default function RegisterPage() {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? 'Kayıt olunamadı.'); return; }
-      router.push('/mentors');
-      router.refresh();
+      // Email doğrulama gerekiyorsa doğrulama sayfasına yönlendir
+      if (data.requiresVerification) {
+        router.push(`/auth/verify-email?pending=true&email=${encodeURIComponent(data.email)}`);
+      } else {
+        window.dispatchEvent(new Event('auth-change'));
+        router.push('/mentors');
+        router.refresh();
+      }
     } catch {
       setError('Bir hata oluştu. Lütfen tekrar deneyin.');
     } finally {

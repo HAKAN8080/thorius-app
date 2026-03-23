@@ -30,7 +30,8 @@ export function Navbar() {
   const [sessionInfo, setSessionInfo] = useState<{ sessionCount: number; sessionLimit: number } | null>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  // Auth durumunu kontrol eden fonksiyon
+  const checkAuth = () => {
     fetch('/api/auth/me')
       .then((r) => r.json())
       .then((data) => {
@@ -41,9 +42,20 @@ export function Navbar() {
             .then((r) => r.json())
             .then((d) => setSessionInfo({ sessionCount: d.sessionCount, sessionLimit: d.sessionLimit }))
             .catch(() => {});
+        } else {
+          setSessionInfo(null);
         }
       })
       .catch(() => setAuthChecked(true));
+  };
+
+  useEffect(() => {
+    checkAuth();
+
+    // Login/logout event'lerini dinle
+    const handleAuthChange = () => checkAuth();
+    window.addEventListener('auth-change', handleAuthChange);
+    return () => window.removeEventListener('auth-change', handleAuthChange);
   }, []);
 
   useEffect(() => {

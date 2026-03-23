@@ -34,7 +34,17 @@ function LoginForm() {
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error ?? 'Giriş yapılamadı.'); return; }
+      if (!res.ok) {
+        // Email doğrulanmamışsa özel hata göster
+        if (data.error === 'EMAIL_NOT_VERIFIED') {
+          router.push(`/auth/verify-email?pending=true&email=${encodeURIComponent(data.email)}`);
+          return;
+        }
+        setError(data.error ?? 'Giriş yapılamadı.');
+        return;
+      }
+      // Navbar'ı anında güncelle
+      window.dispatchEvent(new Event('auth-change'));
       router.push(from);
       router.refresh();
     } catch {
@@ -59,6 +69,9 @@ function LoginForm() {
           <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Şifre
           </label>
+          <Link href="/auth/forgot-password" className="text-xs font-medium text-primary hover:underline">
+            Şifremi Unuttum
+          </Link>
         </div>
         <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
           placeholder="••••••••" required autoComplete="current-password"
