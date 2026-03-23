@@ -317,9 +317,12 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
     });
   }, [closingSent, sessionCompleted, isLoading, messages, mentor, activeSessionId]);
 
+  const MIN_MESSAGE_LENGTH = 50;
+  const inputTooShort = input.trim().length > 0 && input.trim().length < MIN_MESSAGE_LENGTH;
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading || sessionEnded) return;
+    if (!input.trim() || isLoading || sessionEnded || inputTooShort) return;
 
     const messageText = input.trim();
 
@@ -723,12 +726,17 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
             <Button
               type="submit"
               size="icon"
-              disabled={isLoading || !input.trim() || sessionEnded}
+              disabled={isLoading || !input.trim() || sessionEnded || inputTooShort}
               className="h-[52px] w-[52px] shrink-0 rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary to-secondary shadow-lg shadow-primary/25 transition-all hover:scale-105 hover:shadow-xl hover:shadow-primary/30 disabled:hover:scale-100"
             >
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
             </Button>
           </div>
+          {inputTooShort && (
+            <p className="mt-2 text-center text-xs font-medium text-amber-600">
+              Lütfen biraz daha detay verin. (En az {MIN_MESSAGE_LENGTH} karakter, şu an: {input.trim().length})
+            </p>
+          )}
           <p className="mt-3 text-center text-xs font-medium text-muted-foreground">
             <Sparkles className="mr-1 inline h-3 w-3 text-primary" />
             Claude Sonnet 4.6 ile desteklenmektedir
