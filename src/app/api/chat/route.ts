@@ -95,6 +95,12 @@ export async function POST(req: Request) {
 
   systemPrompt += sessionStatus + quoteInstruction;
 
+  // Haiku küçük model — alıntı talimatını promptun başına da ekle ki atlamasın
+  const useHaikuCheck = currentMessageNum > 2 && currentMessageNum < 9;
+  if (useHaikuCheck && shouldUseQuote && !isStudentCoach) {
+    systemPrompt = `[ZORUNLU FORMAT] Yanıtına aşağıdaki alıntılardan BİRİNİ mutlaka dahil et:\n${leaderInfo}\n\nKitaplar: ${bookList}\n\n` + systemPrompt;
+  }
+
   // İlk mesajsa ve önceki gündem varsa mentora hatırlat, yoksa ilk görüşme olduğunu belirt
   if (isFirstMessage) {
     if (previousAgenda) {
