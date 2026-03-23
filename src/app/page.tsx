@@ -17,7 +17,7 @@ export default async function HomePage() {
   return (
     <div className="bg-white">
       {/* Free Trial Banner */}
-      <FreeTrialBanner />
+      <FreeTrialBanner isLoggedIn={!!user} />
 
       {/* ── Hero ────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
@@ -274,21 +274,33 @@ export default async function HomePage() {
               Gelişim yolculuğunuz bugün başlıyor
             </h2>
             <p className="mx-auto mb-8 max-w-xl text-base leading-relaxed text-white/80">
-              İlk seansınız ücretsiz. Kayıt olun, koçunuzu seçin ve
-              kariyer hedefinize doğru ilk adımı atın.
+              {user
+                ? 'Koçunuzu seçin ve gelişim yolculuğunuza devam edin.'
+                : 'İlk seansınız ücretsiz. Kayıt olun, koçunuzu seçin ve kariyer hedefinize doğru ilk adımı atın.'}
             </p>
             <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-              <Link href="/auth/register">
-                <Button size="lg" className="gap-2 bg-white px-8 text-base font-semibold text-primary hover:bg-white/90 shadow-lg">
-                  Ücretsiz Başla
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Link href="/mentors">
-                <Button size="lg" variant="outline" className="border-white/30 bg-white/10 px-8 text-base font-medium text-white hover:bg-white/25">
-                  Koçları Keşfet
-                </Button>
-              </Link>
+              {user ? (
+                <Link href="/mentors">
+                  <Button size="lg" className="gap-2 bg-white px-8 text-base font-semibold text-primary hover:bg-white/90 shadow-lg">
+                    Koçunu Seç
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link href="/auth/register">
+                    <Button size="lg" className="gap-2 bg-white px-8 text-base font-semibold text-primary hover:bg-white/90 shadow-lg">
+                      Ücretsiz Başla
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Link href="/mentors">
+                    <Button size="lg" variant="outline" className="border-white/30 bg-white/10 px-8 text-base font-medium text-white hover:bg-white/25">
+                      Koçları Keşfet
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

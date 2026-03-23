@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { X, ArrowRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
-export function FreeTrialBanner() {
+export function FreeTrialBanner({ isLoggedIn }: { isLoggedIn?: boolean }) {
   const [dismissed, setDismissed] = useState(false);
 
-  if (dismissed) return null;
+  if (dismissed || isLoggedIn) return null;
 
   return (
     <div className="relative overflow-hidden px-4 py-3" style={{
