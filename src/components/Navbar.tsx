@@ -86,9 +86,9 @@ export function Navbar() {
 
           {/* Logo */}
           <Link href="/" className="flex shrink-0 items-center gap-2.5 group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent shadow-sm">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M8 2L10.5 6.5H14L10.8 9.2L12 14L8 11.5L4 14L5.2 9.2L2 6.5H5.5L8 2Z" fill="white" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-violet-600 shadow-sm">
+              <svg width="16" height="16" viewBox="0 0 512 512" fill="none">
+                <path d="M130 260 L220 350 L390 170" stroke="white" strokeWidth="60" strokeLinecap="round" strokeLinejoin="round" fill="none" />
               </svg>
             </div>
             <span className="text-lg font-800 tracking-tight text-foreground group-hover:text-primary transition-colors">
