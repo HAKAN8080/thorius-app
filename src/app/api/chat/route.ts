@@ -52,17 +52,24 @@ export async function POST(req: Request) {
 
   // Düşünce liderleri ve kitap bilgilerini ekle
   const books = getAllBooksForMentor(mentorId);
-  const bookList = books.slice(0, 5).map(b => `• "${b.title}" – ${b.author}`).join('\n');
+  const bookList = books.slice(0, 3).map(b => `• "${b.title}" – ${b.author}`).join('\n');
 
-  // 3 rastgele düşünce lideri seç
-  const shuffledLeaders = [...THOUGHT_LEADERS].sort(() => Math.random() - 0.5).slice(0, 3);
+  // 2 rastgele düşünce lideri seç (daha az, daha odaklı)
+  const shuffledLeaders = [...THOUGHT_LEADERS].sort(() => Math.random() - 0.5).slice(0, 2);
   const leaderInfo = shuffledLeaders.map(l => {
-    const randomQuotes = l.quotes.sort(() => Math.random() - 0.5).slice(0, 2);
-    const randomIdea = l.keyIdeas[Math.floor(Math.random() * l.keyIdeas.length)];
-    return `**${l.name}** (${l.title}):\n  Alıntılar: "${randomQuotes[0]}" | "${randomQuotes[1]}"\n  Anahtar Fikir: ${randomIdea}`;
-  }).join('\n\n');
+    const randomQuote = l.quotes[Math.floor(Math.random() * l.quotes.length)];
+    return `• **${l.name}**: "${randomQuote}"`;
+  }).join('\n');
 
-  systemPrompt += `\n\n## KULLANACAĞIN KİTAP ÖNERİLERİ:\n${bookList}\n\n## KULLANACAĞIN DÜŞÜNCE LİDERLERİ VE ALINTILARI:\n${leaderInfo}`;
+  // Kaçıncı mesaj olduğuna göre alıntı kullanımını zorla
+  const currentMessageNum = userMessages.length;
+  const shouldUseQuote = currentMessageNum >= 2; // 2. mesajdan itibaren alıntı kullan
+
+  const quoteInstruction = shouldUseQuote
+    ? `\n\n🎯 **ÖNEMLİ - BU YANIT İÇİN:** Yanıtında aşağıdaki alıntılardan BİRİNİ MUTLAKA kullan. Alıntıyı doğal şekilde konuya bağla, örneğin: "${shuffledLeaders[0]?.name || 'Bir düşünür'}'ün dediği gibi: '...'" şeklinde.\n\nKULLANABİLECEĞİN ALINTILAR:\n${leaderInfo}\n\nKİTAP ÖNERİLERİ (uygun anlarda öner):\n${bookList}`
+    : `\n\n📚 Sohbet sırasında kullanabileceğin kaynaklar:\n${leaderInfo}\n${bookList}`;
+
+  systemPrompt += quoteInstruction;
 
   // İlk mesajsa ve önceki gündem varsa mentora hatırlat
   if (previousAgenda) {

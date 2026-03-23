@@ -291,7 +291,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
         </p>
       </div>
 
-      <div className="flex h-[calc(100vh-14rem)] flex-col rounded-2xl border-2 border-border/80 bg-gradient-to-b from-card/80 to-card/40 shadow-2xl shadow-primary/5 backdrop-blur-md">
+      <div className="flex h-[calc(100vh-16rem)] min-h-[400px] flex-col overflow-hidden rounded-2xl border-2 border-border/80 bg-gradient-to-b from-card/80 to-card/40 shadow-2xl shadow-primary/5 backdrop-blur-md">
         {/* Header */}
         <div className="flex items-center gap-4 border-b-2 border-border/60 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 px-5 py-4">
           <div className="relative">
@@ -346,7 +346,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
         </div>
 
         {/* Messages */}
-        <ScrollArea ref={scrollRef} className="flex-1 p-4">
+        <ScrollArea ref={scrollRef} className="min-h-0 flex-1 p-4">
           <div className="space-y-4">
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
