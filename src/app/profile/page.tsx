@@ -36,7 +36,8 @@ function SessionCard({ session, onToggleHomework }: {
   onToggleHomework: (sessionId: string, homeworkId: string, completed: boolean) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const completedCount = session.homework.filter((h) => h.completed).length;
+  const homework = session.homework ?? [];
+  const completedCount = homework.filter((h) => h.completed).length;
   const date = new Date(session.createdAt).toLocaleDateString('tr-TR', {
     day: 'numeric', month: 'long', year: 'numeric',
   });
@@ -61,9 +62,9 @@ function SessionCard({ session, onToggleHomework }: {
                   {date}
                 </span>
                 <span>{session.messageCount} mesaj</span>
-                {session.homework.length > 0 && (
-                  <span className={completedCount === session.homework.length ? 'text-green-500' : 'text-amber-500'}>
-                    {completedCount}/{session.homework.length} ödev tamamlandı
+                {homework.length > 0 && (
+                  <span className={completedCount === homework.length ? 'text-green-500' : 'text-amber-500'}>
+                    {completedCount}/{homework.length} ödev tamamlandı
                   </span>
                 )}
               </div>
@@ -95,11 +96,11 @@ function SessionCard({ session, onToggleHomework }: {
           )}
 
           {/* Homework */}
-          {session.homework.length > 0 && (
+          {homework.length > 0 && (
             <div>
               <p className="mb-3 text-sm font-medium text-muted-foreground">Ödevler & Eylem Adımları</p>
               <ul className="space-y-2">
-                {session.homework.map((item) => (
+                {homework.map((item) => (
                   <li key={item.id}>
                     <button
                       onClick={() => onToggleHomework(session.id, item.id, !item.completed)}
@@ -216,8 +217,8 @@ export default function ProfilePage() {
     });
   }
 
-  const totalHomework = sessions.reduce((acc, s) => acc + s.homework.length, 0);
-  const completedHomework = sessions.reduce((acc, s) => acc + s.homework.filter((h) => h.completed).length, 0);
+  const totalHomework = sessions.reduce((acc, s) => acc + (s.homework?.length ?? 0), 0);
+  const completedHomework = sessions.reduce((acc, s) => acc + (s.homework?.filter((h) => h.completed).length ?? 0), 0);
 
   return (
     <div className="relative min-h-[calc(100vh-4rem)]">
