@@ -14,7 +14,6 @@ const ADMIN_PATHS = ['/admin', '/api/admin'];
 // Admin email listesi (auth.ts ile senkron)
 const ADMIN_EMAILS = [
   'admin@thorius.com.tr',
-  'destek@thorius.com.tr',
 ];
 
 export async function proxy(req: NextRequest) {
