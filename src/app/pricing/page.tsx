@@ -117,7 +117,7 @@ const PLANS: Plan[] = [
   {
     id: 'premium',
     name: 'Premium',
-    price: '5.990',
+    price: '9.990',
     priceUsd: '120',
     badge: 'En Popüler',
     description: '30 seanslık paket — tam sesli koçluk deneyimi',
@@ -495,7 +495,7 @@ export default function PricingPage() {
                     { label: 'Seans Özetleri',    vals: ['✓', '✓', '✓', '✓', '✓'] },
                     { label: 'Gelişim Raporları', vals: ['✓', '✓', '✓', '✓', '✓'] },
                     { label: 'Öncelikli Destek',  vals: ['✗', '✗', '✗', '✗', '✓'] },
-                    { label: 'Paket Fiyatı',      vals: ['Ücretsiz', '₺1.990', '₺3.490', '₺5.990', '₺29.990'] },
+                    { label: 'Paket Fiyatı',      vals: ['Ücretsiz', '₺1.990', '₺3.490', '₺9.990', '₺29.990'] },
                   ].map((row) => (
                     <tr key={row.label} className="transition-colors hover:bg-muted/10">
                       <td className="p-4 font-medium text-muted-foreground">{row.label}</td>

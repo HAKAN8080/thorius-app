@@ -389,7 +389,7 @@ export default async function HomePage() {
               </div>
               <h3 className="text-xl font-bold">Premium</h3>
               <p className="mt-1 mb-4 text-xs text-muted-foreground">Tam sesli koçluk — sanki biriyle konuşuyorsun</p>
-              <div className="mb-4"><span className="text-3xl font-bold">₺5.990</span><span className="text-sm text-muted-foreground">/paket</span></div>
+              <div className="mb-4"><span className="text-3xl font-bold">₺9.990</span><span className="text-sm text-muted-foreground">/paket</span></div>
               <ul className="mb-5 flex-1 space-y-1.5 text-xs">
                 <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />30 seans / ay</li>
                 <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />TÜM koç &amp; mentorlar</li>
