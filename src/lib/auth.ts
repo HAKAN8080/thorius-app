@@ -3,12 +3,21 @@ import { cookies } from 'next/headers';
 import bcrypt from 'bcryptjs';
 import { getDb } from '@/lib/db';
 
-export type PlanType = 'essential' | 'premium';
+export type PlanType = 'free' | 'starter' | 'pro' | 'premium' | 'kurumsal';
 
 export const PLAN_LIMITS: Record<PlanType, number> = {
-  essential: 10,
+  free: 1,
+  starter: 10,
+  pro: 20,
   premium: 30,
+  kurumsal: 100,
 };
+
+/** Full sesli TTS erişimi olan planlar */
+export const FULL_TTS_PLANS: PlanType[] = ['premium', 'kurumsal'];
+
+/** Premium mentorlara erişimi olan planlar */
+export const PREMIUM_ACCESS_PLANS: PlanType[] = ['premium', 'kurumsal'];
 
 export interface User {
   id: string;

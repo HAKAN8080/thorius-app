@@ -9,7 +9,7 @@ export async function POST(req: Request) {
 
   const { plan } = await req.json();
 
-  const validPlans: PlanType[] = ['essential', 'premium'];
+  const validPlans: PlanType[] = ['free', 'starter', 'pro', 'premium', 'kurumsal'];
   if (!validPlans.includes(plan)) {
     return new Response(JSON.stringify({ error: 'Geçersiz plan seçimi.' }), { status: 400 });
   }

@@ -5,18 +5,24 @@ import { getDb } from '@/lib/db';
 import { PlanType } from '@/lib/auth';
 
 const SKU_TO_PLAN: Record<string, PlanType> = {
-  'THORIUS-ESSENTIAL': 'essential',
-  'THORIUS-PREMIUM': 'premium',
+  'THORIUS-STARTER':   'starter',
+  'THORIUS-PRO':       'pro',
+  'THORIUS-PREMIUM':   'premium',
+  'THORIUS-KURUMSAL':  'kurumsal',
 };
 
 const PLAN_LABELS: Partial<Record<PlanType, string>> = {
-  essential: 'Essential',
-  premium: 'Premium',
+  starter:  'Starter',
+  pro:      'Pro',
+  premium:  'Premium',
+  kurumsal: 'Kurumsal',
 };
 
 const PLAN_SESSIONS: Partial<Record<PlanType, string>> = {
-  essential: '10 seans',
-  premium: '25 seans',
+  starter:  '10 seans',
+  pro:      '20 seans',
+  premium:  '30 seans',
+  kurumsal: '100 seans',
 };
 
 function verifySignature(body: string, signature: string | null, secret: string): boolean {
@@ -167,8 +173,11 @@ export async function POST(req: NextRequest) {
 
   // Kaç seans ekleneceğini belirle
   const SESSIONS_TO_ADD: Record<PlanType, number> = {
-    essential: 10,
-    premium: 20,
+    free:     1,
+    starter:  10,
+    pro:      20,
+    premium:  30,
+    kurumsal: 100,
   };
   const sessionsToAdd = SESSIONS_TO_ADD[plan];
 
@@ -180,7 +189,7 @@ export async function POST(req: NextRequest) {
     const userData = userDoc.data();
 
     // Mevcut sessionLimit'i al, yoksa plan bazlı hesapla
-    const currentLimit: number = userData.sessionLimit ?? (userData.plan === 'premium' ? 30 : userData.plan === 'essential' ? 10 : 0);
+    const currentLimit: number = userData.sessionLimit ?? (SESSIONS_TO_ADD[userData.plan as PlanType] ?? 0);
     const newLimit = currentLimit + sessionsToAdd;
 
     // Premium bir kez alındıysa kalıcı premium

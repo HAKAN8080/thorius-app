@@ -1,7 +1,7 @@
 import { anthropic } from '@ai-sdk/anthropic';
 import { streamText } from 'ai';
 import { DEFAULT_MENTORS, PREMIUM_MENTOR_IDS } from '@/lib/types';
-import { getCurrentUser, PLAN_LIMITS } from '@/lib/auth';
+import { getCurrentUser, PLAN_LIMITS, PREMIUM_ACCESS_PLANS } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { getBookForMentor, getAllBooksForMentor, getThoughtLeaderForMentor, THOUGHT_LEADERS } from '@/lib/books';
 
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
   }
 
   // Premium mentor kontrolü
-  if (PREMIUM_MENTOR_IDS.includes(mentorId) && user.plan !== 'premium') {
+  if (PREMIUM_MENTOR_IDS.includes(mentorId) && !PREMIUM_ACCESS_PLANS.includes(user.plan as never)) {
     return new Response(
       JSON.stringify({ error: 'PREMIUM_REQUIRED', mentorId }),
       { status: 403, headers: { 'Content-Type': 'application/json' } }

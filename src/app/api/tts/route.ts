@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, FULL_TTS_PLANS } from '@/lib/auth';
+
+/** Karma ses modeli: sadece bu mesaj numaraları seslendirilir (1-indeksli) */
+const KARMA_TTS_MESSAGES = new Set([1, 2, 10]);
 
 const MENTOR_VOICES: Record<string, string> = {
   'executive-coach':            'dDcfsSsiSzmphdMGCECb',  // AI Koç 1 — tok, otoriter
@@ -141,18 +144,21 @@ export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Yetkisiz' }, { status: 401 });
 
-  const { text, mentorId, messageNumber } = await req.json();
+<<<<<<< HEAD
+  const { text, mentorId, messageIndex } = await req.json();
   if (!text) return NextResponse.json({ error: 'Metin gerekli' }, { status: 400 });
 
-  // TTS yalnızca premium kullanıcılara açık; free/essential sadece ilk mesajda sesli
-  const isPremium = user.plan === 'premium';
-  const msgNum: number = typeof messageNumber === 'number' ? messageNumber : 1;
-  const isAllowed = isPremium
-    ? (msgNum <= 2 || msgNum >= 9)  // premium: ilk 2 + son 2
-    : msgNum === 1;                  // essential/free: sadece ilk mesaj
+  const plan = user.plan ?? 'free';
 
-  if (!isAllowed) {
-    return NextResponse.json({ error: 'SILENT_MODE' }, { status: 403 });
+  // Free plan: TTS yok
+  if (plan === 'free') {
+    return NextResponse.json({ error: 'TTS_NOT_AVAILABLE', plan }, { status: 403 });
+  }
+
+  // Karma ses (starter / pro): sadece 1., 2. ve 10. mesajda TTS
+  const isFullTTS = FULL_TTS_PLANS.includes(plan as never);
+  if (!isFullTTS && messageIndex != null && !KARMA_TTS_MESSAGES.has(messageIndex)) {
+    return NextResponse.json({ error: 'TTS_KARMA_SKIP', messageIndex }, { status: 403 });
   }
 
   const apiKey = process.env.ELEVENLABS_API_KEY;
