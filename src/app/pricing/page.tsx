@@ -68,7 +68,7 @@ const PLANS: Plan[] = [
     price: '1.990',
     priceUsd: '40',
     badge: null,
-    description: 'Gelişim yolculuğuna düzenli başlamak için',
+    description: '10 seanslık paket — bitince tekrar al',
     icon: Zap,
     gradient: 'from-blue-500 to-blue-700',
     border: 'border-blue-200',
@@ -77,7 +77,7 @@ const PLANS: Plan[] = [
     ttsMode: 'karma',
     mentors: 'secili',
     features: [
-      '10 seans / ay',
+      '10 seans paketi',
       'Seans başına 10 soru',
       'Seçili AI koç ve mentorlar',
       'Karma ses — koç kritik anlarda konuşur',
@@ -93,7 +93,7 @@ const PLANS: Plan[] = [
     price: '3.490',
     priceUsd: '70',
     badge: null,
-    description: 'Sistematik büyüme için daha fazla seans',
+    description: '20 seanslık paket — bitince tekrar al',
     icon: BarChart3,
     gradient: 'from-violet-500 to-violet-700',
     border: 'border-violet-200',
@@ -102,7 +102,7 @@ const PLANS: Plan[] = [
     ttsMode: 'karma',
     mentors: 'secili',
     features: [
-      '20 seans / ay',
+      '20 seans paketi',
       'Seans başına 10 soru',
       'Seçili AI koç ve mentorlar',
       'Karma ses — koç kritik anlarda konuşur',
@@ -118,7 +118,7 @@ const PLANS: Plan[] = [
     price: '5.990',
     priceUsd: '120',
     badge: 'En Popüler',
-    description: 'Tam sesli koçluk — sanki biriyle konuşuyorsun',
+    description: '30 seanslık paket — tam sesli koçluk deneyimi',
     icon: Crown,
     gradient: 'from-amber-500 to-orange-600',
     border: 'border-amber-300',
@@ -127,7 +127,7 @@ const PLANS: Plan[] = [
     ttsMode: 'full',
     mentors: 'tum',
     features: [
-      '30 seans / ay',
+      '30 seans paketi',
       'Seans başına 10 soru',
       'TÜM koç ve mentorlar',
       'Premium koç ve mentorlar dahil',
@@ -144,7 +144,7 @@ const PLANS: Plan[] = [
     price: '29.990',
     priceUsd: '600',
     badge: null,
-    description: 'Ekibiniz için kurumsal koçluk platformu',
+    description: '100 seanslık paket — ekibiniz için kurumsal koçluk',
     icon: Building2,
     gradient: 'from-emerald-600 to-teal-700',
     border: 'border-emerald-200',
@@ -153,7 +153,7 @@ const PLANS: Plan[] = [
     ttsMode: 'full',
     mentors: 'tum',
     features: [
-      '100 seans / ay',
+      '100 seans paketi',
       'Seans başına 10 soru',
       'TÜM koç ve mentorlar',
       'Premium koç ve mentorlar dahil',
@@ -263,7 +263,7 @@ export default function PricingPage() {
           </h1>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
             Uluslararası koçluk standartlarında AI koç ve mentorlarla sistematik gelişim.
-            İlk seansı ücretsiz dene.
+            İlk seansı ücretsiz dene. Paket biter, yenisi alınır — abonelik yok.
           </p>
         </div>
 
@@ -307,7 +307,7 @@ export default function PricingPage() {
                       {plan.price === '0' ? 'Ücretsiz' : `₺${plan.price}`}
                     </span>
                     {plan.price !== '0' && (
-                      <span className="mb-0.5 text-sm text-muted-foreground">/ay</span>
+                      <span className="mb-0.5 text-sm text-muted-foreground">/paket</span>
                     )}
                   </div>
                 </div>
@@ -317,7 +317,7 @@ export default function PricingPage() {
                   <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-background/50 px-3 py-2">
                     <MessageSquare className="h-3.5 w-3.5 shrink-0 text-primary" />
                     <span className="text-sm font-semibold">{plan.sessions}</span>
-                    <span className="text-xs text-muted-foreground">seans/ay</span>
+                    <span className="text-xs text-muted-foreground">seans</span>
                   </div>
                   <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-background/50 px-3 py-2">
                     <Users className="h-3.5 w-3.5 shrink-0 text-primary" />
@@ -426,7 +426,7 @@ export default function PricingPage() {
                 </thead>
                 <tbody className="divide-y divide-border/30">
                   {[
-                    { label: 'Aylık Seans',      vals: ['1', '10', '20', '30', '100'] },
+                    { label: 'Seans Paketi',      vals: ['1', '10', '20', '30', '100'] },
                     { label: 'Soru / Seans',      vals: ['10', '10', '10', '10', '10'] },
                     { label: 'Koç & Mentor',      vals: ['Seçili', 'Seçili', 'Seçili', 'Tümü', 'Tümü'] },
                     { label: 'Premium Koç',       vals: ['✗', '✗', '✗', '✓', '✓'] },
@@ -434,7 +434,7 @@ export default function PricingPage() {
                     { label: 'Seans Özetleri',    vals: ['✓', '✓', '✓', '✓', '✓'] },
                     { label: 'Gelişim Raporları', vals: ['✓', '✓', '✓', '✓', '✓'] },
                     { label: 'Öncelikli Destek',  vals: ['✗', '✗', '✗', '✗', '✓'] },
-                    { label: 'Fiyat / ay',        vals: ['Ücretsiz', '₺1.990', '₺3.490', '₺5.990', '₺29.990'] },
+                    { label: 'Paket Fiyatı',      vals: ['Ücretsiz', '₺1.990', '₺3.490', '₺5.990', '₺29.990'] },
                   ].map((row) => (
                     <tr key={row.label} className="transition-colors hover:bg-muted/10">
                       <td className="p-4 font-medium text-muted-foreground">{row.label}</td>
