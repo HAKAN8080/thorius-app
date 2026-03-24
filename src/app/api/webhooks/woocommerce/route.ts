@@ -11,6 +11,12 @@ const SKU_TO_PLAN: Record<string, PlanType> = {
   'THORIUS-KURUMSAL':  'kurumsal',
 };
 
+/** Ek seans SKU'ları — plan değiştirmez, sadece seans ekler */
+const SKU_TO_EXTRA_SESSIONS: Record<string, number> = {
+  'THORIUS-SEANS-5':  5,
+  'THORIUS-SEANS-10': 10,
+};
+
 const PLAN_LABELS: Partial<Record<PlanType, string>> = {
   starter:  'Starter',
   pro:      'Pro',
@@ -154,6 +160,37 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No billing email' }, { status: 400 });
   }
 
+  const db = getDb();
+  const firstName = order.billing?.first_name || 'Değerli Üye';
+
+  // Ek seans satın alımı mı kontrol et
+  let extraSessions = 0;
+  for (const item of order.line_items ?? []) {
+    const sku = item.sku?.toUpperCase();
+    if (sku && SKU_TO_EXTRA_SESSIONS[sku]) {
+      extraSessions += SKU_TO_EXTRA_SESSIONS[sku] * (item.quantity ?? 1);
+    }
+  }
+
+  if (extraSessions > 0) {
+    const snap = await db.collection('users').where('email', '==', email).limit(1).get();
+    if (!snap.empty) {
+      const userDoc = snap.docs[0];
+      const userData = userDoc.data();
+      const currentLimit: number = userData.sessionLimit ?? 0;
+      await userDoc.ref.update({ sessionLimit: currentLimit + extraSessions });
+      console.log(`[WC Webhook] +${extraSessions} ek seans eklendi. Yeni limit: ${currentLimit + extraSessions} — ${email}`);
+    } else {
+      await db.collection('pending_plans').doc(email).set({
+        extraSessions,
+        orderId: String(order.id),
+        activatedAt: new Date().toISOString(),
+      });
+      console.log(`[WC Webhook] Pending extra sessions (${extraSessions}) stored for ${email}`);
+    }
+    return NextResponse.json({ received: true, extraSessions, email });
+  }
+
   // Find which plan SKU was ordered
   let plan: PlanType | null = null;
   for (const item of order.line_items ?? []) {
@@ -167,9 +204,6 @@ export async function POST(req: NextRequest) {
   if (!plan) {
     return NextResponse.json({ received: true, skipped: 'no matching SKU' });
   }
-
-  const db = getDb();
-  const firstName = order.billing?.first_name || 'Değerli Üye';
 
   // Kaç seans ekleneceğini belirle
   const SESSIONS_TO_ADD: Record<PlanType, number> = {

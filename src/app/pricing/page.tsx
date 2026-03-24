@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Check, X, Sparkles, Zap, BarChart3, Crown, Building2,
-  MessageSquare, Volume2, VolumeX, Users, ChevronDown,
+  MessageSquare, Volume2, VolumeX, Users, ChevronDown, Plus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -14,6 +14,8 @@ const WC_URLS: Record<string, string> = {
   pro:      process.env.NEXT_PUBLIC_WC_PRO_URL       ?? '',
   premium:  process.env.NEXT_PUBLIC_WC_PREMIUM_URL  ?? '',
   kurumsal: process.env.NEXT_PUBLIC_WC_KURUMSAL_URL ?? '',
+  seans5:   process.env.NEXT_PUBLIC_WC_SEANS5_URL   ?? '',
+  seans10:  process.env.NEXT_PUBLIC_WC_SEANS10_URL  ?? '',
 };
 
 /* ── Plan tanımları ────────────────────────────────────────────────────── */
@@ -368,6 +370,65 @@ export default function PricingPage() {
         {error && (
           <p className="mt-6 text-center text-sm text-red-500">{error}</p>
         )}
+
+        {/* Ek Seans Paketleri */}
+        <div className="mt-12 rounded-2xl border border-primary/20 bg-primary/5 p-6">
+          <div className="mb-6 text-center">
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm text-primary">
+              <Plus className="h-3.5 w-3.5" /> Ek Seans
+            </div>
+            <h3 className="text-lg font-semibold">Mevcut paketine seans ekle</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Planını değiştirmeden seanslarını artır. Bitince tekrar alabilirsin.</p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 max-w-xl mx-auto">
+            <div className="flex flex-col rounded-xl border border-border bg-background p-5">
+              <div className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary/80 to-primary">
+                <Plus className="h-4 w-4 text-white" />
+              </div>
+              <p className="font-bold text-lg">5 Ek Seans</p>
+              <p className="mt-0.5 text-xs text-muted-foreground mb-3">₺400 / seans</p>
+              <div className="mb-4">
+                <span className="text-2xl font-bold">₺2.000</span>
+              </div>
+              <ul className="mb-4 space-y-1 text-xs">
+                <li className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-green-500" />Mevcut planın korunur</li>
+                <li className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-green-500" />Anında hesabına eklenir</li>
+              </ul>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full mt-auto"
+                onClick={() => { const url = WC_URLS['seans5']; if (url) window.location.href = url; }}
+              >
+                5 Seans Al
+              </Button>
+            </div>
+            <div className="flex flex-col rounded-xl border border-primary/30 bg-background p-5 ring-1 ring-primary/20">
+              <div className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary/80 to-primary">
+                <Plus className="h-4 w-4 text-white" />
+              </div>
+              <div className="flex items-center gap-2 mb-1">
+                <p className="font-bold text-lg">10 Ek Seans</p>
+                <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">₺500 tasarruf</span>
+              </div>
+              <p className="mt-0.5 text-xs text-muted-foreground mb-3">₺350 / seans</p>
+              <div className="mb-4">
+                <span className="text-2xl font-bold">₺3.500</span>
+              </div>
+              <ul className="mb-4 space-y-1 text-xs">
+                <li className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-green-500" />Mevcut planın korunur</li>
+                <li className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-green-500" />Anında hesabına eklenir</li>
+              </ul>
+              <Button
+                size="sm"
+                className="w-full mt-auto"
+                onClick={() => { const url = WC_URLS['seans10']; if (url) window.location.href = url; }}
+              >
+                10 Seans Al
+              </Button>
+            </div>
+          </div>
+        </div>
 
         {/* Ses Modeli Açıklaması */}
         <div className="mt-12 rounded-2xl border border-border/40 bg-muted/20 p-6">
