@@ -310,9 +310,6 @@ export default function PricingPage() {
                       <span className="mb-0.5 text-sm text-muted-foreground">/ay</span>
                     )}
                   </div>
-                  {plan.priceUsd !== '0' && (
-                    <p className="text-xs text-muted-foreground">${plan.priceUsd} USD</p>
-                  )}
                 </div>
 
                 {/* Seans + Mentorlar + TTS */}
@@ -390,7 +387,7 @@ export default function PricingPage() {
               <div>
                 <p className="text-sm font-medium">Karma Ses</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  Koç, ilk ve son mesajda sesli konuşur. Ortadaki sorular yazılı yanıt alır.
+                  Koç, açılış ve kapanış mesajlarında sesli konuşur. Diğer sorular yazılı yanıt alır.
                 </p>
               </div>
             </div>
@@ -399,7 +396,7 @@ export default function PricingPage() {
               <div>
                 <p className="text-sm font-medium">FULL Sesli</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  Her yanıt ElevenLabs ile seslendirilir. Gerçek bir koçla konuşma hissi.
+                  Her yanıt uygun karakterler ile seslendirilir. Gerçek bir koçla konuşma deneyimi.
                 </p>
               </div>
             </div>
