@@ -144,7 +144,6 @@ export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Yetkisiz' }, { status: 401 });
 
-<<<<<<< HEAD
   const { text, mentorId, messageIndex } = await req.json();
   if (!text) return NextResponse.json({ error: 'Metin gerekli' }, { status: 400 });
 
