@@ -352,7 +352,7 @@ export default async function HomePage() {
               <p className="mt-1 mb-4 text-xs text-muted-foreground">Gelişim yolculuğuna düzenli başlamak için</p>
               <div className="mb-4"><span className="text-3xl font-bold">₺1.990</span><span className="text-sm text-muted-foreground">/paket</span></div>
               <ul className="mb-5 flex-1 space-y-1.5 text-xs">
-                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />10 seans / ay</li>
+                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />10 seans</li>
                 <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />Karma ses</li>
                 <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />Gelişim raporları</li>
               </ul>
@@ -370,7 +370,7 @@ export default async function HomePage() {
               <p className="mt-1 mb-4 text-xs text-muted-foreground">Sistematik büyüme için daha fazla seans</p>
               <div className="mb-4"><span className="text-3xl font-bold">₺3.490</span><span className="text-sm text-muted-foreground">/paket</span></div>
               <ul className="mb-5 flex-1 space-y-1.5 text-xs">
-                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />20 seans / ay</li>
+                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />20 seans</li>
                 <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />Karma ses</li>
                 <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />Gelişim raporları</li>
               </ul>
@@ -391,7 +391,7 @@ export default async function HomePage() {
               <p className="mt-1 mb-4 text-xs text-muted-foreground">Tam sesli koçluk — sanki biriyle konuşuyorsun</p>
               <div className="mb-4"><span className="text-3xl font-bold">₺9.990</span><span className="text-sm text-muted-foreground">/paket</span></div>
               <ul className="mb-5 flex-1 space-y-1.5 text-xs">
-                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />30 seans / ay</li>
+                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />30 seans</li>
                 <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />TÜM koç &amp; mentorlar</li>
                 <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />FULL sesli deneyim</li>
               </ul>
@@ -409,7 +409,7 @@ export default async function HomePage() {
               <p className="mt-1 mb-4 text-xs text-muted-foreground">Ekibiniz için kurumsal koçluk platformu</p>
               <div className="mb-4"><span className="text-3xl font-bold">₺29.990</span><span className="text-sm text-muted-foreground">/paket</span></div>
               <ul className="mb-5 flex-1 space-y-1.5 text-xs">
-                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />100 seans / ay</li>
+                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />100 seans</li>
                 <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />TÜM koç &amp; mentorlar</li>
                 <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />FULL sesli + öncelikli destek</li>
               </ul>
