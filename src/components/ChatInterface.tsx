@@ -6,7 +6,7 @@ import { TextStreamChatTransport } from 'ai';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Loader2, Sparkles, AlertTriangle, Lock, Crown, Volume2, VolumeX, Star, CheckCircle2 } from 'lucide-react';
+import { Send, Loader2, Sparkles, AlertTriangle, Lock, Crown, Volume2, VolumeX } from 'lucide-react';
 import { Mentor } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
@@ -19,57 +19,30 @@ interface ChatInterfaceProps {
   mentor: Mentor;
 }
 
-// İlk mesajda seansı başlat
-async function startSession(
+async function saveSession(
   mentor: Mentor,
-  firstMessage: string,
-  onSessionStarted?: (id: string) => void
+  messages: Array<{ role: string; content?: string; parts?: Array<{ type: string; text?: string }> }>
 ) {
-  try {
-    const res = await fetch('/api/sessions/start', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mentorId: mentor.id,
-        mentorName: mentor.name,
-        mentorTitle: mentor.title,
-        firstMessage,
-      }),
-    });
-    const data = await res.json();
-    if (data.id && onSessionStarted) {
-      onSessionStarted(data.id);
-    }
-    return data.id;
-  } catch {
-    return null;
-  }
-}
+  // İlk gerçek kullanıcı mesajını gündem olarak kaydet
+  const firstUserMsg = messages.find(
+    (m) => m.role === 'user' && getTextContent(m) !== '__KAPANIS__' && getTextContent(m).trim()
+  );
+  const agenda = firstUserMsg ? getTextContent(firstUserMsg).slice(0, 300) : null;
 
-// Seansı tamamla (özet ve ödev oluştur)
-async function completeSession(
-  sessionId: string,
-  mentor: Mentor,
-  messages: Array<{ role: string; content?: string; parts?: Array<{ type: string; text?: string }> }>,
-  onSessionCompleted?: () => void
-) {
   try {
     await fetch('/api/sessions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        sessionId,
         mentorId: mentor.id,
         mentorName: mentor.name,
         mentorTitle: mentor.title,
         messages: messages.map((m) => ({ role: m.role, text: getTextContent(m) })),
+        agenda,
       }),
     });
-    if (onSessionCompleted) {
-      onSessionCompleted();
-    }
   } catch {
-    // sessiz hata
+    // sessiz hata — kullanıcıyı etkilemesin
   }
 }
 
@@ -93,127 +66,34 @@ interface LimitInfo {
 
 export function ChatInterface({ mentor }: ChatInterfaceProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState('');
-  const [sessionStarted, setSessionStarted] = useState(false);
-  const [sessionCompleted, setSessionCompleted] = useState(false);
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [sessionSaved, setSessionSaved] = useState(false);
   const [limitInfo, setLimitInfo] = useState<LimitInfo | null>(null);
 
   const [closingSent, setClosingSent] = useState(false);
-  const closingSentRef = useRef(false); // Duplicate gönderimi engellemek için
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [voiceMode, setVoiceMode] = useState(true);
   const [audioTime, setAudioTime] = useState(0);
-  const [preparingAudioId, setPreparingAudioId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
   const wordTimingsRef = useRef<Map<string, Array<{ word: string; start: number; end: number }>>>(new Map());
-  const [silentBannerShown, setSilentBannerShown] = useState(false);
-  const [showSilentBanner, setShowSilentBanner] = useState(false);
-
-  // Rating state
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [showRating, setShowRating] = useState(false);
-  const [ratingSubmitted, setRatingSubmitted] = useState(false);
-  const [ratingLoading, setRatingLoading] = useState(false);
-  const [ratings, setRatings] = useState({
-    contentQuality: 0,
-    sessionDuration: 0,
-    responseSpeed: 0,
-    communication: 0,
-    overall: 0,
-  });
-  const [npsScore, setNpsScore] = useState<number | null>(null);
-  const [feedbackComment, setFeedbackComment] = useState('');
-
-  const RATING_QUESTIONS = [
-    { key: 'contentQuality', label: 'İçerik Yeterliliği', desc: 'Verilen bilgiler faydalı mıydı?' },
-    { key: 'sessionDuration', label: 'Süre Yeterliliği', desc: 'Seans süresi yeterli miydi?' },
-    { key: 'responseSpeed', label: 'Yanıt Hızı', desc: 'Yanıtlar yeterince hızlı mıydı?' },
-    { key: 'communication', label: 'İletişim Kalitesi', desc: 'Sorunlarınıza odaklanıldı mı?' },
-    { key: 'overall', label: 'Genel Değerlendirme', desc: 'Seansı genel olarak nasıl buldunuz?' },
-  ] as const;
-
-  const allRated = Object.values(ratings).every(r => r > 0) && npsScore !== null;
-
-  const [ratingError, setRatingError] = useState<string | null>(null);
-
-  async function submitRating() {
-    console.log('[DEBUG] submitRating called, sessionId:', sessionId, 'allRated:', allRated);
-    if (!sessionId || !allRated) {
-      console.log('[DEBUG] submitRating aborted - missing sessionId or not all rated');
-      return;
-    }
-    setRatingLoading(true);
-    setRatingError(null);
-    try {
-      console.log('[DEBUG] Sending rating request:', { sessionId, ratings, npsScore });
-      const res = await fetch('/api/sessions/rate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, ratings, npsScore, comment: feedbackComment }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Değerlendirme kaydedilemedi');
-      }
-      setRatingSubmitted(true);
-    } catch (err) {
-      setRatingError(err instanceof Error ? err.message : 'Bir hata oluştu');
-      console.error('Rating submit error:', err);
-    } finally {
-      setRatingLoading(false);
-    }
-  }
-
-  function StarRating({ value, onChange }: { value: number; onChange: (v: number) => void }) {
-    return (
-      <div className="flex gap-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <button
-            key={star}
-            type="button"
-            onClick={() => onChange(star)}
-            className="transition-transform hover:scale-110 focus:outline-none"
-          >
-            <Star
-              className={cn(
-                'h-6 w-6 transition-colors',
-                star <= value
-                  ? 'fill-amber-400 text-amber-400'
-                  : 'fill-transparent text-muted-foreground/40 hover:text-amber-300'
-              )}
-            />
-          </button>
-        ))}
-      </div>
-    );
-  }
 
   async function handleSpeak(messageId: string, text: string) {
     if (playingId === messageId) {
       audioRef.current?.pause();
       setPlayingId(null);
-      setPreparingAudioId(null);
       setAudioTime(0);
       return;
     }
-    setPreparingAudioId(messageId);
+    setPlayingId(messageId);
     setAudioTime(0);
     try {
       const res = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, mentorId: mentor.id, messageNumber: userMessageCount }),
+        body: JSON.stringify({ text, mentorId: mentor.id }),
       });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        if (errData?.error === 'SILENT_MODE') { setPreparingAudioId(null); return; }
-        console.error('[TTS] Hata:', res.status, errData);
-        setPreparingAudioId(null);
-        return;
-      }
+      if (!res.ok) { setPlayingId(null); return; }
       const data = await res.json() as { audioBase64: string; wordTimings: Array<{ word: string; start: number; end: number }> };
       wordTimingsRef.current.set(messageId, data.wordTimings ?? []);
       const audioBytes = Uint8Array.from(atob(data.audioBase64), (c) => c.charCodeAt(0));
@@ -222,11 +102,9 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
       if (audioRef.current) { audioRef.current.pause(); }
       audioRef.current = new Audio(url);
       audioRef.current.ontimeupdate = () => setAudioTime(audioRef.current?.currentTime ?? 0);
-      setPreparingAudioId(null);
-      setPlayingId(messageId);
       audioRef.current.play();
       audioRef.current.onended = () => { setPlayingId(null); setAudioTime(0); URL.revokeObjectURL(url); };
-    } catch { setPreparingAudioId(null); setPlayingId(null); }
+    } catch { setPlayingId(null); }
   }
 
   function renderHighlightedText(text: string, messageId: string) {
@@ -268,21 +146,6 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
       .catch(() => {});
   }, []);
 
-  // Seans aktifken sayfa değişikliğinde uyarı ver
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (sessionStarted && !sessionCompleted) {
-        e.preventDefault();
-        // Modern tarayıcılar custom mesaj göstermiyor ama returnValue gerekli
-        e.returnValue = 'Seans hakkınız düştü. Seans bitmeden çıkış yapmak istediğinize emin misiniz?';
-        return e.returnValue;
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [sessionStarted, sessionCompleted]);
-
   const { messages, sendMessage, status } = useChat({
     transport: new TextStreamChatTransport({
       api: '/api/chat',
@@ -298,27 +161,20 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   const userMessageCount = messages.filter((m) => m.role === 'user' && getTextContent(m as Parameters<typeof getTextContent>[0]) !== '__KAPANIS__').length;
   const sessionEnded = userMessageCount >= MAX_USER_MESSAGES;
 
-  // Mesajlar değiştiğinde otomatik aşağı kay
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, status]);
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   // 10 soruya ulaşınca otomatik kapanış mesajı gönder
   useEffect(() => {
-    // Ref ile anında kontrol - state gecikmesinden kaynaklanan duplicate'ı engeller
-    if (!sessionEnded || closingSentRef.current || closingSent || isLoading) return;
+    if (!sessionEnded || closingSent || isLoading) return;
     const lastMsg = messages[messages.length - 1];
     if (lastMsg?.role !== 'assistant') return; // son AI cevabı bekliyoruz
-    closingSentRef.current = true; // Anında kilitle
     setClosingSent(true);
     sendMessage({ role: 'user', parts: [{ type: 'text', text: '__KAPANIS__' }] });
   }, [sessionEnded, closingSent, isLoading, messages, sendMessage]);
-
-  // Karma ses mantığı: premium ilk 2 + son 2, essential sadece ilk 1
-  function shouldAutoVoice(msgNum: number, plan: string | null | undefined): boolean {
-    if (plan === 'premium') return msgNum <= 2 || msgNum >= 9;
-    return msgNum === 1; // essential / free / null
-  }
 
   // Ses modu açıksa yeni asistan mesajını otomatik oynat
   useEffect(() => {
@@ -329,59 +185,23 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
     if (!text) return;
     if (lastSpokenIdRef.current === lastMsg.id) return;
     lastSpokenIdRef.current = lastMsg.id;
-
-    if (shouldAutoVoice(userMessageCount, limitInfo?.plan)) {
-      handleSpeak(lastMsg.id, text);
-    } else if (!silentBannerShown) {
-      setSilentBannerShown(true);
-      setShowSilentBanner(true);
-      setTimeout(() => setShowSilentBanner(false), 6000);
-    }
+    handleSpeak(lastMsg.id, text);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, voiceMode]);
 
-  // Kapanış cevabı gelince seansı tamamla
+  // Kapanış cevabı gelince kaydet
   useEffect(() => {
-    if (!closingSent || sessionCompleted || isLoading || messages.length <= 1) return;
-    if (!activeSessionId) {
-      console.log('[DEBUG] activeSessionId yok, session completion atlanıyor');
-      return;
-    }
+    if (!closingSent || sessionSaved || isLoading || messages.length <= 1) return;
     const lastMsg = messages[messages.length - 1];
     if (lastMsg?.role !== 'assistant') return;
-    console.log('[DEBUG] Session completing, activeSessionId:', activeSessionId);
-    setSessionCompleted(true);
-    setSessionId(activeSessionId);
-    setShowRating(true);
-    completeSession(activeSessionId, mentor, messages as Parameters<typeof completeSession>[2], () => {
-      // Tamamlandı
-    });
-  }, [closingSent, sessionCompleted, isLoading, messages, mentor, activeSessionId]);
+    setSessionSaved(true);
+    saveSession(mentor, messages as Parameters<typeof saveSession>[1]);
+  }, [closingSent, sessionSaved, isLoading, messages, mentor]);
 
-  const MIN_MESSAGE_LENGTH = 50;
-  const inputTooShort = input.trim().length > 0 && input.trim().length < MIN_MESSAGE_LENGTH;
-
-  const onSubmit = async (e: React.FormEvent) => {
+  const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading || sessionEnded || inputTooShort) return;
-
-    const messageText = input.trim();
-
-    // İlk mesajda seansı başlat (hak düşsün)
-    if (!sessionStarted && userMessageCount === 0) {
-      setSessionStarted(true);
-      const id = await startSession(mentor, messageText, (sessionId) => {
-        console.log('[DEBUG] Session started, activeSessionId set to:', sessionId);
-        setActiveSessionId(sessionId);
-      });
-      if (!id) {
-        // Seans başlatılamadı (limit dolmuş olabilir)
-        setSessionStarted(false);
-        return;
-      }
-    }
-
-    sendMessage({ role: 'user', parts: [{ type: 'text', text: messageText }] });
+    if (!input.trim() || isLoading || sessionEnded) return;
+    sendMessage({ role: 'user', parts: [{ type: 'text', text: input }] });
     setInput('');
   };
 
@@ -467,328 +287,180 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
         </p>
       </div>
 
-      <div className="flex h-[calc(100vh-16rem)] min-h-[400px] flex-col overflow-hidden rounded-2xl border-2 border-border/80 bg-gradient-to-b from-card/80 to-card/40 shadow-2xl shadow-primary/5 backdrop-blur-md">
+      <div className="flex h-[calc(100vh-14rem)] flex-col rounded-xl border border-border/50 bg-card/30 backdrop-blur-sm">
         {/* Header */}
-        <div className="flex items-center gap-4 border-b-2 border-border/60 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 px-5 py-4">
-          <div className="relative">
-            <MentorAvatar size="md" />
-            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card bg-green-500" />
+        <div className="flex items-center gap-3 border-b border-border/50 p-4">
+          <MentorAvatar size="md" />
+          <div>
+            <h3 className="font-semibold">{mentor.name}</h3>
+            <p className="text-sm text-muted-foreground">{mentor.title}</p>
           </div>
-          <div className="flex-1">
-            <h3 className="text-base font-bold tracking-tight">{mentor.name}</h3>
-            <p className="text-sm font-medium text-muted-foreground">{mentor.title}</p>
-          </div>
-          <div className="flex items-center gap-4">
-            {/* Soru Sayacı */}
-            <div className={cn(
-              'flex items-center gap-2 rounded-full border px-3 py-1.5',
-              userMessageCount >= 8
-                ? 'border-amber-500/50 bg-amber-500/10 text-amber-600'
-                : 'border-border bg-muted/50 text-muted-foreground'
+          <div className="ml-auto flex items-center gap-3">
+            <span className={cn(
+              'text-xs font-medium tabular-nums',
+              userMessageCount >= 8 ? 'text-amber-500' : 'text-muted-foreground'
             )}>
-              <div className="flex gap-0.5">
-                {Array.from({ length: MAX_USER_MESSAGES }).map((_, i) => (
-                  <div
-                    key={i}
-                    className={cn(
-                      'h-1.5 w-1.5 rounded-full transition-colors',
-                      i < userMessageCount ? 'bg-primary' : 'bg-border'
-                    )}
-                  />
-                ))}
+              {userMessageCount}/{MAX_USER_MESSAGES} soru
+            </span>
+            <button
+              onClick={() => {
+                if (voiceMode) { audioRef.current?.pause(); setPlayingId(null); }
+                setVoiceMode((v) => !v);
+              }}
+              title={voiceMode ? 'Sesi kapat (metin modu)' : 'Sesi aç (sesli mod)'}
+              className={cn(
+                'flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
+                voiceMode
+                  ? 'bg-primary/15 text-primary hover:bg-primary/25'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              )}
+            >
+              {voiceMode ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+              {voiceMode ? 'Sesli' : 'Metin'}
+            </button>
+            {!sessionEnded && (
+              <div className="flex items-center gap-1.5 text-xs text-green-500">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
+                Çevrimiçi
               </div>
-              <span className="text-xs font-semibold tabular-nums">
-                {userMessageCount}/{MAX_USER_MESSAGES}
-              </span>
-            </div>
+            )}
           </div>
         </div>
 
-        {/* Sessiz mod bildirimi */}
-        {showSilentBanner && (
-          <div className="mx-4 mt-1 flex items-start gap-2 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-primary/80 shadow-sm">
-            <VolumeX className="mt-0.5 h-4 w-4 shrink-0 opacity-70" />
-            <p>
-              <span className="font-semibold">Odak modu aktif.</span>{' '}
-              {limitInfo?.plan === 'premium'
-                ? 'Seansın ortasında sessizlik düşünmeye alan açar. Kapanışta ses geri dönecek.'
-                : 'Sessizlik odaklanmayı artırır. Premium\u2019da kapanış mesajları da sesli olur.'}{' '}
-              <button
-                onClick={() => setShowSilentBanner(false)}
-                className="ml-1 underline underline-offset-2 opacity-60 hover:opacity-100"
-              >
-                Tamam
-              </button>
-            </p>
-          </div>
-        )}
-
         {/* Messages */}
-        <ScrollArea ref={scrollRef} className="min-h-0 flex-1 p-4">
+        <ScrollArea ref={scrollRef} className="flex-1 p-4">
           <div className="space-y-4">
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="relative mb-6">
-                  <div className="absolute -inset-4 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 blur-xl" />
-                  <div className="relative rounded-full border-4 border-primary/20 p-1">
-                    <MentorAvatar size="lg" />
-                  </div>
-                </div>
-                <h3 className="mb-2 text-xl font-bold tracking-tight">Merhaba! Ben {mentor.title}</h3>
-                <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
+                <div className="mb-4"><MentorAvatar size="lg" /></div>
+                <h3 className="mb-2 text-lg font-semibold">Merhaba! Ben {mentor.title}</h3>
+                <p className="max-w-md text-sm text-muted-foreground">
                   {mentor.description}. Bugün sana nasıl yardımcı olabilirim?
                 </p>
-                <div className="mt-5 flex flex-wrap justify-center gap-2">
+                <div className="mt-4 flex flex-wrap justify-center gap-2">
                   {mentor.expertise.map((skill) => (
-                    <span key={skill} className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary shadow-sm">
+                    <span key={skill} className="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary">
                       {skill}
                     </span>
                   ))}
                 </div>
-                <div className="mt-6 flex items-center gap-2 rounded-full border border-border bg-muted/50 px-4 py-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  <p className="text-xs font-medium text-muted-foreground">
-                    Bu seansta <span className="font-bold text-foreground">{MAX_USER_MESSAGES} soru</span> hakkınız var
-                  </p>
-                </div>
+                <p className="mt-6 text-xs text-muted-foreground">
+                  Bu seansta <span className="font-medium">{MAX_USER_MESSAGES} soru</span> hakkınız var.
+                </p>
               </div>
             )}
 
             {visibleMessages.map((message) => {
               const text = getTextContent(message as Parameters<typeof getTextContent>[0]);
               if (!text) return null;
-              // Sesli modda: streaming veya ses hazırlanırken mesajı gizle
-              const isStreamingThisMsg = voiceMode && status === 'streaming' &&
-                message.role === 'assistant' && message.id === messages[messages.length - 1]?.id;
-              const isPreparingThisMsg = voiceMode && preparingAudioId === message.id;
-              if (isStreamingThisMsg || isPreparingThisMsg) return null;
+              // Sesli modda: asistan mesajları gösterilmez — sadece ses çalar
+              if (voiceMode && message.role === 'assistant') return null;
+              // Sesli modda streaming olan son asistan mesajını da gizle
+              if (!voiceMode && status === 'streaming' &&
+                message.role === 'assistant' && message.id === messages[messages.length - 1]?.id) {
+                // streaming devam ediyor, mesaj zaten visibleMessages'da gösteriliyor
+              }
               return (
                 <div key={message.id} className={cn('flex gap-3', message.role === 'user' ? 'flex-row-reverse' : '')}>
                   {message.role === 'user' ? (
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-primary/30 bg-gradient-to-br from-secondary/20 to-primary/20 text-sm shadow-sm">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-secondary/30 to-primary/30 text-sm">
                       👤
                     </div>
                   ) : (
-                    <div className="shrink-0 rounded-full ring-2 ring-primary/20 ring-offset-2 ring-offset-background">
-                      <MentorAvatar size="sm" />
-                    </div>
+                    <div className="shrink-0"><MentorAvatar size="sm" /></div>
                   )}
-                  <div className="flex flex-col gap-1.5 max-w-[80%]">
+                  <div className="flex flex-col gap-1">
                     <div className={cn(
-                      'rounded-2xl px-4 py-3 shadow-sm',
+                      'max-w-[80%] rounded-2xl px-4 py-2.5',
                       message.role === 'user'
-                        ? 'rounded-br-md bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-primary/20'
-                        : 'rounded-bl-md border border-border/50 bg-card/80 shadow-sm'
+                        ? 'bg-gradient-to-r from-primary to-secondary text-primary-foreground'
+                        : 'bg-muted/50'
                     )}>
                       {message.role === 'assistant' ? renderHighlightedText(text, message.id) : <p className="whitespace-pre-wrap text-sm leading-relaxed">{text}</p>}
                     </div>
-                    {message.role === 'assistant' && playingId === message.id && (
-                      <button
-                        onClick={() => { audioRef.current?.pause(); setPlayingId(null); }}
-                        className="flex items-center gap-1.5 self-start rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary transition-colors hover:bg-primary/20"
-                      >
-                        <VolumeX className="h-3 w-3" /> Durdur
-                      </button>
-                    )}
                   </div>
                 </div>
               );
             })}
 
-            {(status === 'submitted' || (voiceMode && status === 'streaming') || preparingAudioId) && (
+            {/* Sesli mod: ses çalarken dalga animasyonu */}
+            {voiceMode && playingId && (
               <div className="flex gap-3">
-                <div className="shrink-0 rounded-full ring-2 ring-primary/20 ring-offset-2 ring-offset-background">
-                  <MentorAvatar size="sm" />
+                <div className="shrink-0"><MentorAvatar size="sm" /></div>
+                <div className="flex items-center gap-1.5 rounded-2xl bg-muted/50 px-4 py-3">
+                  {[0, 0.15, 0.3, 0.15, 0].map((delay, i) => (
+                    <span key={i} className="h-4 w-1 rounded-full bg-primary animate-bounce" style={{ animationDelay: `${delay}s` }} />
+                  ))}
+                  <button
+                    onClick={() => { audioRef.current?.pause(); setPlayingId(null); }}
+                    className="ml-2 flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <VolumeX className="h-3 w-3" /> Durdur
+                  </button>
                 </div>
-                <div className="flex items-center gap-3 rounded-2xl rounded-bl-md border border-border/50 bg-card/80 px-4 py-3 shadow-sm">
-                  {preparingAudioId ? (
-                    <>
-                      <Volume2 className="h-4 w-4 animate-pulse text-primary" />
-                      <span className="text-sm font-medium text-muted-foreground">
-                        Sesli yanıt hazırlanıyor...
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex gap-1">
-                        <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
-                        <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
-                        <span className="h-2 w-2 animate-bounce rounded-full bg-primary" />
-                      </div>
-                      <span className="text-sm font-medium text-muted-foreground">
-                        {voiceMode && status === 'streaming' ? 'Yanıt oluşturuluyor...' : 'Düşünüyor...'}
-                      </span>
-                    </>
-                  )}
+              </div>
+            )}
+
+            {/* Metin modunda yükleme göstergesi */}
+            {!voiceMode && status === 'submitted' && (
+              <div className="flex gap-3">
+                <div className="shrink-0"><MentorAvatar size="sm" /></div>
+                <div className="flex items-center gap-2 rounded-2xl bg-muted/50 px-4 py-2.5">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <span className="text-sm text-muted-foreground">Düşünüyor...</span>
                 </div>
               </div>
             )}
             {!voiceMode && status === 'streaming' && messages[messages.length - 1]?.role === 'assistant' && (
-              // Metin modunda: streaming devam ediyor ama mesaj zaten render ediliyor, spinner yok
               null
             )}
 
-            {sessionEnded && sessionCompleted && (
-              <div className="rounded-2xl border border-primary/20 bg-gradient-to-b from-primary/5 to-transparent px-6 py-6">
-                {/* Rating Form */}
-                {showRating && !ratingSubmitted && (
-                  <div className="mb-6">
-                    <div className="mb-4 text-center">
-                      <h4 className="font-semibold text-foreground">Seansı Değerlendir</h4>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Geri bildiriminiz hizmetimizi geliştirmemize yardımcı olur
-                      </p>
-                    </div>
-                    <div className="space-y-3">
-                      {RATING_QUESTIONS.map(({ key, label, desc }) => (
-                        <div key={key} className="flex items-center justify-between gap-4 rounded-xl bg-card/50 px-4 py-2.5">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-foreground">{label}</p>
-                            <p className="text-xs text-muted-foreground truncate">{desc}</p>
-                          </div>
-                          <StarRating
-                            value={ratings[key as keyof typeof ratings]}
-                            onChange={(v) => setRatings(prev => ({ ...prev, [key]: v }))}
-                          />
-                        </div>
-                      ))}
-
-                      {/* NPS Sorusu */}
-                      <div className="mt-4 rounded-xl border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5 px-4 py-4">
-                        <p className="text-sm font-semibold text-foreground text-center mb-1">
-                          Thorius'u bir arkadaşınıza önerir misiniz?
-                        </p>
-                        <p className="text-xs text-muted-foreground text-center mb-3">
-                          0 = Kesinlikle hayır, 10 = Kesinlikle evet
-                        </p>
-                        <div className="flex justify-center gap-1">
-                          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
-                            <button
-                              key={score}
-                              type="button"
-                              onClick={() => setNpsScore(score)}
-                              className={cn(
-                                'h-8 w-8 rounded-lg text-xs font-bold transition-all',
-                                npsScore === score
-                                  ? score <= 6
-                                    ? 'bg-red-500 text-white scale-110'
-                                    : score <= 8
-                                    ? 'bg-amber-500 text-white scale-110'
-                                    : 'bg-green-500 text-white scale-110'
-                                  : 'bg-muted/50 text-muted-foreground hover:bg-muted'
-                              )}
-                            >
-                              {score}
-                            </button>
-                          ))}
-                        </div>
-                        <div className="flex justify-between mt-2 text-[10px] text-muted-foreground px-1">
-                          <span>Önermem</span>
-                          <span>Kesinlikle öneririm</span>
-                        </div>
-                      </div>
-
-                      {/* Açık Uçlu Yorum */}
-                      <div className="mt-4">
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          Talep, Öneri veya Şikayetiniz
-                          <span className="text-muted-foreground font-normal ml-1">(opsiyonel)</span>
-                        </label>
-                        <Textarea
-                          value={feedbackComment}
-                          onChange={(e) => setFeedbackComment(e.target.value)}
-                          placeholder="Deneyiminizi nasıl geliştirebiliriz? Herhangi bir öneriniz veya şikayetiniz var mı?"
-                          className="min-h-[80px] resize-none rounded-xl border-border/80 bg-card/50 text-sm"
-                          maxLength={500}
-                        />
-                        <p className="mt-1 text-right text-xs text-muted-foreground">
-                          {feedbackComment.length}/500
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      onClick={submitRating}
-                      disabled={!allRated || ratingLoading}
-                      className="mt-4 w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
-                    >
-                      {ratingLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <>Değerlendirmeyi Gönder</>
-                      )}
-                    </Button>
-                    {ratingError && (
-                      <p className="mt-2 text-center text-sm text-red-500">{ratingError}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Rating Submitted */}
-                {ratingSubmitted && (
-                  <div className="mb-6 flex flex-col items-center gap-2 text-center">
-                    <CheckCircle2 className="h-10 w-10 text-green-500" />
-                    <p className="font-semibold text-foreground">Teşekkürler!</p>
-                    <p className="text-sm text-muted-foreground">
-                      Değerlendirmeniz kaydedildi.
-                    </p>
-                  </div>
-                )}
-
-                {/* Session Complete Info */}
-                <div className="flex flex-col items-center gap-3 text-center">
-                  <Lock className="h-6 w-6 text-primary/60" />
-                  <div>
-                    <p className="font-semibold">Seans tamamlandı</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Bu seansta {MAX_USER_MESSAGES} sorunuzu kullandınız.
-                    </p>
-                  </div>
-                  <Button size="sm" variant="outline" onClick={() => window.location.reload()} className="mt-1">
-                    Yeni Seans Başlat
-                  </Button>
+            {sessionEnded && sessionSaved && (
+              <div className="flex flex-col items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 px-6 py-6 text-center">
+                <Lock className="h-8 w-8 text-primary/60" />
+                <div>
+                  <p className="font-semibold">Seans tamamlandı</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Bu seansta {MAX_USER_MESSAGES} sorunuzu kullandınız.
+                    Yeni bir seans başlatmak için sayfayı yenileyin.
+                  </p>
                 </div>
+                <Button size="sm" variant="outline" onClick={() => window.location.reload()} className="mt-1">
+                  Yeni Seans Başlat
+                </Button>
               </div>
             )}
-            {/* Otomatik scroll için anchor */}
-            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
 
         {/* Input */}
-        <form onSubmit={onSubmit} className="border-t-2 border-border/60 bg-gradient-to-r from-muted/30 via-transparent to-muted/30 p-4">
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder={sessionEnded ? 'Seans sona erdi.' : 'Mesajınızı yazın...'}
-                className="min-h-[52px] max-h-32 resize-none rounded-xl border-2 border-border/80 bg-card/80 pr-4 text-sm shadow-inner focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
-                disabled={sessionEnded}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    onSubmit(e);
-                  }
-                }}
-              />
-            </div>
+        <form onSubmit={onSubmit} className="border-t border-border/50 p-4">
+          <div className="flex gap-2">
+            <Textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={sessionEnded ? 'Seans sona erdi.' : 'Mesajınızı yazın...'}
+              className="min-h-[48px] max-h-32 resize-none bg-muted/30"
+              disabled={sessionEnded}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  onSubmit(e);
+                }
+              }}
+            />
             <Button
               type="submit"
               size="icon"
-              disabled={isLoading || !input.trim() || sessionEnded || inputTooShort}
-              className="h-[52px] w-[52px] shrink-0 rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary to-secondary shadow-lg shadow-primary/25 transition-all hover:scale-105 hover:shadow-xl hover:shadow-primary/30 disabled:hover:scale-100"
+              disabled={isLoading || !input.trim() || sessionEnded}
+              className="h-12 w-12 shrink-0 bg-gradient-to-r from-primary to-secondary hover:opacity-90"
             >
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
             </Button>
           </div>
-          {inputTooShort && (
-            <p className="mt-2 text-center text-xs font-medium text-amber-600">
-              Lütfen biraz daha detay verin. (En az {MIN_MESSAGE_LENGTH} karakter, şu an: {input.trim().length})
-            </p>
-          )}
-          <p className="mt-3 text-center text-xs font-medium text-muted-foreground">
-            <Sparkles className="mr-1 inline h-3 w-3 text-primary" />
-            Özel eğitilmiş AI koç ve mentorlarımız uzun eğitim sürecinden geçmiştir
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            <Sparkles className="mr-1 inline h-3 w-3" />
+            Claude Sonnet 4.6 ile desteklenmektedir
           </p>
         </form>
       </div>
