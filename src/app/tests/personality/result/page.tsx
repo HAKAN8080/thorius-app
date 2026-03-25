@@ -15,7 +15,6 @@ import {
   CartesianGrid, Tooltip, Cell
 } from 'recharts';
 import { Button } from '@/components/ui/button';
-import { Navbar } from '@/components/Navbar';
 
 // Kategoriler
 const CATEGORIES = [
@@ -428,9 +427,7 @@ function ResultContent() {
 
 export default function PersonalityResultPage() {
   return (
-    <>
-      <Navbar />
-      <main className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-20 pb-12 px-4">
+    <main className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-20 pb-12 px-4">
         <div className="max-w-3xl mx-auto">
           <Link
             href="/tests"
@@ -450,6 +447,5 @@ export default function PersonalityResultPage() {
           </Suspense>
         </div>
       </main>
-    </>
   );
 }

@@ -5,9 +5,9 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
-  Heart, Download, ArrowLeft, Sparkles, Loader2,
-  TrendingUp, Target, Users, Briefcase, Shield, Brain,
-  RefreshCw, Award, Zap
+  Star, Download, ArrowLeft, Sparkles, Loader2,
+  TrendingUp, Target, Users, Briefcase, Activity,
+  Wallet, Scale, Heart, RefreshCw, Award, Zap, CheckCircle
 } from 'lucide-react';
 import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -18,65 +18,83 @@ import { Button } from '@/components/ui/button';
 
 // Kategoriler
 const CATEGORIES = [
-  { id: 'self-awareness', name: 'Oz Farkindalik', color: '#8B5CF6', icon: Brain },
-  { id: 'self-management', name: 'Oz Yonetim', color: '#EC4899', icon: Target },
-  { id: 'social-awareness', name: 'Sosyal Farkindalik', color: '#06B6D4', icon: Users },
-  { id: 'relationship-management', name: 'Iliski Yonetimi', color: '#10B981', icon: Heart },
-  { id: 'stress-management', name: 'Stres Yonetimi', color: '#F59E0B', icon: Shield },
+  { id: 'happiness', name: 'Mutluluk', fullName: 'Mutluluk & Pozitif Duygular', color: '#F59E0B', icon: Sparkles },
+  { id: 'meaning', name: 'Anlam', fullName: 'Anlam & Amac', color: '#8B5CF6', icon: Target },
+  { id: 'achievement', name: 'Basari', fullName: 'Basari & Kariyer', color: '#10B981', icon: Briefcase },
+  { id: 'relationships', name: 'Iliskiler', fullName: 'Iliskiler & Sosyal Bag', color: '#EC4899', icon: Users },
+  { id: 'health', name: 'Saglik', fullName: 'Saglik & Enerji', color: '#EF4444', icon: Activity },
+  { id: 'finance', name: 'Finans', fullName: 'Finansal Guvenlik', color: '#06B6D4', icon: Wallet },
+  { id: 'growth', name: 'Gelisim', fullName: 'Kisisel Gelisim', color: '#14B8A6', icon: TrendingUp },
+  { id: 'balance', name: 'Denge', fullName: 'Yasam Dengesi', color: '#6366F1', icon: Scale },
 ];
 
 // AI Rapor tipi
 interface AIReport {
   summary: string;
-  eqLevel: string;
-  strengths: string[];
-  developmentAreas: string[];
-  workplaceTips: string[];
-  leadershipTips: string[];
-  developmentPlan: { area: string; action: string }[];
+  lifeLevel: string;
+  topStrengths: string[];
+  priorityAreas: string[];
+  quickWins: string[];
+  longTermGoals: string[];
+  weeklyPlan: { day: string; focus: string; action: string }[];
 }
 
-// Skor yorumlari
+// Hayat Skoru seviye yorumu
+const getLifeLevel = (score: number) => {
+  if (score >= 85) return { level: 'Olağanüstü', emoji: '🌟', color: '#10B981', description: 'Hayatiniz harika bir dengede! Bu seviyeyi korumak icin calisin.' };
+  if (score >= 70) return { level: 'Cok Iyi', emoji: '✨', color: '#06B6D4', description: 'Guclu bir temele sahipsiniz. Bazi alanlari gelistirerek zirveye ulasabilirsiniz.' };
+  if (score >= 55) return { level: 'Iyi', emoji: '👍', color: '#F59E0B', description: 'Dogru yoldasiniz. Odaklanacak alanlari belirleyip ilerlemeye devam edin.' };
+  if (score >= 40) return { level: 'Gelisim Asamasinda', emoji: '🌱', color: '#F97316', description: 'Potansiyeliniz yuksek. Kucuk adimlarla buyuk degisimler yaratabilirsiniz.' };
+  return { level: 'Baslangic', emoji: '🚀', color: '#EF4444', description: 'Yolculugunuz yeni basliyor. Her kucuk adim sizi ileriye tasir.' };
+};
+
+// Skor yorumu
 const getScoreInterpretation = (category: string, score: number) => {
   const interpretations: Record<string, { low: string; medium: string; high: string }> = {
-    'self-awareness': {
-      low: 'Duygusal farkindalik alaninida gelistirmeye acik alanlar var. Duygularinizi tanima pratigi yapmaniz faydali olabilir.',
-      medium: 'Duygularinizin genellikle farkindaysiniz. Bu beceriyi daha da gelistirebilirsiniz.',
-      high: 'Kendi duygularinizi cok iyi taniyorsunuz. Bu guclu oz farkindalik liderlik icin onemli bir temel.',
+    happiness: {
+      low: 'Gunluk yasaminizda daha fazla keyif ve nese kaynaklari bulmaya odaklanabilirsiniz.',
+      medium: 'Mutluluk seviyeniz dengeli. Kucuk seylere sukretme pratigiyle daha da artirabilirsiniz.',
+      high: 'Pozitif duygular konusunda cok guclusunuz. Bu enerjiyi cevrenize yaymaya devam edin.',
     },
-    'self-management': {
-      low: 'Duygu yonetimi konusunda destek alabilirsiniz. Mindfulness teknikleri yardimci olabilir.',
-      medium: 'Duygularinizi genel olarak iyi yonetiyorsunuz. Bazi durumlarda daha fazla kontrol saglayabilirsiniz.',
-      high: 'Duygusal oz kontrolunuz cok guclu. Zor durumlarda bile sakinliginizi koruyabiliyorsunuz.',
+    meaning: {
+      low: 'Hayatiniza anlam katan aktiviteler ve degerlerinizi kesfetmeye zaman ayirin.',
+      medium: 'Anlam duygunuz var. Daha buyuk bir amaca baglanti kurarak derinlestirebilirsiniz.',
+      high: 'Yasaminiz anlam ve amac dolu. Bu netlik sizi guclendiriyor.',
     },
-    'social-awareness': {
-      low: 'Empati becerilerinizi gelistirmek iliskilerinizi guclendirebilir.',
-      medium: 'Baskalarinin duygularini anlama konusunda yetkin bir seviyedesiniz.',
-      high: 'Sosyal farkindalginiz cok yuksek. Baskalarinin duygularini kolayca okuyabiliyorsunuz.',
+    achievement: {
+      low: 'Kucuk hedefler belirleyip basari deneyimi yasayarak motivasyonunuzu artirabilirsiniz.',
+      medium: 'Kariyer yolculugunuzda ilerliyorsunuz. Net hedeflerle hizlanabilirsiniz.',
+      high: 'Basari odakli ve uretkensiniz. Basarilarinizi kutlamayi unutmayin.',
     },
-    'relationship-management': {
-      low: 'Iliski yonetimi becerilerinizi gelistirmek kariyer ve ozel hayatiniza olumlu yansiyacaktir.',
-      medium: 'Iliskilerinizi genel olarak iyi yonetiyorsunuz. Bazi alanlarda daha da gelistirmeniz mumkun.',
-      high: 'Iliski yonetiminde cok basarilisiniz. Insanlarla etkili baglantilar kurabiliyorsunuz.',
+    relationships: {
+      low: 'Sosyal baglarinizi guclendirmek icin kaliteli zaman yatirimi yapin.',
+      medium: 'Iliskileriniz saglikli. Daha derin baglar kurarak zenginlestirebilirsiniz.',
+      high: 'Guclu bir sosyal destek aginiz var. Bu degerli iliskileri besleyin.',
     },
-    'stress-management': {
-      low: 'Stres yonetimi teknikleri ogrenmek genel sagliginiz icin faydali olacaktir.',
-      medium: 'Stresle basa cikmada ortalama bir seviyedesiniz. Daha etkili teknikleri deneyebilirsiniz.',
-      high: 'Stres yonetimi konusunda cok basarilisiniz. Zor zamanlarda bile dengenizi koruyabiliyorsunuz.',
+    health: {
+      low: 'Fiziksel sagliginiza oncelik verin. Kucuk aliskanlik degisiklikleri buyuk fark yaratir.',
+      medium: 'Sagliginiz iyi durumda. Tutarlilik ve onleyici bakim ile daha da iyilestirebilirsiniz.',
+      high: 'Saglik ve enerji seviyeniz harika. Bu yasam tarzini surdurun.',
+    },
+    finance: {
+      low: 'Finansal farkindalik ve butce yonetimi ile guvenlik duygunuzu artirabilirsiniz.',
+      medium: 'Finansal durumunuz stabil. Birikim ve yatirim aliskanliklariyla buyutebilirsiniz.',
+      high: 'Finansal guvenliginiz guclu. Bu ozgurlugu diger alanlara yansitabilirsiniz.',
+    },
+    growth: {
+      low: 'Ogrenme ve gelisim firsatlari arayarak potansiyelinizi aciga cikarin.',
+      medium: 'Gelisim yolculugunuzdasiniz. Sistematik ogrenme ile hizlanabilirsiniz.',
+      high: 'Surekli gelisim mindsetiniz var. Ogrendiklerinizi uygulamaya odaklanin.',
+    },
+    balance: {
+      low: 'Yasam dengesi onceliklerinizi gozden gecirin. Sinir koymak onemli.',
+      medium: 'Dengenizi kuruyorsunuz. Zaman yonetimi teknikleriyle optimize edebilirsiniz.',
+      high: 'Yasam dengeniz cok iyi. Bu armoniyi korumaya devam edin.',
     },
   };
 
   const level = score < 40 ? 'low' : score < 70 ? 'medium' : 'high';
   return interpretations[category]?.[level] || '';
-};
-
-// EQ seviye yorumu
-const getEQLevel = (score: number) => {
-  if (score >= 80) return { level: 'Cok Yuksek', color: '#10B981', description: 'Duygusal zeka konusunda ustalasmisiniz.' };
-  if (score >= 65) return { level: 'Yuksek', color: '#06B6D4', description: 'Guclu duygusal zeka becerilerine sahipsiniz.' };
-  if (score >= 50) return { level: 'Orta', color: '#F59E0B', description: 'Iyi bir temele sahipsiniz, gelistirmeye devam edin.' };
-  if (score >= 35) return { level: 'Gelismeye Acik', color: '#F97316', description: 'Duygusal zeka becerilerinizi gelistirme firsatiniz var.' };
-  return { level: 'Baslangic', color: '#EF4444', description: 'Duygusal zeka yolculugunuza baslayin.' };
 };
 
 function ResultContent() {
@@ -93,7 +111,7 @@ function ResultContent() {
   const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem('lastEQTestResult');
+    const stored = localStorage.getItem('lastLifeScoreResult');
     if (stored) {
       const data = JSON.parse(stored);
       setTestResult(data);
@@ -106,7 +124,7 @@ function ResultContent() {
     setReportError(null);
 
     try {
-      const response = await fetch('/api/tests/eq-report', {
+      const response = await fetch('/api/tests/life-score-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ scores: testResult.scores }),
@@ -115,13 +133,13 @@ function ResultContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Rapor oluşturulamadı');
+        throw new Error(data.error || 'Rapor olusturulamadi');
       }
 
       setAiReport(data.report);
     } catch (error) {
-      console.error('AI rapor hatası:', error);
-      setReportError(error instanceof Error ? error.message : 'Rapor oluşturulamadı');
+      console.error('AI rapor hatasi:', error);
+      setReportError(error instanceof Error ? error.message : 'Rapor olusturulamadi');
     } finally {
       setGenerating(false);
     }
@@ -146,7 +164,7 @@ function ResultContent() {
         const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save(`duygusal-zeka-raporu-${new Date().toISOString().split('T')[0]}.pdf`);
+        pdf.save(`thorius-hayat-skoru-${new Date().toISOString().split('T')[0]}.pdf`);
       }
     } catch (error) {
       console.error('PDF olusturma hatasi:', error);
@@ -158,7 +176,7 @@ function ResultContent() {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">Sonuc bulunamadi.</p>
-        <Link href="/tests/emotional-intelligence">
+        <Link href="/tests/life-score">
           <Button className="mt-4">Yeni Test Baslat</Button>
         </Link>
       </div>
@@ -166,7 +184,16 @@ function ResultContent() {
   }
 
   const overallScore = testResult.scores['overall'] || 0;
-  const eqLevel = getEQLevel(overallScore);
+  const lifeLevel = getLifeLevel(overallScore);
+
+  // En yuksek ve en dusuk 3 alan
+  const sortedCategories = CATEGORIES.map(cat => ({
+    ...cat,
+    score: testResult.scores[cat.id] || 0,
+  })).sort((a, b) => b.score - a.score);
+
+  const topAreas = sortedCategories.slice(0, 3);
+  const lowAreas = sortedCategories.slice(-3).reverse();
 
   const radarData = CATEGORIES.map(cat => ({
     category: cat.name,
@@ -184,39 +211,83 @@ function ResultContent() {
     <div ref={resultRef} className="space-y-6">
       {/* Baslik */}
       <div className="text-center">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center mx-auto mb-4">
-          <Heart className="h-8 w-8 text-white" />
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 flex items-center justify-center mx-auto mb-4">
+          <Star className="h-8 w-8 text-white" />
         </div>
-        <h1 className="text-2xl font-bold mb-2">Duygusal Zeka Sonuclari</h1>
+        <h1 className="text-2xl font-bold mb-2">Thorius Hayat Skoru</h1>
         <p className="text-sm text-muted-foreground">
-          EQ-i (Bar-On, 1997) | {testResult.duration} dakikada tamamlandi
+          {testResult.duration} dakikada tamamlandi
         </p>
       </div>
 
-      {/* Genel EQ Skoru */}
-      <div className="bg-gradient-to-br from-pink-500/10 to-rose-500/10 rounded-2xl border border-pink-500/30 p-6 text-center">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <Award className="h-6 w-6 text-pink-500" />
-          <span className="text-sm font-medium text-pink-600">Genel Duygusal Zeka Skoru</span>
-        </div>
-        <div className="text-5xl font-bold mb-2" style={{ color: eqLevel.color }}>
+      {/* Genel Hayat Skoru */}
+      <div className="bg-gradient-to-br from-amber-500/10 via-orange-500/10 to-rose-500/10 rounded-2xl border border-amber-500/30 p-6 text-center">
+        <div className="text-6xl mb-2">{lifeLevel.emoji}</div>
+        <div className="text-6xl font-bold mb-2" style={{ color: lifeLevel.color }}>
           {overallScore}
         </div>
         <div
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold"
-          style={{ backgroundColor: `${eqLevel.color}20`, color: eqLevel.color }}
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold mb-2"
+          style={{ backgroundColor: `${lifeLevel.color}20`, color: lifeLevel.color }}
         >
-          <Zap className="h-4 w-4" />
-          {eqLevel.level}
+          <Award className="h-4 w-4" />
+          {lifeLevel.level}
         </div>
-        <p className="text-sm text-muted-foreground mt-2">{eqLevel.description}</p>
+        <p className="text-sm text-muted-foreground max-w-md mx-auto">{lifeLevel.description}</p>
+      </div>
+
+      {/* Guclu ve Gelisim Alanlari */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="bg-green-500/10 rounded-2xl border border-green-500/30 p-4">
+          <h3 className="font-semibold mb-3 flex items-center gap-2 text-green-600">
+            <TrendingUp className="h-5 w-5" />
+            En Guclu Alanlariniz
+          </h3>
+          <div className="space-y-2">
+            {topAreas.map((area, i) => {
+              const Icon = area.icon;
+              return (
+                <div key={area.id} className="flex items-center justify-between p-2 rounded-lg bg-white/50">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-bold text-green-600">{i + 1}.</span>
+                    <Icon className="h-4 w-4" style={{ color: area.color }} />
+                    <span className="text-sm font-medium">{area.fullName}</span>
+                  </div>
+                  <span className="font-bold" style={{ color: area.color }}>%{area.score}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="bg-amber-500/10 rounded-2xl border border-amber-500/30 p-4">
+          <h3 className="font-semibold mb-3 flex items-center gap-2 text-amber-600">
+            <Target className="h-5 w-5" />
+            Oncelikli Gelisim Alanlari
+          </h3>
+          <div className="space-y-2">
+            {lowAreas.map((area, i) => {
+              const Icon = area.icon;
+              return (
+                <div key={area.id} className="flex items-center justify-between p-2 rounded-lg bg-white/50">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-bold text-amber-600">{i + 1}.</span>
+                    <Icon className="h-4 w-4" style={{ color: area.color }} />
+                    <span className="text-sm font-medium">{area.fullName}</span>
+                  </div>
+                  <span className="font-bold" style={{ color: area.color }}>%{area.score}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {/* Grafikler */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Radar Chart */}
         <div className="bg-card rounded-2xl border border-border p-4 sm:p-6">
-          <h3 className="font-semibold mb-4 text-center">EQ Profili</h3>
+          <h3 className="font-semibold mb-4 text-center">Yasam Carkı</h3>
           <ResponsiveContainer width="100%" height={300}>
             <RadarChart data={radarData}>
               <PolarGrid stroke="hsl(var(--border))" />
@@ -232,11 +303,18 @@ function ResultContent() {
               <Radar
                 name="Skor"
                 dataKey="value"
-                stroke="#EC4899"
-                fill="#EC4899"
-                fillOpacity={0.3}
+                stroke="#F59E0B"
+                fill="url(#lifeGradient)"
+                fillOpacity={0.4}
                 strokeWidth={2}
               />
+              <defs>
+                <linearGradient id="lifeGradient" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#F59E0B" />
+                  <stop offset="50%" stopColor="#F97316" />
+                  <stop offset="100%" stopColor="#EC4899" />
+                </linearGradient>
+              </defs>
             </RadarChart>
           </ResponsiveContainer>
         </div>
@@ -248,7 +326,7 @@ function ResultContent() {
             <BarChart data={barData} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis type="number" domain={[0, 100]} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
-              <YAxis dataKey="name" type="category" width={110} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} />
+              <YAxis dataKey="name" type="category" width={70} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: 'hsl(var(--card))',
@@ -269,7 +347,7 @@ function ResultContent() {
       {/* Detayli Skorlar */}
       <div className="bg-card rounded-2xl border border-border p-4 sm:p-6">
         <h3 className="font-semibold mb-4">Detayli Alan Analizi</h3>
-        <div className="space-y-4">
+        <div className="grid sm:grid-cols-2 gap-4">
           {CATEGORIES.map(cat => {
             const score = testResult.scores[cat.id] || 0;
             const Icon = cat.icon;
@@ -283,10 +361,10 @@ function ResultContent() {
                     >
                       <Icon className="h-4 w-4" style={{ color: cat.color }} />
                     </div>
-                    <span className="font-medium">{cat.name}</span>
+                    <span className="font-medium text-sm">{cat.fullName}</span>
                   </div>
                   <span className="text-xl font-bold" style={{ color: cat.color }}>
-                    %{score}
+                    {score}
                   </span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden mb-2">
@@ -298,7 +376,7 @@ function ResultContent() {
                     style={{ backgroundColor: cat.color }}
                   />
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {getScoreInterpretation(cat.id, score)}
                 </p>
               </div>
@@ -309,12 +387,12 @@ function ResultContent() {
 
       {/* AI Rapor */}
       {!aiReport ? (
-        <div className="bg-gradient-to-br from-pink-500/10 to-rose-500/10 rounded-2xl border border-pink-500/30 p-6 text-center">
-          <Sparkles className="h-10 w-10 text-pink-500 mx-auto mb-4" />
-          <h3 className="font-semibold mb-2">AI Destekli Detayli EQ Raporu</h3>
+        <div className="bg-gradient-to-br from-amber-500/10 via-orange-500/10 to-rose-500/10 rounded-2xl border border-amber-500/30 p-6 text-center">
+          <Sparkles className="h-10 w-10 text-amber-500 mx-auto mb-4" />
+          <h3 className="font-semibold mb-2">AI Hayat Kocu Raporu</h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Yapay zeka ile duygusal zeka profilinizin detayli analizini, is hayati onerilerini
-            ve liderlik gelistirme planini olusturun.
+            Yapay zeka hayat kocunuz size ozel gelisim plani, hizli kazanimlar
+            ve haftalik aksiyon plani olusturacak.
           </p>
           {reportError && (
             <p className="text-sm text-red-500 mb-4">{reportError}</p>
@@ -322,7 +400,7 @@ function ResultContent() {
           <Button
             onClick={generateReport}
             disabled={generating}
-            className="bg-gradient-to-r from-pink-500 to-rose-600"
+            className="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500"
           >
             {generating ? (
               <>
@@ -342,68 +420,36 @@ function ResultContent() {
           {/* Ozet */}
           <div className="bg-card rounded-2xl border border-border p-4 sm:p-6">
             <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-pink-500" />
-              AI Yorum - {aiReport.eqLevel}
+              <Sparkles className="h-5 w-5 text-amber-500" />
+              AI Hayat Kocu Yorumu
             </h3>
             <p className="text-muted-foreground leading-relaxed">{aiReport.summary}</p>
           </div>
 
-          {/* Guclu Yonler */}
+          {/* Hizli Kazanimlar */}
           <div className="bg-green-500/10 rounded-2xl border border-green-500/30 p-4 sm:p-6">
             <h3 className="font-semibold mb-3 flex items-center gap-2 text-green-600">
-              <TrendingUp className="h-5 w-5" />
-              Guclu EQ Alanlariniz
+              <Zap className="h-5 w-5" />
+              Bu Hafta Yapabilecekleriniz (Hizli Kazanimlar)
             </h3>
             <ul className="space-y-2">
-              {aiReport.strengths.map((item, i) => (
+              {aiReport.quickWins.map((item, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm">
-                  <span className="text-green-500 mt-1">•</span>
+                  <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
                   <span className="text-muted-foreground">{item}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Gelisim Alanlari */}
-          <div className="bg-amber-500/10 rounded-2xl border border-amber-500/30 p-4 sm:p-6">
-            <h3 className="font-semibold mb-3 flex items-center gap-2 text-amber-600">
-              <Target className="h-5 w-5" />
-              Gelisim Firsatlari
-            </h3>
-            <ul className="space-y-2">
-              {aiReport.developmentAreas.map((item, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm">
-                  <span className="text-amber-500 mt-1">•</span>
-                  <span className="text-muted-foreground">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Is Hayati Onerileri */}
-          <div className="bg-blue-500/10 rounded-2xl border border-blue-500/30 p-4 sm:p-6">
-            <h3 className="font-semibold mb-3 flex items-center gap-2 text-blue-600">
-              <Briefcase className="h-5 w-5" />
-              Is Hayatinda EQ Kullanimi
-            </h3>
-            <ul className="space-y-2">
-              {aiReport.workplaceTips.map((item, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm">
-                  <span className="text-blue-500 mt-1">•</span>
-                  <span className="text-muted-foreground">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Liderlik Onerileri */}
+          {/* Uzun Vadeli Hedefler */}
           <div className="bg-purple-500/10 rounded-2xl border border-purple-500/30 p-4 sm:p-6">
             <h3 className="font-semibold mb-3 flex items-center gap-2 text-purple-600">
-              <Award className="h-5 w-5" />
-              Liderlik Gelistirme
+              <Target className="h-5 w-5" />
+              90 Gunluk Hedefler
             </h3>
             <ul className="space-y-2">
-              {aiReport.leadershipTips.map((item, i) => (
+              {aiReport.longTermGoals.map((item, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm">
                   <span className="text-purple-500 mt-1">•</span>
                   <span className="text-muted-foreground">{item}</span>
@@ -412,17 +458,17 @@ function ResultContent() {
             </ul>
           </div>
 
-          {/* Gelisim Plani */}
+          {/* Haftalik Plan */}
           <div className="bg-card rounded-2xl border border-border p-4 sm:p-6">
-            <h3 className="font-semibold mb-4">30 Gunluk EQ Gelistirme Plani</h3>
+            <h3 className="font-semibold mb-4">7 Gunluk Aksiyon Plani</h3>
             <div className="space-y-3">
-              {aiReport.developmentPlan.map((item, i) => (
+              {aiReport.weeklyPlan.map((item, i) => (
                 <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-muted/50">
-                  <div className="w-8 h-8 rounded-full bg-pink-500/20 flex items-center justify-center shrink-0 text-sm font-bold text-pink-600">
-                    {i + 1}
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shrink-0 text-sm font-bold text-white">
+                    {item.day}
                   </div>
                   <div>
-                    <p className="font-medium text-sm">{item.area}</p>
+                    <p className="font-medium text-sm">{item.focus}</p>
                     <p className="text-sm text-muted-foreground">{item.action}</p>
                   </div>
                 </div>
@@ -458,7 +504,7 @@ function ResultContent() {
   );
 }
 
-export default function EmotionalIntelligenceResultPage() {
+export default function LifeScoreResultPage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-20 pb-12 px-4">
         <div className="max-w-3xl mx-auto">
@@ -472,7 +518,7 @@ export default function EmotionalIntelligenceResultPage() {
 
           <Suspense fallback={
             <div className="text-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto text-pink-500" />
+              <Loader2 className="h-8 w-8 animate-spin mx-auto text-amber-500" />
               <p className="mt-4 text-muted-foreground">Yukleniyor...</p>
             </div>
           }>

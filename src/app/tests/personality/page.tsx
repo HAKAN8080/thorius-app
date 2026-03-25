@@ -8,7 +8,6 @@ import {
   Loader2, CheckCircle2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Navbar } from '@/components/Navbar';
 
 // Big Five Kategorileri
 const CATEGORIES = [
@@ -236,9 +235,7 @@ export default function PersonalityTestPage() {
 
   if (showIntro) {
     return (
-      <>
-        <Navbar />
-        <main className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-20 pb-12 px-4">
+      <main className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-20 pb-12 px-4">
           <div className="max-w-2xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -316,14 +313,11 @@ export default function PersonalityTestPage() {
             </motion.div>
           </div>
         </main>
-      </>
     );
   }
 
   return (
-    <>
-      <Navbar />
-      <main className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-20 pb-12 px-4">
+    <main className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-20 pb-12 px-4">
         <div className="max-w-2xl mx-auto">
           {/* Progress */}
           <div className="mb-6">
@@ -462,6 +456,5 @@ export default function PersonalityTestPage() {
           </div>
         </div>
       </main>
-    </>
   );
 }

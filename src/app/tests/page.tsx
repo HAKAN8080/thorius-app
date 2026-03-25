@@ -4,11 +4,22 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
   Brain, ClipboardList, Clock, Users, ChevronRight,
-  Sparkles, Lock, CheckCircle2
+  Sparkles, Lock, CheckCircle2, Star, Heart
 } from 'lucide-react';
-import { Navbar } from '@/components/Navbar';
 
 const TESTS = [
+  {
+    id: 'life-score',
+    title: 'Thorius Hayat Skoru',
+    description: 'Hayatinizin 8 temel alanini olcun: Mutluluk, Anlam, Basari, Iliskiler, Saglik, Finans, Gelisim ve Denge. PERMA + Yasam Carki hibrit modeli.',
+    icon: Star,
+    duration: '10-12 dk',
+    questions: 48,
+    color: 'from-amber-500 via-orange-500 to-rose-500',
+    available: true,
+    academic: 'PERMA + Ryff + Diener',
+    featured: true,
+  },
   {
     id: 'personality',
     title: 'Big Five Kisilik Envanteri',
@@ -24,7 +35,7 @@ const TESTS = [
     id: 'emotional-intelligence',
     title: 'Duygusal Zeka Envanteri (EQ-i)',
     description: 'Is dunyasinda en populer EQ testi. Oz farkindalik, oz yonetim, sosyal farkindalik, iliski yonetimi ve stres yonetimi alanlarinda kendinizi olcun.',
-    icon: Users,
+    icon: Heart,
     duration: '10-15 dk',
     questions: 50,
     color: 'from-pink-500 to-rose-600',
@@ -46,9 +57,7 @@ const TESTS = [
 
 export default function TestsPage() {
   return (
-    <>
-      <Navbar />
-      <main className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-20 pb-12 px-4">
+    <main className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-20 pb-12 px-4">
         <div className="max-w-5xl mx-auto">
           {/* Baslik */}
           <div className="text-center mb-10">
@@ -173,6 +182,5 @@ export default function TestsPage() {
           </div>
         </div>
       </main>
-    </>
   );
 }
