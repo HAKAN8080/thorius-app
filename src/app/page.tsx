@@ -164,9 +164,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── Paket Carousel ─────────────────────────────────────────── */}
-      <PackageCarousel />
-
       {/* ── Koçlar ──────────────────────────────────────────────────── */}
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
         <div className="mb-12 flex flex-col items-center text-center">
