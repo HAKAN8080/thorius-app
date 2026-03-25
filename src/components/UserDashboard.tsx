@@ -31,18 +31,18 @@ export function UserDashboard() {
     async function fetchData() {
       try {
         const [sessionsRes, limitsRes] = await Promise.all([
-          fetch('/api/sessions'),
-          fetch('/api/user/limits'),
+          fetch('/api/sessions').catch(() => null),
+          fetch('/api/user/limits').catch(() => null),
         ]);
 
-        if (sessionsRes.ok) {
-          const sessionsData = await sessionsRes.json();
+        if (sessionsRes?.ok) {
+          const sessionsData = await sessionsRes.json().catch(() => ({ sessions: [] }));
           setSessions(sessionsData.sessions ?? []);
         }
 
-        if (limitsRes.ok) {
-          const limitsData = await limitsRes.json();
-          setLimits(limitsData);
+        if (limitsRes?.ok) {
+          const limitsData = await limitsRes.json().catch(() => null);
+          if (limitsData) setLimits(limitsData);
         }
       } catch {
         // Hata durumunda sessiz kal
@@ -85,7 +85,7 @@ export function UserDashboard() {
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Target className="h-4 w-4" />
               <span>
-                <strong className="text-foreground">{limits.sessionLimit - limits.sessionCount}</strong> seans hakkın kaldı
+                <strong className="text-foreground">{Math.max(0, limits.sessionLimit - limits.sessionCount)}</strong> seans hakkın kaldı
               </span>
             </div>
           )}
