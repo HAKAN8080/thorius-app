@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { BarChart3, TrendingUp, Target, CheckCircle2, Sparkles, ArrowRight, Loader2, RefreshCw } from 'lucide-react';
+import { BarChart3, TrendingUp, Target, CheckCircle2, Sparkles, ArrowRight, Loader2, RefreshCw, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -18,20 +18,37 @@ interface Report {
   generatedAt: string;
 }
 
+interface UserLimits {
+  plan: string | null;
+  sessionCount: number;
+  sessionLimit: number;
+  limitReached: boolean;
+}
+
 export default function ReportPage() {
   const [report, setReport] = useState<Report | null>(null);
+  const [limits, setLimits] = useState<UserLimits | null>(null);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
 
   async function fetchReport() {
     setLoading(true);
     try {
-      const res = await fetch('/api/report');
-      const data = await res.json();
-      if (data.report) {
-        setReport(data.report);
+      const [reportRes, limitsRes] = await Promise.all([
+        fetch('/api/report'),
+        fetch('/api/user/limits'),
+      ]);
+
+      const reportData = await reportRes.json();
+      if (reportData.report) {
+        setReport(reportData.report);
       } else {
-        setMessage(data.message ?? 'Rapor oluşturulamadı.');
+        setMessage(reportData.message ?? 'Rapor oluşturulamadı.');
+      }
+
+      if (limitsRes.ok) {
+        const limitsData = await limitsRes.json();
+        setLimits(limitsData);
       }
     } catch {
       setMessage('Bir hata oluştu.');
@@ -92,26 +109,95 @@ export default function ReportPage() {
             </div>
           </div>
         ) : !report ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-border/50 bg-card/30 py-16 text-center">
-            <BarChart3 className="mb-4 h-10 w-10 text-muted-foreground/40" />
-            <h3 className="font-semibold">Rapor oluşturulamadı</h3>
-            <p className="mt-1 text-sm text-muted-foreground">{message}</p>
-            {message.includes('seans') && (
-              <Link href="/mentors" className="mt-4">
-                <Button size="sm" className="bg-gradient-to-r from-secondary to-primary hover:opacity-90">
-                  İlk Seansı Başlat
-                </Button>
-              </Link>
+          <div className="space-y-5">
+            {/* Seans Hakkı - Rapor olmasa bile göster */}
+            {limits && (
+              <div className="rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/5 to-accent/5 p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-primary" />
+                    <h3 className="font-semibold">Seans Hakkı</h3>
+                  </div>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {limits.plan ? limits.plan.charAt(0).toUpperCase() + limits.plan.slice(1) : 'Ücretsiz'} Plan
+                  </span>
+                </div>
+                <div className="flex items-end justify-between mb-2">
+                  <div>
+                    <p className="text-3xl font-bold text-primary">{limits.sessionLimit - limits.sessionCount}</p>
+                    <p className="text-xs text-muted-foreground">kalan seans</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold">{limits.sessionCount} / {limits.sessionLimit}</p>
+                    <p className="text-xs text-muted-foreground">kullanılan</p>
+                  </div>
+                </div>
+                <div className="h-2 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all"
+                    style={{ width: `${Math.min((limits.sessionCount / limits.sessionLimit) * 100, 100)}%` }}
+                  />
+                </div>
+              </div>
             )}
+
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-border/50 bg-card/30 py-16 text-center">
+              <BarChart3 className="mb-4 h-10 w-10 text-muted-foreground/40" />
+              <h3 className="font-semibold">Rapor oluşturulamadı</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{message}</p>
+              {message.includes('seans') && (
+                <Link href="/mentors" className="mt-4">
+                  <Button size="sm" className="bg-gradient-to-r from-secondary to-primary hover:opacity-90">
+                    İlk Seansı Başlat
+                  </Button>
+                </Link>
+              )}
+            </div>
           </div>
         ) : (
           <div className="space-y-5">
+
+            {/* Seans Hakkı Kartı */}
+            {limits && (
+              <div className="rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/5 to-accent/5 p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-primary" />
+                    <h3 className="font-semibold">Seans Hakkı</h3>
+                  </div>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {limits.plan ? limits.plan.charAt(0).toUpperCase() + limits.plan.slice(1) : 'Ücretsiz'} Plan
+                  </span>
+                </div>
+                <div className="flex items-end justify-between mb-2">
+                  <div>
+                    <p className="text-3xl font-bold text-primary">{limits.sessionLimit - limits.sessionCount}</p>
+                    <p className="text-xs text-muted-foreground">kalan seans</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold">{limits.sessionCount} / {limits.sessionLimit}</p>
+                    <p className="text-xs text-muted-foreground">kullanılan</p>
+                  </div>
+                </div>
+                <div className="h-2 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all"
+                    style={{ width: `${Math.min((limits.sessionCount / limits.sessionLimit) * 100, 100)}%` }}
+                  />
+                </div>
+                {limits.limitReached && (
+                  <p className="mt-3 text-xs text-amber-600 font-medium">
+                    Seans hakkınız doldu. Devam etmek için paket yükseltin.
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Stats Row */}
             <div className="grid grid-cols-3 gap-4">
               <div className="rounded-2xl border border-border/50 bg-card/40 p-4 text-center backdrop-blur-sm">
                 <p className="text-2xl font-bold text-primary">{report.totalSessions}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Seans</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Tamamlanan Seans</p>
               </div>
               <div className="rounded-2xl border border-border/50 bg-card/40 p-4 text-center backdrop-blur-sm">
                 <p className="text-2xl font-bold text-secondary">{report.completedHomework}/{report.totalHomework}</p>

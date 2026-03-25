@@ -1,13 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { MentorCard } from '@/components/MentorCard';
 import { DEFAULT_MENTORS } from '@/lib/types';
-import { Sparkles, Zap, Target, ShieldCheck, ArrowRight, Star, CheckCircle } from 'lucide-react';
+import { Sparkles, Zap, Target, ShieldCheck, ArrowRight, CheckCircle, Star } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FreeTrialBanner } from '@/components/FreeTrialBanner';
 import { getCurrentUser } from '@/lib/auth';
 import { CherryBlossom } from '@/components/CherryBlossom';
 import { PackageCarousel } from '@/components/PackageCarousel';
+import { UserDashboard } from '@/components/UserDashboard';
 
 export default async function HomePage() {
   const user = await getCurrentUser();
@@ -19,6 +20,9 @@ export default async function HomePage() {
     <div className="bg-white">
       {/* Free Trial Banner */}
       <FreeTrialBanner isLoggedIn={!!user} />
+
+      {/* ── Kullanıcı Dashboard (Giriş yapmışsa) ──────────────────── */}
+      {user && <UserDashboard />}
 
       {/* ── Hero ────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
@@ -310,111 +314,17 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Fiyatlandırma */}
-      <section className="py-20 bg-gradient-to-b from-white to-muted/20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-12 text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm text-primary">
-              <Sparkles className="h-3.5 w-3.5" />
-              Şeffaf Fiyatlandırma
-            </div>
-            <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
-              Gelişiminize{' '}
-              <span className="bg-gradient-to-r from-violet-600 to-amber-500 bg-clip-text text-transparent">
-                yatırım yapın
-              </span>
-            </h2>
-            <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-              Uluslararası koçluk standartlarında AI koç ve mentorlarla sistematik gelişim. İlk seansı ücretsiz dene. Paket biter, yenisi alınır — abonelik yok.
-            </p>
-          </div>
+      {/* Fiyatlandırma - Carousel */}
+      <PackageCarousel />
 
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Free */}
-            <div className="relative flex flex-col rounded-2xl border border-slate-200 bg-slate-50 p-6 hover:shadow-md transition-all duration-200">
-              <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-500 to-slate-700">
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
-              <h3 className="text-xl font-bold">Ücretsiz</h3>
-              <p className="mt-1 mb-4 text-xs text-muted-foreground">Thorius&apos;u keşfetmek için tek seans dene</p>
-              <div className="mb-4 text-3xl font-bold">Ücretsiz</div>
-              <ul className="mb-5 flex-1 space-y-1.5 text-xs">
-                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />1 koçluk seansı</li>
-                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />Seçili koç &amp; mentorlar</li>
-              </ul>
-              <Link href="/auth/register">
-                <Button variant="outline" className="w-full text-sm" size="sm">Ücretsiz Başla</Button>
-              </Link>
-            </div>
-
-            {/* Starter */}
-            <div className="relative flex flex-col rounded-2xl border border-blue-200 bg-blue-50/40 p-6 hover:shadow-md transition-all duration-200">
-              <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-700">
-                <Zap className="h-5 w-5 text-white" />
-              </div>
-              <h3 className="text-xl font-bold">Starter</h3>
-              <p className="mt-1 mb-4 text-xs text-muted-foreground">Gelişim yolculuğuna düzenli başlamak için</p>
-              <div className="mb-4"><span className="text-3xl font-bold">₺1.990</span><span className="text-sm text-muted-foreground">/paket</span></div>
-              <ul className="mb-5 flex-1 space-y-1.5 text-xs">
-                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />10 seans</li>
-                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />Karma ses</li>
-                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />Gelişim raporları</li>
-              </ul>
-              <Link href="/pricing">
-                <Button variant="outline" className="w-full text-sm" size="sm">Starter&apos;a Geç</Button>
-              </Link>
-            </div>
-
-            {/* Premium */}
-            <div className="relative flex flex-col rounded-2xl border border-amber-300 bg-amber-50/40 p-6 shadow-lg ring-2 ring-amber-400/40 transition-all duration-200">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                <span className="rounded-full bg-gradient-to-r from-amber-500 to-orange-600 px-3 py-1 text-xs font-semibold text-white shadow">En Popüler</span>
-              </div>
-              <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600">
-                <Star className="h-5 w-5 text-white" />
-              </div>
-              <h3 className="text-xl font-bold">Premium</h3>
-              <p className="mt-1 mb-4 text-xs text-muted-foreground">Tam sesli koçluk — sanki biriyle konuşuyorsun</p>
-              <div className="mb-4"><span className="text-3xl font-bold">₺19.000</span><span className="text-sm text-muted-foreground">/paket</span></div>
-              <ul className="mb-5 flex-1 space-y-1.5 text-xs">
-                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />30 seans</li>
-                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />TÜM koç &amp; mentorlar</li>
-                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />FULL sesli deneyim</li>
-              </ul>
-              <Link href="/pricing">
-                <Button className="w-full text-sm bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:opacity-90 border-0" size="sm">Premium&apos;a Geç</Button>
-              </Link>
-            </div>
-
-            {/* Kurumsal */}
-            <div className="relative flex flex-col rounded-2xl border border-emerald-200 bg-emerald-50/40 p-6 hover:shadow-md transition-all duration-200">
-              <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700">
-                <ShieldCheck className="h-5 w-5 text-white" />
-              </div>
-              <h3 className="text-xl font-bold">Kurumsal</h3>
-              <p className="mt-1 mb-4 text-xs text-muted-foreground">Ekibiniz için kurumsal koçluk platformu</p>
-              <div className="mb-4"><span className="text-3xl font-bold">₺59.000</span><span className="text-sm text-muted-foreground">/paket</span></div>
-              <ul className="mb-5 flex-1 space-y-1.5 text-xs">
-                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />100 seans</li>
-                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />TÜM koç &amp; mentorlar</li>
-                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />FULL sesli + öncelikli destek</li>
-              </ul>
-              <Link href="/pricing">
-                <Button variant="outline" className="w-full text-sm" size="sm">Teklif Al</Button>
-              </Link>
-            </div>
-          </div>
-
-          <div className="mt-8 text-center">
-            <Link href="/pricing">
-              <Button variant="ghost" className="gap-2 text-primary hover:text-primary/80">
-                Tüm plan detaylarını gör
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <div className="pb-10 text-center">
+        <Link href="/pricing">
+          <Button variant="ghost" className="gap-2 text-primary hover:text-primary/80">
+            Tüm plan detaylarını gör
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </Link>
+      </div>
 
       {/* Footer */}
       <footer className="border-t border-border bg-muted/20 py-10">
