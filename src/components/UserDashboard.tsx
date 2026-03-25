@@ -26,6 +26,7 @@ export function UserDashboard() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [limits, setLimits] = useState<UserLimits | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -34,6 +35,13 @@ export function UserDashboard() {
           fetch('/api/sessions').catch(() => null),
           fetch('/api/user/limits').catch(() => null),
         ]);
+
+        // Eğer her iki API de başarısız olursa, komponenti gizle
+        if (!sessionsRes?.ok && !limitsRes?.ok) {
+          setError(true);
+          setLoading(false);
+          return;
+        }
 
         if (sessionsRes?.ok) {
           const sessionsData = await sessionsRes.json().catch(() => ({ sessions: [] }));
@@ -45,7 +53,7 @@ export function UserDashboard() {
           if (limitsData) setLimits(limitsData);
         }
       } catch {
-        // Hata durumunda sessiz kal
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -53,6 +61,9 @@ export function UserDashboard() {
 
     fetchData();
   }, []);
+
+  // Hata durumunda hiç render etme
+  if (error) return null;
 
   if (loading) {
     return (
@@ -66,15 +77,15 @@ export function UserDashboard() {
     );
   }
 
-  // Tüm ödevleri topla
-  const allHomework = sessions.flatMap(s =>
-    s.homework.map(h => ({ ...h, sessionTitle: s.mentorTitle, sessionDate: s.createdAt }))
+  // Tüm ödevleri topla (null check ile)
+  const allHomework = (sessions ?? []).flatMap(s =>
+    (s.homework ?? []).map(h => ({ ...h, sessionTitle: s.mentorTitle, sessionDate: s.createdAt }))
   );
   const completedHomework = allHomework.filter(h => h.completed);
   const pendingHomework = allHomework.filter(h => !h.completed);
 
   // Son seans
-  const lastSession = sessions[0];
+  const lastSession = sessions?.[0];
 
   return (
     <section className="py-8 bg-gradient-to-b from-primary/5 to-transparent">
