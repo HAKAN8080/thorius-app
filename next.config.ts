@@ -3,7 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
+    resolveAlias: {
+      'fflate': { browser: 'fflate/browser', default: 'fflate' },
+    },
   },
+  serverExternalPackages: ['jspdf', 'html2canvas'],
   images: {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Menu, LogOut, User, LayoutDashboard, BarChart3, X, ChevronDown, Shield } from 'lucide-react';
+import { Menu, LogOut, User, LayoutDashboard, BarChart3, X, ChevronDown, Shield, Brain } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -17,6 +17,7 @@ interface AuthUser {
 const NAV_LINKS = [
   { href: '/', label: 'Ana Sayfa' },
   { href: '/mentors', label: 'Koç & Mentorlar' },
+  { href: '/tests', label: 'Testler' },
   { href: '/kocluk-mentorluk', label: 'Koçluk & Mentorluk' },
   { href: '/etik-standartlar', label: 'Etik Standartlar' },
   { href: '/pricing', label: 'Fiyatlandırma' },
@@ -149,6 +150,12 @@ export function Navbar() {
                         Seanslarım
                       </button>
                     </Link>
+                    <Link href="/tests" onClick={() => setUserMenuOpen(false)}>
+                      <button className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors">
+                        <Brain className="h-4 w-4 text-muted-foreground" />
+                        Kişilik Testleri
+                      </button>
+                    </Link>
                     <Link href="/profile/report" onClick={() => setUserMenuOpen(false)}>
                       <button className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors">
                         <BarChart3 className="h-4 w-4 text-muted-foreground" />
@@ -232,6 +239,11 @@ export function Navbar() {
                 <Link href="/profile" onClick={() => setIsMenuOpen(false)}>
                   <button className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-muted">
                     <LayoutDashboard className="h-4 w-4 text-muted-foreground" /> Seanslarım
+                  </button>
+                </Link>
+                <Link href="/tests" onClick={() => setIsMenuOpen(false)}>
+                  <button className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-muted">
+                    <Brain className="h-4 w-4 text-muted-foreground" /> Kişilik Testleri
                   </button>
                 </Link>
                 <Link href="/profile/report" onClick={() => setIsMenuOpen(false)}>
