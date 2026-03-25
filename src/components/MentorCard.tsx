@@ -176,9 +176,9 @@ export function MentorCard({ mentor, userPlan }: MentorCardProps) {
 
           {/* Kilit overlay */}
           {isPremiumLocked && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/40 via-black/10 to-transparent">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-amber-300/60 bg-amber-500/20 backdrop-blur-sm">
-                <Lock className="h-6 w-6 text-amber-200" />
+            <div className="absolute inset-0 flex items-end justify-center pb-4 bg-gradient-to-t from-black/50 via-black/20 to-transparent">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-amber-300/60 bg-amber-500/30 backdrop-blur-sm shadow-lg">
+                <Lock className="h-5 w-5 text-amber-200" />
               </div>
             </div>
           )}
