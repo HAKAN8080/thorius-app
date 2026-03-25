@@ -174,7 +174,7 @@ export default async function HomePage() {
             Uluslararası Koçluk etik standartlarında eğitilmiş, GROW metodolojisiyle çalışan AI koçlar
           </p>
         </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {coaches.map((mentor) => (
             <MentorCard key={mentor.id} mentor={mentor} userPlan={userPlan} />
           ))}
@@ -193,7 +193,7 @@ export default async function HomePage() {
               Sektör deneyimini doğrudan paylaşan, somut öneriler sunan AI mentorlar
             </p>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {mentors.map((mentor) => (
               <MentorCard key={mentor.id} mentor={mentor} userPlan={userPlan} />
             ))}
