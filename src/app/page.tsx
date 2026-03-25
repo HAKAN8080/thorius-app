@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { FreeTrialBanner } from '@/components/FreeTrialBanner';
 import { getCurrentUser } from '@/lib/auth';
 import { CherryBlossom } from '@/components/CherryBlossom';
+import { PackageCarousel } from '@/components/PackageCarousel';
 
 export default async function HomePage() {
   const user = await getCurrentUser();
@@ -158,6 +159,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ── Paket Carousel ─────────────────────────────────────────── */}
+      <PackageCarousel />
 
       {/* ── Koçlar ──────────────────────────────────────────────────── */}
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
@@ -325,7 +329,7 @@ export default async function HomePage() {
             </p>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {/* Free */}
             <div className="relative flex flex-col rounded-2xl border border-slate-200 bg-slate-50 p-6 hover:shadow-md transition-all duration-200">
               <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-500 to-slate-700">
@@ -361,24 +365,6 @@ export default async function HomePage() {
               </Link>
             </div>
 
-            {/* Pro */}
-            <div className="relative flex flex-col rounded-2xl border border-violet-200 bg-violet-50/40 p-6 hover:shadow-md transition-all duration-200">
-              <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-violet-700">
-                <Target className="h-5 w-5 text-white" />
-              </div>
-              <h3 className="text-xl font-bold">Pro</h3>
-              <p className="mt-1 mb-4 text-xs text-muted-foreground">Sistematik büyüme için daha fazla seans</p>
-              <div className="mb-4"><span className="text-3xl font-bold">₺3.490</span><span className="text-sm text-muted-foreground">/paket</span></div>
-              <ul className="mb-5 flex-1 space-y-1.5 text-xs">
-                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />20 seans</li>
-                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />Karma ses</li>
-                <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />Gelişim raporları</li>
-              </ul>
-              <Link href="/pricing">
-                <Button variant="outline" className="w-full text-sm" size="sm">Pro&apos;ya Geç</Button>
-              </Link>
-            </div>
-
             {/* Premium */}
             <div className="relative flex flex-col rounded-2xl border border-amber-300 bg-amber-50/40 p-6 shadow-lg ring-2 ring-amber-400/40 transition-all duration-200">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap">
@@ -389,7 +375,7 @@ export default async function HomePage() {
               </div>
               <h3 className="text-xl font-bold">Premium</h3>
               <p className="mt-1 mb-4 text-xs text-muted-foreground">Tam sesli koçluk — sanki biriyle konuşuyorsun</p>
-              <div className="mb-4"><span className="text-3xl font-bold">₺9.990</span><span className="text-sm text-muted-foreground">/paket</span></div>
+              <div className="mb-4"><span className="text-3xl font-bold">₺19.000</span><span className="text-sm text-muted-foreground">/paket</span></div>
               <ul className="mb-5 flex-1 space-y-1.5 text-xs">
                 <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />30 seans</li>
                 <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />TÜM koç &amp; mentorlar</li>
@@ -407,7 +393,7 @@ export default async function HomePage() {
               </div>
               <h3 className="text-xl font-bold">Kurumsal</h3>
               <p className="mt-1 mb-4 text-xs text-muted-foreground">Ekibiniz için kurumsal koçluk platformu</p>
-              <div className="mb-4"><span className="text-3xl font-bold">₺29.990</span><span className="text-sm text-muted-foreground">/paket</span></div>
+              <div className="mb-4"><span className="text-3xl font-bold">₺59.000</span><span className="text-sm text-muted-foreground">/paket</span></div>
               <ul className="mb-5 flex-1 space-y-1.5 text-xs">
                 <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />100 seans</li>
                 <li className="flex items-center gap-2"><CheckCircle className="h-3.5 w-3.5 text-green-500" />TÜM koç &amp; mentorlar</li>

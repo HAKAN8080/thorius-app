@@ -19,7 +19,7 @@ const WC_URLS: Record<string, string> = {
 };
 
 /* ── Plan tanımları ────────────────────────────────────────────────────── */
-type PlanId = 'free' | 'starter' | 'pro' | 'premium' | 'kurumsal';
+type PlanId = 'free' | 'starter' | 'premium' | 'kurumsal';
 
 interface Plan {
   id: PlanId;
@@ -90,35 +90,10 @@ const PLANS: Plan[] = [
     cta: 'Starter\'a Geç',
   },
   {
-    id: 'pro',
-    name: 'Pro',
-    price: '3.490',
-    priceUsd: '70',
-    badge: null,
-    description: '20 seanslık paket — bitince tekrar al',
-    icon: BarChart3,
-    gradient: 'from-violet-500 to-violet-700',
-    border: 'border-violet-200',
-    bg: 'bg-violet-50/40',
-    sessions: 20,
-    ttsMode: 'karma',
-    mentors: 'secili',
-    features: [
-      '20 seans paketi',
-      'Seans başına 10 soru',
-      'Seçili AI koç ve mentorlar',
-      'Karma ses — koç kritik anlarda konuşur',
-      'Seans özetleri ve ödevler',
-      'Gelişim raporları',
-    ],
-    notFeatures: ['Premium koç ve mentorlar', 'Tam sesli deneyim'],
-    cta: 'Pro\'ya Geç',
-  },
-  {
     id: 'premium',
     name: 'Premium',
-    price: '9.990',
-    priceUsd: '120',
+    price: '19.000',
+    priceUsd: '250',
     badge: 'En Popüler',
     description: '30 seanslık paket — tam sesli koçluk deneyimi',
     icon: Crown,
@@ -143,8 +118,8 @@ const PLANS: Plan[] = [
   {
     id: 'kurumsal',
     name: 'Kurumsal',
-    price: '29.990',
-    priceUsd: '600',
+    price: '59.000',
+    priceUsd: '750',
     badge: null,
     description: '100 seanslık paket — ekibiniz için kurumsal koçluk',
     icon: Building2,
@@ -270,7 +245,7 @@ export default function PricingPage() {
         </div>
 
         {/* Plan Kartları */}
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {PLANS.map((plan) => {
             const Icon = plan.icon;
             const isLoading = loading === plan.id;
@@ -487,15 +462,15 @@ export default function PricingPage() {
                 </thead>
                 <tbody className="divide-y divide-border/30">
                   {[
-                    { label: 'Seans Paketi',      vals: ['1', '10', '20', '30', '100'] },
-                    { label: 'Soru / Seans',      vals: ['10', '10', '10', '10', '10'] },
-                    { label: 'Koç & Mentor',      vals: ['Seçili', 'Seçili', 'Seçili', 'Tümü', 'Tümü'] },
-                    { label: 'Premium Koç',       vals: ['✗', '✗', '✗', '✓', '✓'] },
-                    { label: 'Ses Modeli',        vals: ['Sessiz', 'Karma', 'Karma', 'FULL', 'FULL'] },
-                    { label: 'Seans Özetleri',    vals: ['✓', '✓', '✓', '✓', '✓'] },
-                    { label: 'Gelişim Raporları', vals: ['✓', '✓', '✓', '✓', '✓'] },
-                    { label: 'Öncelikli Destek',  vals: ['✗', '✗', '✗', '✗', '✓'] },
-                    { label: 'Paket Fiyatı',      vals: ['Ücretsiz', '₺1.990', '₺3.490', '₺9.990', '₺29.990'] },
+                    { label: 'Seans Paketi',      vals: ['1', '10', '30', '100'] },
+                    { label: 'Soru / Seans',      vals: ['10', '10', '10', '10'] },
+                    { label: 'Koç & Mentor',      vals: ['Seçili', 'Seçili', 'Tümü', 'Tümü'] },
+                    { label: 'Premium Koç',       vals: ['✗', '✗', '✓', '✓'] },
+                    { label: 'Ses Modeli',        vals: ['Sessiz', 'Karma', 'FULL', 'FULL'] },
+                    { label: 'Seans Özetleri',    vals: ['✓', '✓', '✓', '✓'] },
+                    { label: 'Gelişim Raporları', vals: ['✓', '✓', '✓', '✓'] },
+                    { label: 'Öncelikli Destek',  vals: ['✗', '✗', '✗', '✓'] },
+                    { label: 'Paket Fiyatı',      vals: ['Ücretsiz', '₺1.990', '₺19.000', '₺59.000'] },
                   ].map((row) => (
                     <tr key={row.label} className="transition-colors hover:bg-muted/10">
                       <td className="p-4 font-medium text-muted-foreground">{row.label}</td>
