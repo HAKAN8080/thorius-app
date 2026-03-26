@@ -23,7 +23,7 @@ interface ChatInterfaceProps {
 async function saveSession(
   mentor: Mentor,
   messages: Array<{ role: string; content?: string; parts?: Array<{ type: string; text?: string }> }>
-) {
+): Promise<string | null> {
   // İlk gerçek kullanıcı mesajını gündem olarak kaydet
   const firstUserMsg = messages.find(
     (m) => m.role === 'user' && getTextContent(m) !== '__KAPANIS__' && getTextContent(m).trim()
@@ -31,7 +31,7 @@ async function saveSession(
   const agenda = firstUserMsg ? getTextContent(firstUserMsg).slice(0, 300) : null;
 
   try {
-    await fetch('/api/sessions', {
+    const res = await fetch('/api/sessions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -42,8 +42,10 @@ async function saveSession(
         agenda,
       }),
     });
+    const data = await res.json();
+    return data.id || null;
   } catch {
-    // sessiz hata — kullanıcıyı etkilemesin
+    return null;
   }
 }
 
@@ -82,9 +84,19 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
 
   // Değerlendirme anketi state
   const [showRating, setShowRating] = useState(false);
-  const [rating, setRating] = useState(0);
-  const [ratingComment, setRatingComment] = useState('');
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
+  // Detaylı değerlendirme soruları
+  const [ratings, setRatings] = useState({
+    contentQuality: 0,    // İçerik yeterliliği
+    sessionDuration: 0,   // Süre yeterliliği
+    responseSpeed: 0,     // Yanıt hızı
+    communication: 0,     // İletişim kalitesi
+    overall: 0,           // Genel memnuniyet
+  });
+  const [npsScore, setNpsScore] = useState<number | null>(null); // 0-10 NPS
+  const [ratingComment, setRatingComment] = useState('');
 
   // Kelime sayısı hesaplama
   const wordCount = input.trim().split(/\s+/).filter(w => w.length > 0).length;
@@ -215,21 +227,29 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
     const lastMsg = messages[messages.length - 1];
     if (lastMsg?.role !== 'assistant') return;
     setSessionSaved(true);
-    saveSession(mentor, messages as Parameters<typeof saveSession>[1]);
-    // Değerlendirme anketini göster
-    setTimeout(() => setShowRating(true), 1000);
+
+    // Session kaydet ve ID'yi al
+    saveSession(mentor, messages as Parameters<typeof saveSession>[1]).then((id) => {
+      if (id) setSessionId(id);
+      // Değerlendirme anketini göster
+      setTimeout(() => setShowRating(true), 1000);
+    });
   }, [closingSent, sessionSaved, isLoading, messages, mentor]);
 
   // Değerlendirme gönderme
   const submitRating = async () => {
-    if (rating === 0) return;
+    // Tüm değerlendirmeler ve NPS dolu olmalı
+    const allRatings = Object.values(ratings);
+    if (allRatings.some(r => r === 0) || npsScore === null || !sessionId) return;
+
     try {
       await fetch('/api/sessions/rate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          mentorId: mentor.id,
-          rating,
+          sessionId,
+          ratings,
+          npsScore,
           comment: ratingComment,
         }),
       });
@@ -238,6 +258,14 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
       // Sessiz hata
     }
   };
+
+  // Yıldız seçme helper
+  const handleRatingChange = (field: keyof typeof ratings, value: number) => {
+    setRatings(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Tüm değerlendirmeler dolu mu kontrol
+  const isRatingComplete = Object.values(ratings).every(r => r > 0) && npsScore !== null;
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -340,8 +368,8 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
         <div className="flex items-center gap-3 border-b border-border/50 p-4">
           <MentorAvatar size="md" />
           <div>
-            <h3 className="font-semibold">{mentor.name}</h3>
-            <p className="text-sm text-muted-foreground">{mentor.title}</p>
+            <h3 className="font-semibold">{mentor.title}</h3>
+            <p className="text-sm text-muted-foreground">{mentor.category === 'coach' ? 'AI Koç' : 'AI Mentor'}</p>
           </div>
           <div className="ml-auto flex items-center gap-3">
             <span className={cn(
@@ -526,27 +554,67 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
 
       {/* Değerlendirme Anketi Modal */}
       {showRating && !ratingSubmitted && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl">
-            <h3 className="mb-4 text-center text-lg font-semibold">Seans Değerlendirmesi</h3>
-            <p className="mb-4 text-center text-sm text-muted-foreground">
-              Bu seansı nasıl buldunuz?
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-xl my-4">
+            <h3 className="mb-2 text-center text-lg font-semibold">Seans Değerlendirmesi</h3>
+            <p className="mb-6 text-center text-sm text-muted-foreground">
+              Deneyiminizi değerlendirin
             </p>
 
-            {/* Yıldız Puanlama */}
-            <div className="mb-4 flex justify-center gap-2">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  onClick={() => setRating(star)}
-                  className={cn(
-                    'text-3xl transition-transform hover:scale-110',
-                    star <= rating ? 'text-yellow-400' : 'text-gray-300'
-                  )}
-                >
-                  ★
-                </button>
+            {/* Detaylı Sorular */}
+            <div className="space-y-4 mb-6">
+              {[
+                { key: 'contentQuality', label: 'İçerik Yeterliliği', desc: 'Seans içeriği faydalı mıydı?' },
+                { key: 'sessionDuration', label: 'Süre Yeterliliği', desc: '10 soru yeterli miydi?' },
+                { key: 'responseSpeed', label: 'Yanıt Hızı', desc: 'Yanıtlar hızlı geldi mi?' },
+                { key: 'communication', label: 'İletişim Kalitesi', desc: 'Sorular anlaşılır mıydı?' },
+                { key: 'overall', label: 'Genel Memnuniyet', desc: 'Genel olarak memnun kaldınız mı?' },
+              ].map(({ key, label, desc }) => (
+                <div key={key} className="flex items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{label}</p>
+                    <p className="text-xs text-muted-foreground">{desc}</p>
+                  </div>
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => handleRatingChange(key as keyof typeof ratings, star)}
+                        className={cn(
+                          'text-xl transition-transform hover:scale-110',
+                          star <= ratings[key as keyof typeof ratings] ? 'text-yellow-400' : 'text-gray-300'
+                        )}
+                      >
+                        ★
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ))}
+            </div>
+
+            {/* NPS Sorusu */}
+            <div className="mb-6 p-4 rounded-xl bg-muted/50">
+              <p className="text-sm font-medium mb-1">Bu hizmeti arkadaşlarınıza önerir misiniz?</p>
+              <p className="text-xs text-muted-foreground mb-3">0 = Kesinlikle hayır, 10 = Kesinlikle evet</p>
+              <div className="flex justify-between gap-1">
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
+                  <button
+                    key={score}
+                    onClick={() => setNpsScore(score)}
+                    className={cn(
+                      'w-8 h-8 rounded-lg text-xs font-medium transition-all',
+                      npsScore === score
+                        ? score >= 9 ? 'bg-green-500 text-white'
+                          : score >= 7 ? 'bg-amber-500 text-white'
+                          : 'bg-red-500 text-white'
+                        : 'bg-muted hover:bg-muted/80'
+                    )}
+                  >
+                    {score}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Yorum Alanı */}
@@ -568,7 +636,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
               </Button>
               <Button
                 className="flex-1 bg-gradient-to-r from-primary to-secondary"
-                disabled={rating === 0}
+                disabled={!isRatingComplete}
                 onClick={submitRating}
               >
                 Gönder
