@@ -174,13 +174,35 @@ export const THOUGHT_LEADERS: ThoughtLeader[] = [
       'Alışkanlık Yığını: Mevcut alışkanlığa yenisini ekle',
     ]
   },
+  {
+    name: 'Mustafa Kemal Atatürk',
+    title: 'Türkiye Cumhuriyeti\'nin kurucusu, lider ve vizyoner',
+    quotes: [
+      'Hayatta en hakiki mürşit ilimdir.',
+      'Başarı, yalnızca başarmak için çalışanlara gelir.',
+      'Benim için dünyada en büyük mevki ve mükafat, milletin bir ferdi olarak yaşamaktır.',
+      'Zorluklar karşısında daima kendine güven ve azim ile ilerle.',
+      'Geleceği göremeyenler, bugünü de kavrayamazlar.',
+      'Biz cahil dediğimiz zaman, mektepte okumamış olanları kastetmiyoruz. Kastettiğimiz ilim, hakikati bilmektir.',
+      'Büyük işler, önemli güçlükler karşısında soğukkanlılığını koruyabilenler tarafından başarılır.',
+      'Bir millet ki resim yapmaz, bir millet ki heykel yapmaz, bir millet ki tekniğin gerektirdiği şeyleri yapmaz; itiraf etmeli ki o milletin ilerleme yolunda yeri yoktur.',
+      'Egemenlik kayıtsız şartsız milletindir.',
+      'Yurtta sulh, cihanda sulh.',
+    ],
+    keyIdeas: [
+      'Akılcılık ve Bilim: Toplumsal ilerlemenin temeli bilim ve akıldır',
+      'Bağımsızlık: Tam bağımsızlık, siyasi, mali, iktisadi, adli, askeri, kültürel bağımsızlıktır',
+      'Çağdaşlaşma: Muasır medeniyetler seviyesine ulaşmak',
+      'Milli Birlik: Ortak değerler etrafında birlik ve beraberlik',
+    ]
+  },
 ];
 
 // Mentor tipine göre uygun düşünce liderleri
 const LEADER_BY_CATEGORY: Record<string, string[]> = {
-  leadership: ['Stephen R. Covey', 'Simon Sinek', 'Daniel Goleman', 'Jim Collins', 'Marshall Goldsmith'],
-  personal: ['Brené Brown', 'Carol Dweck', 'Stephen R. Covey', 'James Clear'],
-  entrepreneurship: ['Simon Sinek', 'Peter Drucker', 'Adam Grant', 'Jim Collins'],
+  leadership: ['Stephen R. Covey', 'Simon Sinek', 'Daniel Goleman', 'Jim Collins', 'Marshall Goldsmith', 'Mustafa Kemal Atatürk'],
+  personal: ['Brené Brown', 'Carol Dweck', 'Stephen R. Covey', 'James Clear', 'Mustafa Kemal Atatürk'],
+  entrepreneurship: ['Simon Sinek', 'Peter Drucker', 'Adam Grant', 'Jim Collins', 'Mustafa Kemal Atatürk'],
   mindfulness: ['Carol Dweck', 'James Clear', 'Brené Brown'],
   psychology: ['Daniel Goleman', 'Brené Brown', 'Carol Dweck', 'Adam Grant'],
 };

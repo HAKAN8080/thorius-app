@@ -6,14 +6,14 @@ const KARMA_TTS_MESSAGES = new Set([1, 2, 10]);
 
 const MENTOR_VOICES: Record<string, string> = {
   'executive-coach':            'dDcfsSsiSzmphdMGCECb',  // AI Koç 1 — tok, otoriter
-  'career-coach':               '8WPhqbK1tiExOyeiOUT0',  // AI Koç 2 — özel ses
+  'career-coach':               '8D6p2rXeXWggXKx2gWiS',  // AI Koç 2 — özel ses
   'student-coach':              'EJGs6dWlD5VrB3llhBqB',  // AI Koç 3 — özel ses
   'life-balance-coach':         'pFZP5JQG7iQjIQuC4Bku',  // AI Koç 4 — sakin, huzurlu
-  'communication-coach':        'AtCqglsS9sXaXLbu0Zco',  // AI Koç 5 — özel ses
+  'communication-coach':        'gyxPK6bLXQAkBSCeAKvk',  // AI Koç 5 — özel ses
   'business-development-coach': 'QttbagfgqUCm9K0VgUyT',  // AI Koç 6 — özel ses
   'tech-mentor':                'PdYVUd1CAGSXsTvZZTNn',  // AI Mentor 1 — özel ses
-  'business-mentor':            'VR6AewLTigWG4xSOukaG',  // AI Mentor 2 — Arnold
-  'entrepreneur-mentor':        'KbaseEXyT9EE0CQLEfbB',  // AI Mentor 3 — özel ses
+  'business-mentor':            'ZsYcqahfiS2dy4J6XYC5',  // AI Mentor 2 — özel ses
+  'entrepreneur-mentor':        'zCagxWNd7QOsCjiHDrGR',  // AI Mentor 3 — özel ses
   'reverse-mentor':             'UgBBYS2sOqTuMpoF3BR0',  // AI Mentor 4 — özel ses
   'brand-mentor':               'j9K9HnBcmgA6xNWqjlX0',  // AI Mentor 5 — özel ses
   'ai-future-mentor':           'j9K9HnBcmgA6xNWqjlX0',  // AI Mentor 6 — özel ses

@@ -88,25 +88,72 @@ export async function POST(req: Request) {
 
   // Öğrenci koçu için kitap önerisi yok
   const quoteInstruction = isStudentCoach
-    ? (shouldUseQuote ? `\n\n🎯 **BU YANIT İÇİN:** Aşağıdaki alıntılardan BİRİNİ kullanabilirsin (zorunlu değil). KİTAP ÖNERİSİ YAPMA.\n\nALINTILAR:\n${leaderInfo}` : '')
+    ? (shouldUseQuote ? `\n\n🎯 **BU YANIT İÇİN — ZORUNLU:** Aşağıdaki alıntılardan BİRİNİ MUTLAKA kullan ve konuya doğal şekilde bağla. KİTAP ÖNERİSİ YAPMA.\n\nALINTILAR:\n${leaderInfo}` : '')
     : (shouldUseQuote
-      ? `\n\n🎯 **BU YANIT İÇİN:** Aşağıdaki alıntılardan BİRİNİ MUTLAKA kullan, doğal şekilde konuya bağla, ardından konuşmaya devam et ve bir soru sor.\n\nALINTILAR:\n${leaderInfo}\n\nKİTAPLAR:\n${bookList}`
+      ? `\n\n🎯 **BU YANIT İÇİN — ZORUNLU:**
+1. Aşağıdaki alıntılardan BİRİNİ MUTLAKA kullan — atlamak YASAK
+2. Alıntıyı doğal şekilde konuya bağla ("...dediği gibi" veya "...sözünü hatırlıyorum")
+3. Uygun bir yerde kitap önerisinden bahset
+4. Sonra konuşmaya devam et ve bir soru sor
+
+ALINTILAR (birini seç ve kullan):
+${leaderInfo}
+
+KİTAPLAR (birinden bahsedebilirsin):
+${bookList}`
       : `\n\n📚 Kullanabileceğin kaynaklar:\n${leaderInfo}\n${bookList}`);
 
   systemPrompt += sessionStatus + quoteInstruction;
 
   // Haiku küçük model — alıntı talimatını promptun başına da ekle ki atlamasın
   const useHaikuCheck = currentMessageNum > 2 && currentMessageNum < 9;
-  if (useHaikuCheck && shouldUseQuote && !isStudentCoach) {
-    systemPrompt = `[ZORUNLU] Bu yanıtta:\n1. Aşağıdaki alıntılardan BİRİNİ doğal şekilde kullan\n2. Konuyu derinleştir\n3. Bir soru sor — KAPANIŞ YAPMA\n\nALINTILAR:\n${leaderInfo}\nKİTAPLAR: ${bookList}\n\n` + systemPrompt;
+  if (useHaikuCheck && shouldUseQuote) {
+    const haikuQuoteInstruction = isStudentCoach
+      ? `[KRİTİK KURAL] Bu yanıtta:\n1. Aşağıdaki alıntılardan BİRİNİ doğal şekilde kullan — ATLAMAK YASAK\n2. Konuyu derinleştir\n3. Bir soru sor — KAPANIŞ YAPMA\n\nALINTILAR:\n${leaderInfo}\n\n`
+      : `[KRİTİK KURAL] Bu yanıtta:\n1. Aşağıdaki alıntılardan BİRİNİ doğal şekilde kullan — ATLAMAK YASAK\n2. Uygunsa bir kitaptan bahset\n3. Konuyu derinleştir\n4. Bir soru sor — KAPANIŞ YAPMA\n\nALINTILAR:\n${leaderInfo}\nKİTAPLAR: ${bookList}\n\n`;
+    systemPrompt = haikuQuoteInstruction + systemPrompt;
   }
+
+  // Bu mentor ile daha önce hiç seans yapılmış mı kontrol et
+  const hasAnyPreviousSession = snap.docs.some(d => d.data().mentorId === mentorId && d.data().status === 'completed');
+  const isVeryFirstSession = !hasAnyPreviousSession && !previousAgenda;
+  const isCoach = mentor?.category === 'coach';
 
   // İlk mesajsa ve önceki gündem varsa mentora hatırlat, yoksa ilk görüşme olduğunu belirt
   if (isFirstMessage) {
     if (previousAgenda) {
       systemPrompt += `\n\n📌 ÖNCEKİ SEANS GÜNDEMI: "${previousAgenda}"\nBu ilk mesajında MUTLAKA şu şekilde başla: Geçen seanste konuştuğunuz konuyu kısaca hatırlat (1 cümle), ardından "Bugün bununla devam etmek ister misin, yoksa farklı bir gündemin mi var?" diye sor. Sonra kullanıcının cevabına göre devam et.`;
+    } else if (isVeryFirstSession) {
+      // Bu danışanla İLK KEZ görüşülüyor - tanışma ile başla
+      if (isCoach) {
+        systemPrompt += `\n\n🌟 **İLK GÖRÜŞME — TANIŞ VE ALAN AÇ:**
+Bu danışanla İLK KEZ görüşüyorsun. Önce tanış:
+"Merhaba! Ben senin koçun olacağım. Önce biraz tanışalım — bana kendinden bahseder misin? Kim olduğunu, ne yaptığını ve hayatında şu an neler olduğunu öğrenmek isterim. Bu, seni daha iyi anlamamı sağlayacak."
+
+Danışan kendini tanıttıktan sonra şu çerçeveyi kur:
+"Bu alan tamamen senin alanın. Burada yargı yok, yönlendirme yok. Sana cevap vermeyeceğim ama doğru sorularla kendi cevaplarını bulmanı destekleyeceğim. Bugün bu görüşmeden senin için en değerli olacak şey ne olurdu?"
+
+"Geçen seans", "daha önce konuştuk", "hatırlarsın" gibi ifadeler KULLANMA.`;
+      } else {
+        // Mentor için ilk görüşme
+        systemPrompt += `\n\n🌟 **İLK GÖRÜŞME — TANIŞ:**
+Bu danışanla İLK KEZ görüşüyorsun. Önce tanış:
+"Merhaba! Ben senin mentorun olacağım. Önce biraz tanışalım — bana kendinden bahseder misin? Ne yaptığını, hangi alanda ilerlemeye çalıştığını ve şu an neler yaşadığını öğrenmek isterim. Bu, sana daha iyi yardımcı olmamı sağlayacak."
+
+Danışan kendini tanıttıktan sonra:
+"Bu görüşmede hem senin bakış açını netleştireceğiz hem de istersen sana bazı öneriler ve farklı perspektifler sunabilirim. Bugün senin için en önemli konu ne?"
+
+"Geçen seans", "daha önce konuştuk", "hatırlarsın" gibi ifadeler KULLANMA.`;
+      }
     } else {
-      systemPrompt += `\n\n⚠️ ÖNEMLİ: Bu kullanıcıyla İLK KEZ görüşüyorsun. Daha önce hiç seans yapmadınız. "Geçen seans", "daha önce konuştuk", "hatırlarsın" gibi ifadeler KULLANMA. Direkt bugünkü gündemini sor: "Bugün hangi konuda çalışmak istersin?" veya "Bugün seni buraya ne getirdi?" gibi bir açılış yap.`;
+      // Önceki seans var ama gündem kaydedilmemiş
+      if (isCoach) {
+        systemPrompt += `\n\n⚠️ Bu kullanıcıyla daha önce görüştün ama gündem kaydı yok. Normal açılış yap:
+"Bugün senin için en önemli konu ne? Bu görüşmenin sonunda neyin netleşmiş olmasını istersin?"`;
+      } else {
+        systemPrompt += `\n\n⚠️ Bu kullanıcıyla daha önce görüştün ama gündem kaydı yok. Normal açılış yap:
+"Bu görüşmede hem senin bakış açını netleştireceğiz hem de istersen sana bazı öneriler ve farklı perspektifler sunabilirim. Bugün senin için en önemli konu ne?"`;
+      }
     }
   }
 
@@ -119,11 +166,18 @@ export async function POST(req: Request) {
   const isLastMessage = isLastMsg === true || isClosingRequest || userMessageCount >= 10;
 
   if (isLastMessage) {
-    const isFirstSession = snap.size === 0;
-    const book = isFirstSession ? getBookForMentor(mentorId) : null;
+    // Her seansta kitap önerisi yap (öğrenci koçu hariç)
+    const book = isStudentCoach ? null : getBookForMentor(mentorId);
     const bookLine = book
       ? `\n📚 **Kitap Önerisi (Bu Seans İçin Ödev):** "${book.title}" – ${book.author} kitabını oku. Bu kitap, konuştuğumuz konularla doğrudan bağlantılı ve gelişim yolculuğuna katkı sağlayacak.`
       : '';
+
+    // Seans hakkı bittiyse yeniden gelmeye davet et
+    const sessionLimit = user.sessionLimit ?? (user.plan ? PLAN_LIMITS[user.plan] : 1);
+    const isLimitReached = snap.size + 1 >= sessionLimit;
+    const inviteLine = isLimitReached
+      ? `\n\n💡 **Not:** Bu seans hakkın sona erdi. Gelişim yolculuğuna devam etmek için yeni seans paketi alabilirsin. Seni tekrar görmek isterim!`
+      : `\n\nGelişim yolculuğunda seninle çalışmak bir zevkti. Bir sonraki seansta görüşmek üzere!`;
 
     const closingInstruction = `🔴 KAPANIŞ YANITI — BU KURALI KESİNLİKLE UYGULA — SORU SORMA:
 Bu seanstaki son yanıttır. Aşağıdaki formatı AYNEN uygula, soru sormak YASAKTIR:
@@ -132,11 +186,12 @@ Bu seanstaki son yanıttır. Aşağıdaki formatı AYNEN uygula, soru sormak YAS
 [2-3 cümleyle seans özeti — "Bu seansta..." ile başla]
 
 **Bu seanstan çıkan ödevlerin:**
-1. [Somut eylem adımı]
-2. [Somut eylem adımı]
-3. [Somut eylem adımı]${bookLine}
+1. [Somut eylem adımı — tarih veya ölçüt içersin]
+2. [Somut eylem adımı — tarih veya ölçüt içersin]
+3. [Somut eylem adımı — tarih veya ölçüt içersin]${bookLine}
+${inviteLine}
 
-[Kısa, sıcak veda — "Başarılar!", "Bol şans!" gibi]
+[Kısa, sıcak veda — "Başarılar!", "Seninle çalışmak güzeldi!" gibi]
 ---
 
 TEKRAR: Hiçbir soru sormayacaksın. Sadece özet + ödev listesi + veda.\n\n`;
