@@ -14,6 +14,7 @@ import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 
 const MAX_USER_MESSAGES = 10;
+const MIN_WORD_COUNT = 50; // Minimum kelime sayısı
 
 interface ChatInterfaceProps {
   mentor: Mentor;
@@ -66,6 +67,7 @@ interface LimitInfo {
 
 export function ChatInterface({ mentor }: ChatInterfaceProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState('');
   const [sessionSaved, setSessionSaved] = useState(false);
   const [limitInfo, setLimitInfo] = useState<LimitInfo | null>(null);
@@ -77,6 +79,16 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
   const wordTimingsRef = useRef<Map<string, Array<{ word: string; start: number; end: number }>>>(new Map());
+
+  // Değerlendirme anketi state
+  const [showRating, setShowRating] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [ratingComment, setRatingComment] = useState('');
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
+
+  // Kelime sayısı hesaplama
+  const wordCount = input.trim().split(/\s+/).filter(w => w.length > 0).length;
+  const isFirstMessage = useRef(true);
 
   async function handleSpeak(messageId: string, text: string) {
     if (playingId === messageId) {
@@ -161,11 +173,19 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   const userMessageCount = messages.filter((m) => m.role === 'user' && getTextContent(m as Parameters<typeof getTextContent>[0]) !== '__KAPANIS__').length;
   const sessionEnded = userMessageCount >= MAX_USER_MESSAGES;
 
+  // Otomatik scroll - mesajlar değiştiğinde en alta kay
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
+    const scrollToBottom = () => {
+      if (scrollContainerRef.current) {
+        const scrollElement = scrollContainerRef.current.querySelector('[data-radix-scroll-area-viewport]');
+        if (scrollElement) {
+          scrollElement.scrollTop = scrollElement.scrollHeight;
+        }
+      }
+    };
+    // Küçük bir gecikme ile scroll yap
+    setTimeout(scrollToBottom, 100);
+  }, [messages, playingId]);
 
   // 10 soruya ulaşınca otomatik kapanış mesajı gönder
   useEffect(() => {
@@ -189,18 +209,46 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, voiceMode]);
 
-  // Kapanış cevabı gelince kaydet
+  // Kapanış cevabı gelince kaydet ve değerlendirme göster
   useEffect(() => {
     if (!closingSent || sessionSaved || isLoading || messages.length <= 1) return;
     const lastMsg = messages[messages.length - 1];
     if (lastMsg?.role !== 'assistant') return;
     setSessionSaved(true);
     saveSession(mentor, messages as Parameters<typeof saveSession>[1]);
+    // Değerlendirme anketini göster
+    setTimeout(() => setShowRating(true), 1000);
   }, [closingSent, sessionSaved, isLoading, messages, mentor]);
+
+  // Değerlendirme gönderme
+  const submitRating = async () => {
+    if (rating === 0) return;
+    try {
+      await fetch('/api/sessions/rate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mentorId: mentor.id,
+          rating,
+          comment: ratingComment,
+        }),
+      });
+      setRatingSubmitted(true);
+    } catch {
+      // Sessiz hata
+    }
+  };
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading || sessionEnded) return;
+
+    // İlk mesajda minimum kelime kontrolü
+    if (userMessageCount === 0 && wordCount < MIN_WORD_COUNT) {
+      return; // Button zaten disabled olacak, ama yine de kontrol
+    }
+
+    isFirstMessage.current = false;
     sendMessage({ role: 'user', parts: [{ type: 'text', text: input }] });
     setInput('');
   };
@@ -328,7 +376,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
         </div>
 
         {/* Messages */}
-        <ScrollArea ref={scrollRef} className="flex-1 p-4">
+        <ScrollArea ref={scrollContainerRef} className="flex-1 p-4">
           <div className="space-y-4">
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -452,18 +500,102 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
             <Button
               type="submit"
               size="icon"
-              disabled={isLoading || !input.trim() || sessionEnded}
+              disabled={isLoading || !input.trim() || sessionEnded || (userMessageCount === 0 && wordCount < MIN_WORD_COUNT)}
               className="h-12 w-12 shrink-0 bg-gradient-to-r from-primary to-secondary hover:opacity-90"
             >
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
             </Button>
           </div>
+          {/* İlk mesajda kelime sayısı göstergesi */}
+          {userMessageCount === 0 && (
+            <p className={cn(
+              'mt-2 text-center text-xs',
+              wordCount < MIN_WORD_COUNT ? 'text-amber-500' : 'text-green-500'
+            )}>
+              {wordCount < MIN_WORD_COUNT
+                ? `En az ${MIN_WORD_COUNT} kelime yazın (${wordCount}/${MIN_WORD_COUNT})`
+                : `✓ ${wordCount} kelime`}
+            </p>
+          )}
           <p className="mt-2 text-center text-xs text-muted-foreground">
             <Sparkles className="mr-1 inline h-3 w-3" />
-            Claude Sonnet 4.6 ile desteklenmektedir
+            AI destekli {mentor.category === 'coach' ? 'koç' : 'mentor'}
           </p>
         </form>
       </div>
+
+      {/* Değerlendirme Anketi Modal */}
+      {showRating && !ratingSubmitted && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="mx-4 w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl">
+            <h3 className="mb-4 text-center text-lg font-semibold">Seans Değerlendirmesi</h3>
+            <p className="mb-4 text-center text-sm text-muted-foreground">
+              Bu seansı nasıl buldunuz?
+            </p>
+
+            {/* Yıldız Puanlama */}
+            <div className="mb-4 flex justify-center gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => setRating(star)}
+                  className={cn(
+                    'text-3xl transition-transform hover:scale-110',
+                    star <= rating ? 'text-yellow-400' : 'text-gray-300'
+                  )}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+
+            {/* Yorum Alanı */}
+            <Textarea
+              value={ratingComment}
+              onChange={(e) => setRatingComment(e.target.value)}
+              placeholder="Görüşlerinizi paylaşın (opsiyonel)..."
+              className="mb-4 min-h-[80px] resize-none"
+            />
+
+            {/* Butonlar */}
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowRating(false)}
+              >
+                Geç
+              </Button>
+              <Button
+                className="flex-1 bg-gradient-to-r from-primary to-secondary"
+                disabled={rating === 0}
+                onClick={submitRating}
+              >
+                Gönder
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Değerlendirme Teşekkür */}
+      {ratingSubmitted && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="mx-4 w-full max-w-md rounded-2xl border border-border bg-card p-6 text-center shadow-xl">
+            <div className="mb-4 text-4xl">🙏</div>
+            <h3 className="mb-2 text-lg font-semibold">Teşekkürler!</h3>
+            <p className="mb-4 text-sm text-muted-foreground">
+              Değerlendirmeniz için teşekkür ederiz.
+            </p>
+            <Button
+              onClick={() => window.location.reload()}
+              className="bg-gradient-to-r from-primary to-secondary"
+            >
+              Yeni Seans Başlat
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
