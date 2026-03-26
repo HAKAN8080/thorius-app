@@ -380,12 +380,11 @@ export default function PersonalityTestPage() {
                   className={cn(
                     'flex-1 h-2 rounded-full transition-all',
                     idx === currentCategoryIndex
-                      ? 'ring-2 ring-offset-2'
+                      ? 'ring-2 ring-offset-2 ring-primary'
                       : ''
                   )}
                   style={{
                     backgroundColor: isComplete ? cat.color : `${cat.color}30`,
-                    ringColor: cat.color,
                   }}
                   title={`${cat.name}: ${catAnswered}/${catQuestions.length}`}
                 />
