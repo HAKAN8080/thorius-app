@@ -10,7 +10,7 @@
     },
     {
       "path": "/api/cron/session-reminder",
-      "schedule": "0 7 * * *"
+      "schedule": "0 9 * * *"
     }
   ]
 }

@@ -13,15 +13,18 @@ export async function GET(req: NextRequest) {
   const resend = new Resend(process.env.RESEND_API_KEY!);
   const db = getDb();
 
-  // Bugün seans olanları bul (sabah 07:00'da çalışır, bugünün tüm saatlerini kapsar)
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const todayEnd = new Date();
-  todayEnd.setHours(23, 59, 59, 999);
+  // YARIN seans olanları bul (sabah 09:00'da çalışır, 1 gün önceden hatırlatma)
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStart = new Date(tomorrow);
+  tomorrowStart.setHours(0, 0, 0, 0);
+  const tomorrowEnd = new Date(tomorrow);
+  tomorrowEnd.setHours(23, 59, 59, 999);
 
   const snap = await db.collection('scheduled_sessions')
-    .where('scheduledAt', '>=', todayStart.toISOString())
-    .where('scheduledAt', '<=', todayEnd.toISOString())
+    .where('scheduledAt', '>=', tomorrowStart.toISOString())
+    .where('scheduledAt', '<=', tomorrowEnd.toISOString())
+    .where('reminderSent', '!=', true) // Daha önce gönderilmemişleri al
     .get();
 
   let sent = 0;
@@ -50,7 +53,7 @@ export async function GET(req: NextRequest) {
           <td style="padding:40px 48px;">
             <p style="margin:0 0 16px;color:#374151;font-size:16px;">Merhaba <strong>${session.userName}</strong> 👋</p>
             <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.6;">
-              Bugün <strong>${timeStr}</strong> için planladığınız seans var. Günaydın! ☀️
+              <strong>Yarın ${dateStr}</strong> saat <strong>${timeStr}</strong> için planladığınız seans var. Hatırlatmak istedik! 📅
             </p>
 
             <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:24px;margin-bottom:28px;">
@@ -70,9 +73,9 @@ export async function GET(req: NextRequest) {
 
             <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:16px 20px;margin-bottom:28px;">
               <p style="margin:0;color:#1e40af;font-size:14px;line-height:1.6;">
-                💡 <strong>Hatırlatma:</strong> Bu sadece kendinize zaman ayırdığınıza dair bir hatırlatmadır.
-                İstediğiniz zaman giriş yapabilirsiniz — herhangi bir kayıp yaşamayacaksınız.
-                Bu planın amacı sadece bu gelişim yolculuğu için zaman bloğu oluşturmaktır.
+                💡 <strong>Hatırlatma:</strong> Bu sadece yarınki seansınız için bir gün önceden hatırlatmadır.
+                Planladığınız saatte giriş yaparak seansınıza başlayabilirsiniz.
+                Gelişim yolculuğunuzda size eşlik etmekten mutluluk duyuyoruz!
               </p>
             </div>
 
@@ -101,7 +104,7 @@ export async function GET(req: NextRequest) {
       await resend.emails.send({
         from: 'Thorius <destek@thorius.com.tr>',
         to: session.userEmail,
-        subject: `☀️ Bugün seansınız var — ${session.mentorTitle} · ${timeStr}`,
+        subject: `📅 Yarın seansınız var — ${session.mentorTitle} · ${dateStr} ${timeStr}`,
         html,
       });
       await doc.ref.update({ reminderSent: true });
