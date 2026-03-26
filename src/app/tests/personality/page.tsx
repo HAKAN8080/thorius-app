@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -8,158 +8,171 @@ import {
   Loader2, CheckCircle2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 // Big Five Kategorileri
 const CATEGORIES = [
   {
     id: 'extraversion',
-    name: 'Disadonukluk',
+    name: 'Dışadönüklük',
     nameEn: 'Extraversion',
     color: '#FF6B6B',
     description: 'Sosyallik, enerjiklik ve olumlu duygular',
+    icon: '🗣️',
   },
   {
     id: 'agreeableness',
     name: 'Uyumluluk',
     nameEn: 'Agreeableness',
     color: '#4ECDC4',
-    description: 'Isbirligi, guven ve empati',
+    description: 'İşbirliği, güven ve empati',
+    icon: '🤝',
   },
   {
     id: 'conscientiousness',
     name: 'Sorumluluk',
     nameEn: 'Conscientiousness',
     color: '#45B7D1',
-    description: 'Oz-disiplin, duzenliliek ve basari odaklilik',
+    description: 'Öz-disiplin, düzenlilik ve başarı odaklılık',
+    icon: '📋',
   },
   {
     id: 'neuroticism',
     name: 'Duygusal Denge',
     nameEn: 'Neuroticism (reversed)',
     color: '#96CEB4',
-    description: 'Duygusal istikrar ve stres yonetimi',
+    description: 'Duygusal istikrar ve stres yönetimi',
+    icon: '🧘',
   },
   {
     id: 'openness',
-    name: 'Aciklik',
+    name: 'Açıklık',
     nameEn: 'Openness',
     color: '#DDA0DD',
-    description: 'Yaraticilik, merak ve yeni deneyimlere aciklik',
+    description: 'Yaratıcılık, merak ve yeni deneyimlere açıklık',
+    icon: '💡',
   },
 ];
 
-// 50 Soru - Her kategoride 10 soru
+// 50 Soru - Her kategoride 10 soru (Türkçe karakterlerle)
 const QUESTIONS: { id: number; text: string; category: string; reversed: boolean }[] = [
-  // Disadonukluk (10 soru)
-  { id: 1, text: 'Toplantilarda konusmayi ve fikirlerimi paylasmayi severim.', category: 'extraversion', reversed: false },
-  { id: 2, text: 'Yeni insanlarla tanismak beni heyecanlandirir.', category: 'extraversion', reversed: false },
-  { id: 3, text: 'Partilerde genellikle odanin ortasinda olurum.', category: 'extraversion', reversed: false },
-  { id: 4, text: 'Yalniz kalmaktansa insanlarla birlikte olmayi tercih ederim.', category: 'extraversion', reversed: false },
-  { id: 5, text: 'Grup aktivitelerinde liderlik rolunu ustlenirim.', category: 'extraversion', reversed: false },
-  { id: 6, text: 'Sessiz ve sakin ortamlari tercih ederim.', category: 'extraversion', reversed: true },
-  { id: 7, text: 'Konusmalarla baslatmaktan cekinmem.', category: 'extraversion', reversed: false },
+  // Dışadönüklük (10 soru)
+  { id: 1, text: 'Toplantılarda konuşmayı ve fikirlerimi paylaşmayı severim.', category: 'extraversion', reversed: false },
+  { id: 2, text: 'Yeni insanlarla tanışmak beni heyecanlandırır.', category: 'extraversion', reversed: false },
+  { id: 3, text: 'Partilerde genellikle odanın ortasında olurum.', category: 'extraversion', reversed: false },
+  { id: 4, text: 'Yalnız kalmaktansa insanlarla birlikte olmayı tercih ederim.', category: 'extraversion', reversed: false },
+  { id: 5, text: 'Grup aktivitelerinde liderlik rolünü üstlenirim.', category: 'extraversion', reversed: false },
+  { id: 6, text: 'Sessiz ve sakin ortamları tercih ederim.', category: 'extraversion', reversed: true },
+  { id: 7, text: 'Konuşmaları başlatmaktan çekinmem.', category: 'extraversion', reversed: false },
   { id: 8, text: 'Sosyal etkinliklerden sonra kendimi enerjik hissederim.', category: 'extraversion', reversed: false },
-  { id: 9, text: 'Dikkat cekmeyi severim.', category: 'extraversion', reversed: false },
-  { id: 10, text: 'Taninmayan ortamlarda bile rahat hissederim.', category: 'extraversion', reversed: false },
+  { id: 9, text: 'Dikkat çekmeyi severim.', category: 'extraversion', reversed: false },
+  { id: 10, text: 'Tanınmayan ortamlarda bile rahat hissederim.', category: 'extraversion', reversed: false },
 
   // Uyumluluk (10 soru)
-  { id: 11, text: 'Baskalarina yardim etmek beni mutlu eder.', category: 'agreeableness', reversed: false },
-  { id: 12, text: 'Insanlarin iyi niyetli olduguna inanirim.', category: 'agreeableness', reversed: false },
-  { id: 13, text: 'Catisma yerine uzlasmayi tercih ederim.', category: 'agreeableness', reversed: false },
-  { id: 14, text: 'Baskalarin duygularini kolayca anlarim.', category: 'agreeableness', reversed: false },
+  { id: 11, text: 'Başkalarına yardım etmek beni mutlu eder.', category: 'agreeableness', reversed: false },
+  { id: 12, text: 'İnsanların iyi niyetli olduğuna inanırım.', category: 'agreeableness', reversed: false },
+  { id: 13, text: 'Çatışma yerine uzlaşmayı tercih ederim.', category: 'agreeableness', reversed: false },
+  { id: 14, text: 'Başkalarının duygularını kolayca anlarım.', category: 'agreeableness', reversed: false },
   { id: 15, text: 'Affetmekte zorlanmam.', category: 'agreeableness', reversed: false },
-  { id: 16, text: 'Rekabetci olmaktansa isbirligi yapmayi tercih ederim.', category: 'agreeableness', reversed: false },
-  { id: 17, text: 'Baskalarina karsi sabarliyimdir.', category: 'agreeableness', reversed: false },
-  { id: 18, text: 'Kibar ve saygiliyimdir.', category: 'agreeableness', reversed: false },
-  { id: 19, text: 'Baskalarinin ihtiyaclarini kendi ihtiyaclarimdan once dusunurum.', category: 'agreeableness', reversed: false },
-  { id: 20, text: 'Elestiri yaparken yapici olmaya calisrim.', category: 'agreeableness', reversed: false },
+  { id: 16, text: 'Rekabetçi olmaktansa işbirliği yapmayı tercih ederim.', category: 'agreeableness', reversed: false },
+  { id: 17, text: 'Başkalarına karşı sabırlıyımdır.', category: 'agreeableness', reversed: false },
+  { id: 18, text: 'Kibar ve saygılıyımdır.', category: 'agreeableness', reversed: false },
+  { id: 19, text: 'Başkalarının ihtiyaçlarını kendi ihtiyaçlarımdan önce düşünürüm.', category: 'agreeableness', reversed: false },
+  { id: 20, text: 'Eleştiri yaparken yapıcı olmaya çalışırım.', category: 'agreeableness', reversed: false },
 
   // Sorumluluk (10 soru)
-  { id: 21, text: 'Islerimi zamaninda tamamlarim.', category: 'conscientiousness', reversed: false },
+  { id: 21, text: 'İşlerimi zamanında tamamlarım.', category: 'conscientiousness', reversed: false },
   { id: 22, text: 'Detaylara dikkat ederim.', category: 'conscientiousness', reversed: false },
-  { id: 23, text: 'Her zaman hazirlikli olurum.', category: 'conscientiousness', reversed: false },
-  { id: 24, text: 'Duzeni ve temizligi severim.', category: 'conscientiousness', reversed: false },
-  { id: 25, text: 'Bir plan yapip ona uyarim.', category: 'conscientiousness', reversed: false },
-  { id: 26, text: 'Hedeflerime ulasmak icin cok calisrim.', category: 'conscientiousness', reversed: false },
-  { id: 27, text: 'Sorumluluklarimi ciddiye alirim.', category: 'conscientiousness', reversed: false },
-  { id: 28, text: 'Isleri yarim birakmam.', category: 'conscientiousness', reversed: false },
-  { id: 29, text: 'Kurallara ve prosedurleere uyarim.', category: 'conscientiousness', reversed: false },
-  { id: 30, text: 'Kararliyim ve azimlliyimdir.', category: 'conscientiousness', reversed: false },
+  { id: 23, text: 'Her zaman hazırlıklı olurum.', category: 'conscientiousness', reversed: false },
+  { id: 24, text: 'Düzeni ve temizliği severim.', category: 'conscientiousness', reversed: false },
+  { id: 25, text: 'Bir plan yapıp ona uyarım.', category: 'conscientiousness', reversed: false },
+  { id: 26, text: 'Hedeflerime ulaşmak için çok çalışırım.', category: 'conscientiousness', reversed: false },
+  { id: 27, text: 'Sorumluluklarımı ciddiye alırım.', category: 'conscientiousness', reversed: false },
+  { id: 28, text: 'İşleri yarım bırakmam.', category: 'conscientiousness', reversed: false },
+  { id: 29, text: 'Kurallara ve prosedürlere uyarım.', category: 'conscientiousness', reversed: false },
+  { id: 30, text: 'Kararlıyım ve azimliyimdir.', category: 'conscientiousness', reversed: false },
 
-  // Duygusal Denge (10 soru) - Dusuk neuroticism = yuksek duygusal denge
-  { id: 31, text: 'Stresli durumlarda sakin kalirim.', category: 'neuroticism', reversed: true },
-  { id: 32, text: 'Duygularimi kontrol altinda tutabilirim.', category: 'neuroticism', reversed: true },
-  { id: 33, text: 'Kolayca endiselenmem.', category: 'neuroticism', reversed: true },
-  { id: 34, text: 'Kendime guvenirim.', category: 'neuroticism', reversed: true },
-  { id: 35, text: 'Basarisizliklardan hizli toparlarim.', category: 'neuroticism', reversed: true },
-  { id: 36, text: 'Ruh halim genellikle istikrarlidir.', category: 'neuroticism', reversed: true },
-  { id: 37, text: 'Baskalarinin beni nasil gordugu konusunda rahatim.', category: 'neuroticism', reversed: true },
-  { id: 38, text: 'Gelecek hakkinda iyimserim.', category: 'neuroticism', reversed: true },
+  // Duygusal Denge (10 soru)
+  { id: 31, text: 'Stresli durumlarda sakin kalırım.', category: 'neuroticism', reversed: true },
+  { id: 32, text: 'Duygularımı kontrol altında tutabilirim.', category: 'neuroticism', reversed: true },
+  { id: 33, text: 'Kolayca endişelenmem.', category: 'neuroticism', reversed: true },
+  { id: 34, text: 'Kendime güvenirim.', category: 'neuroticism', reversed: true },
+  { id: 35, text: 'Başarısızlıklardan hızlı toparlarım.', category: 'neuroticism', reversed: true },
+  { id: 36, text: 'Ruh halim genellikle istikrarlıdır.', category: 'neuroticism', reversed: true },
+  { id: 37, text: 'Başkalarının beni nasıl gördüğü konusunda rahatım.', category: 'neuroticism', reversed: true },
+  { id: 38, text: 'Gelecek hakkında iyimserim.', category: 'neuroticism', reversed: true },
   { id: 39, text: 'Zor zamanlarda bile umudumu kaybetmem.', category: 'neuroticism', reversed: true },
-  { id: 40, text: 'Elestirilerden kolayca etkilenmem.', category: 'neuroticism', reversed: true },
+  { id: 40, text: 'Eleştirilerden kolayca etkilenmem.', category: 'neuroticism', reversed: true },
 
-  // Aciklik (10 soru)
-  { id: 41, text: 'Yeni fikirler kesfetmeyi severim.', category: 'openness', reversed: false },
-  { id: 42, text: 'Sanat ve guzellik beni derinden etkiler.', category: 'openness', reversed: false },
-  { id: 43, text: 'Farkli kulturleri ve bakis acilarini anlamaya calisrim.', category: 'openness', reversed: false },
-  { id: 44, text: 'Hayal gucum gucludur.', category: 'openness', reversed: false },
-  { id: 45, text: 'Soyut kavramlar uzerinde dusunmekten zevk alirim.', category: 'openness', reversed: false },
-  { id: 46, text: 'Rutin isler yerine yeni deneyimler tercih ederim.', category: 'openness', reversed: false },
-  { id: 47, text: 'Yaratici cozumler bulmakta iyiyimdir.', category: 'openness', reversed: false },
-  { id: 48, text: 'Felsefi tartismalar ilgimi ceker.', category: 'openness', reversed: false },
-  { id: 49, text: 'Degisikliklere kolayca adapte olurum.', category: 'openness', reversed: false },
-  { id: 50, text: 'Merakli bir insanimdir.', category: 'openness', reversed: false },
+  // Açıklık (10 soru)
+  { id: 41, text: 'Yeni fikirler keşfetmeyi severim.', category: 'openness', reversed: false },
+  { id: 42, text: 'Sanat ve güzellik beni derinden etkiler.', category: 'openness', reversed: false },
+  { id: 43, text: 'Farklı kültürleri ve bakış açılarını anlamaya çalışırım.', category: 'openness', reversed: false },
+  { id: 44, text: 'Hayal gücüm güçlüdür.', category: 'openness', reversed: false },
+  { id: 45, text: 'Soyut kavramlar üzerinde düşünmekten zevk alırım.', category: 'openness', reversed: false },
+  { id: 46, text: 'Rutin işler yerine yeni deneyimler tercih ederim.', category: 'openness', reversed: false },
+  { id: 47, text: 'Yaratıcı çözümler bulmakta iyiyimdir.', category: 'openness', reversed: false },
+  { id: 48, text: 'Felsefi tartışmalar ilgimi çeker.', category: 'openness', reversed: false },
+  { id: 49, text: 'Değişikliklere kolayca adapte olurum.', category: 'openness', reversed: false },
+  { id: 50, text: 'Meraklı bir insanımdır.', category: 'openness', reversed: false },
 ];
 
-// Likert olcegi
+// Likert ölçeği
 const LIKERT_OPTIONS = [
-  { value: 1, label: 'Kesinlikle Katilmiyorum' },
-  { value: 2, label: 'Katilmiyorum' },
-  { value: 3, label: 'Kararsizim' },
-  { value: 4, label: 'Katiliyorum' },
-  { value: 5, label: 'Kesinlikle Katiliyorum' },
+  { value: 1, label: 'Kesinlikle Katılmıyorum', short: '1' },
+  { value: 2, label: 'Katılmıyorum', short: '2' },
+  { value: 3, label: 'Kararsızım', short: '3' },
+  { value: 4, label: 'Katılıyorum', short: '4' },
+  { value: 5, label: 'Kesinlikle Katılıyorum', short: '5' },
 ];
 
 export default function PersonalityTestPage() {
   const router = useRouter();
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [startTime] = useState(Date.now());
   const [showIntro, setShowIntro] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [kvkkAccepted, setKvkkAccepted] = useState(false);
 
-  const question = QUESTIONS[currentQuestion];
-  const category = CATEGORIES.find(c => c.id === question?.category);
-  const progress = ((currentQuestion + 1) / QUESTIONS.length) * 100;
-  const answeredCount = Object.keys(answers).length;
-  const canProceed = answers[question?.id] !== undefined;
+  const currentCategory = CATEGORIES[currentCategoryIndex];
+  const categoryQuestions = QUESTIONS.filter(q => q.category === currentCategory.id);
+  const categoryProgress = ((currentCategoryIndex + 1) / CATEGORIES.length) * 100;
 
-  const handleAnswer = (value: number) => {
-    setAnswers(prev => ({ ...prev, [question.id]: value }));
+  // Bu kategorideki cevaplanmış soru sayısı
+  const categoryAnsweredCount = categoryQuestions.filter(q => answers[q.id] !== undefined).length;
+  const isCategoryComplete = categoryAnsweredCount === categoryQuestions.length;
+
+  // Toplam cevaplanmış
+  const totalAnsweredCount = Object.keys(answers).length;
+
+  const handleAnswer = (questionId: number, value: number) => {
+    setAnswers(prev => ({ ...prev, [questionId]: value }));
   };
 
-  const handleNext = () => {
-    if (currentQuestion < QUESTIONS.length - 1) {
-      setCurrentQuestion(prev => prev + 1);
+  const handleNextCategory = () => {
+    if (currentCategoryIndex < CATEGORIES.length - 1) {
+      setCurrentCategoryIndex(prev => prev + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
-  const handlePrev = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(prev => prev - 1);
+  const handlePrevCategory = () => {
+    if (currentCategoryIndex > 0) {
+      setCurrentCategoryIndex(prev => prev - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   const handleSubmit = async () => {
-    if (answeredCount < QUESTIONS.length) {
-      alert('Lutfen tum sorulari cevaplayin.');
+    if (totalAnsweredCount < QUESTIONS.length) {
+      alert('Lütfen tüm soruları cevaplayın.');
       return;
     }
 
     setSubmitting(true);
 
-    // Skorlari hesapla
+    // Skorları hesapla
     const scores: Record<string, { total: number; count: number }> = {};
     CATEGORIES.forEach(cat => {
       scores[cat.id] = { total: 0, count: 0 };
@@ -177,20 +190,19 @@ export default function PersonalityTestPage() {
     // Normalize (0-100)
     const normalizedScores: Record<string, number> = {};
     Object.entries(scores).forEach(([key, val]) => {
-      const avg = val.total / val.count; // 1-5 arasi
-      normalizedScores[key] = Math.round(((avg - 1) / 4) * 100); // 0-100 arasi
+      const avg = val.total / val.count;
+      normalizedScores[key] = Math.round(((avg - 1) / 4) * 100);
     });
 
     const duration = Math.round((Date.now() - startTime) / 1000 / 60);
 
-    // Seans kullan (1 seans dus)
     try {
       const response = await fetch('/api/tests/use-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           testType: 'big-five',
-          testName: 'Big Five Kisilik Envanteri',
+          testName: 'Big Five Kişilik Envanteri',
           scores: normalizedScores,
           duration,
         }),
@@ -200,15 +212,14 @@ export default function PersonalityTestPage() {
 
       if (!response.ok) {
         if (data.error === 'SESSION_LIMIT_REACHED') {
-          alert('Seans limitinize ulastiniz. Daha fazla test icin plan yukseltmeniz gerekiyor.');
+          alert('Seans limitinize ulaştınız. Daha fazla test için plan yükseltmeniz gerekiyor.');
           setSubmitting(false);
           router.push('/pricing');
           return;
         }
-        throw new Error(data.error || 'Bir hata olustu');
+        throw new Error(data.error || 'Bir hata oluştu');
       }
 
-      // Sonuclari kaydet
       const testResult = {
         id: data.sessionId || Date.now().toString(),
         type: 'big-five',
@@ -218,17 +229,12 @@ export default function PersonalityTestPage() {
         duration,
       };
 
-      // LocalStorage'a kaydet
       localStorage.setItem('lastTestResult', JSON.stringify(testResult));
-
-      // Auth change event'i gonder (navbar guncellenmesi icin)
       window.dispatchEvent(new Event('auth-change'));
-
-      // Sonuc sayfasina yonlendir
       router.push(`/tests/personality/result?id=${testResult.id}`);
     } catch (error) {
       console.error('Test submit error:', error);
-      alert('Test kaydedilirken bir hata olustu. Lutfen tekrar deneyin.');
+      alert('Test kaydedilirken bir hata oluştu. Lütfen tekrar deneyin.');
       setSubmitting(false);
     }
   };
@@ -236,225 +242,286 @@ export default function PersonalityTestPage() {
   if (showIntro) {
     return (
       <main className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-20 pb-12 px-4">
-          <div className="max-w-2xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-card rounded-2xl border border-border p-6 sm:p-8"
-            >
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mx-auto mb-4">
-                  <Brain className="h-8 w-8 text-white" />
-                </div>
-                <h1 className="text-2xl font-bold mb-2">Big Five Kisilik Envanteri</h1>
-                <p className="text-muted-foreground text-sm">
-                  Bes Faktor Kisilik Modeli (Costa & McCrae, 1992)
-                </p>
+        <div className="max-w-2xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-card rounded-2xl border border-border p-6 sm:p-8"
+          >
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mx-auto mb-4">
+                <Brain className="h-8 w-8 text-white" />
+              </div>
+              <h1 className="text-2xl font-bold mb-2">Big Five Kişilik Envanteri</h1>
+              <p className="text-muted-foreground text-sm">
+                Beş Faktör Kişilik Modeli (Costa & McCrae, 1992)
+              </p>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <div className="p-4 rounded-xl bg-muted/50">
+                <h3 className="font-medium mb-2">Test Hakkında</h3>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    5 kategori, her biri 10 soru
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-blue-500" />
+                    Yaklaşık 10-15 dakika
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Brain className="h-4 w-4 text-purple-500" />
+                    AI destekli detaylı rapor
+                  </li>
+                </ul>
               </div>
 
-              <div className="space-y-4 mb-6">
-                <div className="p-4 rounded-xl bg-muted/50">
-                  <h3 className="font-medium mb-2">Test Hakkinda</h3>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      50 soru, 5 kategori
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-blue-500" />
-                      Yaklasik 15-20 dakika
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Brain className="h-4 w-4 text-purple-500" />
-                      AI destekli detayli rapor
-                    </li>
-                  </ul>
-                </div>
+              {/* Kategoriler önizleme */}
+              <div className="grid grid-cols-5 gap-2">
+                {CATEGORIES.map((cat) => (
+                  <div
+                    key={cat.id}
+                    className="text-center p-2 rounded-lg"
+                    style={{ backgroundColor: `${cat.color}15` }}
+                  >
+                    <div className="text-2xl mb-1">{cat.icon}</div>
+                    <p className="text-xs font-medium" style={{ color: cat.color }}>{cat.name}</p>
+                  </div>
+                ))}
+              </div>
 
-                <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <div className="text-sm">
-                      <p className="font-medium text-primary mb-1">Onemli Bilgi</p>
-                      <p className="text-muted-foreground">
-                        Bu test tamamlandiginda seans hakkinizdan 1 adet dusulecektir.
-                        Karsiliginda detayli AI raporu ve PDF ciktisi alacaksiniz.
-                      </p>
-                    </div>
+              <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium text-primary mb-1">Önemli Bilgi</p>
+                    <p className="text-muted-foreground">
+                      Bu test tamamlandığında seans hakkınızdan 1 adet düşülecektir.
+                      Karşılığında detaylı AI raporu ve PDF çıktısı alacaksınız.
+                    </p>
                   </div>
                 </div>
-
-                <div className="p-4 rounded-xl border border-border">
-                  <label className="flex items-start gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={kvkkAccepted}
-                      onChange={(e) => setKvkkAccepted(e.target.checked)}
-                      className="mt-1 h-4 w-4 rounded border-border"
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      <strong className="text-foreground">KVKK Aydinlatma Metni:</strong> Kisisel verilerimin
-                      islenmesine iliskin aydinlatma metnini okudum ve kabul ediyorum. Verilerim
-                      yalnizca kisilik analizi amaciyla kullanilacaktir.
-                    </span>
-                  </label>
-                </div>
               </div>
 
-              <Button
-                className="w-full"
-                size="lg"
-                disabled={!kvkkAccepted}
-                onClick={() => setShowIntro(false)}
-              >
-                Teste Basla
-                <ChevronRight className="ml-2 h-5 w-5" />
-              </Button>
-            </motion.div>
-          </div>
-        </main>
+              <div className="p-4 rounded-xl border border-border">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={kvkkAccepted}
+                    onChange={(e) => setKvkkAccepted(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-border"
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    <strong className="text-foreground">KVKK Aydınlatma Metni:</strong> Kişisel verilerimin
+                    işlenmesine ilişkin aydınlatma metnini okudum ve kabul ediyorum. Verilerim
+                    yalnızca kişilik analizi amacıyla kullanılacaktır.
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <Button
+              className="w-full"
+              size="lg"
+              disabled={!kvkkAccepted}
+              onClick={() => setShowIntro(false)}
+            >
+              Teste Başla
+              <ChevronRight className="ml-2 h-5 w-5" />
+            </Button>
+          </motion.div>
+        </div>
+      </main>
     );
   }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-20 pb-12 px-4">
-        <div className="max-w-2xl mx-auto">
-          {/* Progress */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between text-sm mb-2">
-              <span className="text-muted-foreground">
-                Soru {currentQuestion + 1} / {QUESTIONS.length}
+      <div className="max-w-3xl mx-auto">
+        {/* Kategori Progress */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <span
+                className="text-3xl"
+                style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
+              >
+                {currentCategory.icon}
               </span>
-              <span className="text-muted-foreground">
-                {answeredCount} cevaplandi
-              </span>
-            </div>
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-gradient-to-r from-primary to-secondary rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.3 }}
-              />
-            </div>
-          </div>
-
-          {/* Kategori Badge */}
-          <div className="mb-4">
-            <span
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium"
-              style={{ backgroundColor: `${category?.color}20`, color: category?.color }}
-            >
-              {category?.name}
-            </span>
-          </div>
-
-          {/* Soru Karti */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentQuestion}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="bg-card rounded-2xl border border-border p-6 sm:p-8 mb-6"
-            >
-              <h2 className="text-xl font-medium mb-8 text-center">
-                {question.text}
-              </h2>
-
-              <div className="space-y-3">
-                {LIKERT_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => handleAnswer(option.value)}
-                    className={`w-full p-4 rounded-xl border text-left transition-all ${
-                      answers[question.id] === option.value
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border hover:border-primary/50 hover:bg-muted/50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                          answers[question.id] === option.value
-                            ? 'border-primary bg-primary'
-                            : 'border-muted-foreground'
-                        }`}
-                      >
-                        {answers[question.id] === option.value && (
-                          <div className="w-2 h-2 rounded-full bg-white" />
-                        )}
-                      </div>
-                      <span className="font-medium">{option.label}</span>
-                    </div>
-                  </button>
-                ))}
+              <div>
+                <h2 className="font-bold text-lg" style={{ color: currentCategory.color }}>
+                  {currentCategory.name}
+                </h2>
+                <p className="text-xs text-muted-foreground">{currentCategory.description}</p>
               </div>
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Navigation */}
-          <div className="flex items-center justify-between gap-4">
-            <Button
-              variant="outline"
-              onClick={handlePrev}
-              disabled={currentQuestion === 0}
-            >
-              <ChevronLeft className="mr-2 h-4 w-4" />
-              Onceki
-            </Button>
-
-            {currentQuestion < QUESTIONS.length - 1 ? (
-              <Button
-                onClick={handleNext}
-                disabled={!canProceed}
-              >
-                Sonraki
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            ) : (
-              <Button
-                onClick={handleSubmit}
-                disabled={answeredCount < QUESTIONS.length || submitting}
-                className="bg-gradient-to-r from-primary to-secondary"
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Hesaplaniyor...
-                  </>
-                ) : (
-                  <>
-                    Testi Tamamla
-                    <CheckCircle2 className="ml-2 h-4 w-4" />
-                  </>
-                )}
-              </Button>
-            )}
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-medium">
+                Kategori {currentCategoryIndex + 1} / {CATEGORIES.length}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {categoryAnsweredCount} / {categoryQuestions.length} cevaplandı
+              </p>
+            </div>
           </div>
 
-          {/* Quick Navigation */}
-          <div className="mt-6 p-4 rounded-xl bg-muted/50">
-            <p className="text-xs text-muted-foreground mb-2">Hizli Gecis:</p>
-            <div className="flex flex-wrap gap-1">
-              {QUESTIONS.map((_, idx) => (
+          {/* Kategori tab'ları */}
+          <div className="flex gap-1 mb-3">
+            {CATEGORIES.map((cat, idx) => {
+              const catQuestions = QUESTIONS.filter(q => q.category === cat.id);
+              const catAnswered = catQuestions.filter(q => answers[q.id] !== undefined).length;
+              const isComplete = catAnswered === catQuestions.length;
+
+              return (
                 <button
-                  key={idx}
-                  onClick={() => setCurrentQuestion(idx)}
-                  className={`w-7 h-7 rounded text-xs font-medium transition-all ${
-                    idx === currentQuestion
-                      ? 'bg-primary text-primary-foreground'
-                      : answers[QUESTIONS[idx].id] !== undefined
-                      ? 'bg-green-500/20 text-green-600'
-                      : 'bg-muted hover:bg-muted-foreground/20'
-                  }`}
-                >
-                  {idx + 1}
-                </button>
-              ))}
-            </div>
+                  key={cat.id}
+                  onClick={() => setCurrentCategoryIndex(idx)}
+                  className={cn(
+                    'flex-1 h-2 rounded-full transition-all',
+                    idx === currentCategoryIndex
+                      ? 'ring-2 ring-offset-2'
+                      : ''
+                  )}
+                  style={{
+                    backgroundColor: isComplete ? cat.color : `${cat.color}30`,
+                    ringColor: cat.color,
+                  }}
+                  title={`${cat.name}: ${catAnswered}/${catQuestions.length}`}
+                />
+              );
+            })}
           </div>
         </div>
-      </main>
+
+        {/* Sorular - Hepsi bir arada */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentCategory.id}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-4"
+          >
+            {/* Likert Scale Header */}
+            <div className="bg-card rounded-xl border border-border p-4 sticky top-16 z-10">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground w-1/2">İfade</span>
+                <div className="flex gap-1 sm:gap-2 w-1/2 justify-end">
+                  {LIKERT_OPTIONS.map((opt) => (
+                    <div
+                      key={opt.value}
+                      className="w-10 sm:w-14 text-center"
+                      title={opt.label}
+                    >
+                      <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">
+                        {opt.value === 1 ? 'Kesinlikle' : opt.value === 5 ? 'Kesinlikle' : ''}
+                      </span>
+                      <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">
+                        {opt.value === 1 ? 'Hayır' : opt.value === 3 ? 'Kararsız' : opt.value === 5 ? 'Evet' : ''}
+                      </span>
+                      <span className="text-xs font-bold sm:hidden">{opt.short}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Soru Listesi */}
+            {categoryQuestions.map((question, idx) => (
+              <div
+                key={question.id}
+                className={cn(
+                  'bg-card rounded-xl border p-4 transition-all',
+                  answers[question.id] !== undefined
+                    ? 'border-green-500/30 bg-green-500/5'
+                    : 'border-border hover:border-primary/30'
+                )}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="flex items-start gap-3 flex-1">
+                    <span
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                      style={{
+                        backgroundColor: answers[question.id] !== undefined ? '#22c55e' : `${currentCategory.color}20`,
+                        color: answers[question.id] !== undefined ? 'white' : currentCategory.color,
+                      }}
+                    >
+                      {answers[question.id] !== undefined ? '✓' : idx + 1}
+                    </span>
+                    <p className="text-sm sm:text-base">{question.text}</p>
+                  </div>
+
+                  <div className="flex gap-1 sm:gap-2 shrink-0">
+                    {LIKERT_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => handleAnswer(question.id, opt.value)}
+                        className={cn(
+                          'w-10 h-10 sm:w-12 sm:h-12 rounded-lg border-2 transition-all font-medium text-sm',
+                          answers[question.id] === opt.value
+                            ? 'border-primary bg-primary text-primary-foreground scale-105'
+                            : 'border-border hover:border-primary/50 hover:bg-muted'
+                        )}
+                        title={opt.label}
+                      >
+                        {opt.short}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Navigation */}
+        <div className="mt-8 flex items-center justify-between gap-4 sticky bottom-4 bg-background/80 backdrop-blur-sm p-4 rounded-xl border border-border">
+          <Button
+            variant="outline"
+            onClick={handlePrevCategory}
+            disabled={currentCategoryIndex === 0}
+          >
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            Önceki
+          </Button>
+
+          <div className="text-center">
+            <p className="text-sm font-medium">
+              {totalAnsweredCount} / {QUESTIONS.length}
+            </p>
+            <p className="text-xs text-muted-foreground">toplam cevap</p>
+          </div>
+
+          {currentCategoryIndex < CATEGORIES.length - 1 ? (
+            <Button
+              onClick={handleNextCategory}
+              disabled={!isCategoryComplete}
+            >
+              Sonraki
+              <ChevronRight className="ml-2 h-4 w-4" />
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSubmit}
+              disabled={totalAnsweredCount < QUESTIONS.length || submitting}
+              className="bg-gradient-to-r from-primary to-secondary"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Hesaplanıyor...
+                </>
+              ) : (
+                <>
+                  Testi Tamamla
+                  <CheckCircle2 className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+      </div>
+    </main>
   );
 }
