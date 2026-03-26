@@ -7,7 +7,7 @@ const KARMA_TTS_MESSAGES = new Set([1, 2, 10]);
 const MENTOR_VOICES: Record<string, string> = {
   'executive-coach':            'dDcfsSsiSzmphdMGCECb',  // AI Koç 1 — tok, otoriter
   'career-coach':               '8WPhqbK1tiExOyeiOUT0',  // AI Koç 2 — özel ses
-  'student-coach':              'LtPsVjX1k0Kl4StEMZPK',  // AI Koç 3 — özel ses
+  'student-coach':              'EJGs6dWlD5VrB3llhBqB',  // AI Koç 3 — özel ses
   'life-balance-coach':         'pFZP5JQG7iQjIQuC4Bku',  // AI Koç 4 — sakin, huzurlu
   'communication-coach':        'AtCqglsS9sXaXLbu0Zco',  // AI Koç 5 — özel ses
   'business-development-coach': 'QttbagfgqUCm9K0VgUyT',  // AI Koç 6 — özel ses
