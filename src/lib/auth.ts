@@ -39,6 +39,8 @@ export interface User {
   isPremium?: boolean;
   emailVerified?: boolean;
   isAdmin?: boolean;
+  lastLoginAt?: string;
+  inactiveReminderSent?: boolean;
 }
 
 // Admin email listesi

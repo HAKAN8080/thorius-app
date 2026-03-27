@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { comparePassword, getUserByEmail, signToken } from '@/lib/auth';
+import { getDb } from '@/lib/db';
 
 export async function POST(req: Request) {
   const { email, password } = await req.json();
@@ -28,6 +29,12 @@ export async function POST(req: Request) {
   }
 
   const token = await signToken({ userId: user.id, email: user.email });
+
+  // Son giriş zamanını ve hatırlatma flag'ini güncelle
+  await getDb().collection('users').doc(user.id).update({
+    lastLoginAt: new Date().toISOString(),
+    inactiveReminderSent: false, // Her girişte sıfırla
+  });
 
   const response = NextResponse.json({ success: true, user: { id: user.id, name: user.name, email: user.email } });
   response.cookies.set('auth-token', token, {
