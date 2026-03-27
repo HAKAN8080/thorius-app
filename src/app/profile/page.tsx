@@ -1,10 +1,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CheckCircle2, Circle, ChevronDown, ChevronUp, Calendar, MessageCircle, BookOpen, BarChart3, Clock, Trash2 } from 'lucide-react';
+import { CheckCircle2, Circle, ChevronDown, ChevronUp, Calendar, MessageCircle, BookOpen, BarChart3, Clock, Trash2, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { DEFAULT_MENTORS } from '@/lib/types';
+
+interface TestResult {
+  id: string;
+  testType: string;
+  testName: string;
+  icon: string;
+  scores: Record<string, number>;
+  overallScore: number | null;
+  createdAt: string;
+  duration: number;
+}
 
 interface ScheduledSession {
   id: string;
@@ -142,6 +153,8 @@ export default function ProfilePage() {
   const [schedTime, setSchedTime] = useState('');
   const [schedMentor, setSchedMentor] = useState('');
   const [schedLoading, setSchedLoading] = useState(false);
+  const [testResults, setTestResults] = useState<TestResult[]>([]);
+  const [testsExpanded, setTestsExpanded] = useState(true);
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -170,6 +183,15 @@ export default function ProfilePage() {
       })
       .then((data) => setScheduled(data.sessions ?? []))
       .catch((err) => console.error('[PROFILE] Schedule error:', err));
+
+    // Test sonuçlarını çek
+    fetch('/api/tests/results')
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((data) => setTestResults(data.tests ?? []))
+      .catch((err) => console.error('[PROFILE] Tests error:', err));
   }, []);
 
   async function handleSchedule() {
@@ -329,8 +351,12 @@ export default function ProfilePage() {
         )}
 
         {/* Stats */}
-        {sessions.length > 0 && (
-          <div className="mb-8 grid grid-cols-3 gap-4">
+        {(sessions.length > 0 || testResults.length > 0) && (
+          <div className="mb-8 grid grid-cols-4 gap-4">
+            <div className="rounded-2xl border border-border/50 bg-card/40 p-4 text-center backdrop-blur-sm">
+              <p className="text-2xl font-bold text-violet-500">{testResults.length}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Test</p>
+            </div>
             <div className="rounded-2xl border border-border/50 bg-card/40 p-4 text-center backdrop-blur-sm">
               <p className="text-2xl font-bold text-primary">{sessions.length}</p>
               <p className="text-xs text-muted-foreground mt-0.5">Seans</p>
@@ -343,6 +369,81 @@ export default function ProfilePage() {
               <p className="text-2xl font-bold text-green-500">{completedHomework}</p>
               <p className="text-xs text-muted-foreground mt-0.5">Tamamlanan</p>
             </div>
+          </div>
+        )}
+
+        {/* Test Sonuçları */}
+        {testResults.length > 0 && (
+          <div className="mb-8 rounded-2xl border border-border/50 bg-card/40 backdrop-blur-sm overflow-hidden">
+            <button
+              className="w-full p-5 border-b border-border/50 flex items-center justify-between hover:bg-white/5 transition-colors"
+              onClick={() => setTestsExpanded(!testsExpanded)}
+            >
+              <div className="flex items-center gap-2">
+                <ClipboardList className="h-4 w-4 text-violet-500" />
+                <p className="font-semibold">Test Sonuçlarım</p>
+                <span className="text-xs text-muted-foreground">({testResults.length} test)</span>
+              </div>
+              {testsExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+            </button>
+            {testsExpanded && (
+              <div className="p-4 space-y-3">
+                {testResults.map((test) => {
+                  const date = new Date(test.createdAt).toLocaleDateString('tr-TR', {
+                    day: 'numeric', month: 'long', year: 'numeric',
+                  });
+                  const overallPercent = test.overallScore ?? test.scores?.overall ?? 0;
+
+                  // Test tipine göre sonuç sayfasına link
+                  const resultLinks: Record<string, string> = {
+                    'big-five': '/tests/personality/result',
+                    'personality': '/tests/personality/result',
+                    'eq-i': '/tests/emotional-intelligence/result',
+                    'emotional-intelligence': '/tests/emotional-intelligence/result',
+                    'life-score': '/tests/life-score/result',
+                    'leadership': '/tests/leadership/result',
+                    'procrastination': '/tests/procrastination/result',
+                    'life-purpose': '/tests/life-purpose/result',
+                  };
+                  const resultLink = resultLinks[test.testType] || '/tests';
+
+                  return (
+                    <div
+                      key={test.id}
+                      className="flex items-center justify-between gap-4 rounded-xl border border-border/30 bg-background/50 p-4 hover:bg-white/5 transition-colors"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/10 text-lg">
+                          {test.icon}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-medium truncate">{test.testName}</p>
+                          <p className="text-xs text-muted-foreground">{date}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        {overallPercent > 0 && (
+                          <div className="text-right">
+                            <p className="text-lg font-bold text-violet-500">%{Math.round(overallPercent)}</p>
+                            <p className="text-[10px] text-muted-foreground">Genel Skor</p>
+                          </div>
+                        )}
+                        <Link href={resultLink}>
+                          <Button size="sm" variant="outline" className="text-xs">
+                            Detay
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })}
+                <Link href="/tests" className="block">
+                  <Button variant="ghost" size="sm" className="w-full text-violet-500 hover:text-violet-600 hover:bg-violet-500/10">
+                    + Yeni Test Yap
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         )}
 
