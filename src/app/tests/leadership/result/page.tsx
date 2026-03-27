@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   Crown, Lightbulb, Heart, Target, ArrowLeft, Download, Loader2,
-  TrendingUp, Users, Briefcase, Star
+  TrendingUp, Users, Briefcase, Star, Mail, Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -114,6 +114,8 @@ function LeadershipResultContent() {
   const [analysis, setAnalysis] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('lastLeadershipResult');
@@ -150,6 +152,39 @@ function LeadershipResultContent() {
     } finally {
       setGenerating(false);
     }
+  };
+
+  const handleSendEmail = async () => {
+    if (!result || !analysis) return;
+    setSendingEmail(true);
+    try {
+      const dominantStyle = LEADERSHIP_STYLES.find(s => s.id === result.dominantStyle);
+      const response = await fetch('/api/tests/send-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          testType: 'leadership',
+          scores: result.scores,
+          dimensions: LEADERSHIP_STYLES.map(style => ({
+            id: style.id,
+            name: style.name,
+            score: result.scores[style.id] || 0,
+            color: style.color,
+          })),
+          overallLabel: dominantStyle?.name || 'Liderlik Tarzı',
+          analysis: analysis,
+          strengths: dominantStyle?.strengths,
+          developmentAreas: dominantStyle?.developmentAreas,
+        }),
+      });
+      if (response.ok) {
+        setEmailSent(true);
+        setTimeout(() => setEmailSent(false), 5000);
+      }
+    } catch (error) {
+      console.error('Email gonderme hatasi:', error);
+    }
+    setSendingEmail(false);
   };
 
   if (loading) {
@@ -374,11 +409,40 @@ function LeadershipResultContent() {
           )}
         </motion.div>
 
-        {/* CTA */}
+        {/* Aksiyonlar */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
+          className="flex flex-col sm:flex-row gap-3 mb-8"
+        >
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={handleSendEmail}
+            disabled={sendingEmail || emailSent || !analysis}
+          >
+            {sendingEmail ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : emailSent ? (
+              <Check className="mr-2 h-4 w-4 text-green-500" />
+            ) : (
+              <Mail className="mr-2 h-4 w-4" />
+            )}
+            {emailSent ? 'Gonderildi!' : 'Email Gonder'}
+          </Button>
+          <Link href="/tests" className="flex-1">
+            <Button variant="outline" className="w-full">
+              Baska Test Coz
+            </Button>
+          </Link>
+        </motion.div>
+
+        {/* CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
           className="text-center"
         >
           <p className="text-muted-foreground mb-4">

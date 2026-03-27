@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Timer, Zap, Shield, Target, ArrowLeft, Loader2, AlertTriangle, CheckCircle, TrendingDown } from 'lucide-react';
+import { Timer, Zap, Shield, Target, ArrowLeft, Loader2, AlertTriangle, CheckCircle, TrendingDown, Mail, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -28,6 +28,8 @@ function ResultContent() {
   const [analysis, setAnalysis] = useState('');
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('lastProcrastinationResult');
@@ -55,6 +57,38 @@ function ResultContent() {
       }
     } catch (e) { console.error(e); }
     finally { setGenerating(false); }
+  };
+
+  const handleSendEmail = async () => {
+    if (!result || !analysis) return;
+    setSendingEmail(true);
+    try {
+      const levelData = LEVELS[result.level as keyof typeof LEVELS] || LEVELS.moderate;
+      const response = await fetch('/api/tests/send-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          testType: 'procrastination',
+          scores: result.scores,
+          dimensions: FACTORS.map(f => ({
+            id: f.id,
+            name: f.name,
+            score: result.scores[f.id] || 0,
+            color: f.color,
+          })),
+          overallScore: result.scores.overall,
+          overallLabel: levelData.label,
+          analysis: analysis,
+        }),
+      });
+      if (response.ok) {
+        setEmailSent(true);
+        setTimeout(() => setEmailSent(false), 5000);
+      }
+    } catch (error) {
+      console.error('Email gonderme hatasi:', error);
+    }
+    setSendingEmail(false);
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
@@ -122,6 +156,27 @@ function ResultContent() {
             <div className="prose prose-sm dark:prose-invert max-w-none"><p className="whitespace-pre-wrap leading-relaxed">{analysis}</p></div>
           ) : <p className="text-muted-foreground">Analiz yüklenemedi</p>}
         </motion.div>
+
+        <div className="flex flex-col sm:flex-row gap-3 mb-8">
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={handleSendEmail}
+            disabled={sendingEmail || emailSent || !analysis}
+          >
+            {sendingEmail ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : emailSent ? (
+              <Check className="mr-2 h-4 w-4 text-green-500" />
+            ) : (
+              <Mail className="mr-2 h-4 w-4" />
+            )}
+            {emailSent ? 'Gonderildi!' : 'Email Gonder'}
+          </Button>
+          <Link href="/tests" className="flex-1">
+            <Button variant="outline" className="w-full">Baska Test Coz</Button>
+          </Link>
+        </div>
 
         <div className="text-center">
           <p className="text-muted-foreground mb-4">Erteleme alışkanlıklarınızı yenmek için bir koçla çalışın</p>

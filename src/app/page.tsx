@@ -40,7 +40,7 @@ export default async function HomePage() {
             <div className="flex-1 text-center lg:text-left">
               <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/6 px-4 py-1.5 text-sm font-medium text-primary">
                 <Sparkles className="h-3.5 w-3.5" />
-                Claude AI ile Güçlendirildi
+                Yapay Zeka Destekli Platform
               </div>
 
               <h1 className="mb-6 text-5xl font-bold leading-tight tracking-tight text-foreground lg:text-6xl">

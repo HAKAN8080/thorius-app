@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import {
   Heart, Download, ArrowLeft, Sparkles, Loader2,
   TrendingUp, Target, Users, Briefcase, Shield, Brain,
-  RefreshCw, Award, Zap
+  RefreshCw, Award, Zap, Mail, Check
 } from 'lucide-react';
 import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -91,6 +91,8 @@ function ResultContent() {
   const [generating, setGenerating] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('lastEQTestResult');
@@ -152,6 +154,41 @@ function ResultContent() {
       console.error('PDF olusturma hatasi:', error);
     }
     setDownloading(false);
+  };
+
+  const handleSendEmail = async () => {
+    if (!testResult || !aiReport) return;
+    setSendingEmail(true);
+    try {
+      const response = await fetch('/api/tests/send-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          testType: 'emotional-intelligence',
+          scores: testResult.scores,
+          dimensions: CATEGORIES.map(cat => ({
+            id: cat.id,
+            name: cat.name,
+            score: testResult.scores[cat.id] || 0,
+            color: cat.color,
+          })),
+          overallScore: testResult.scores['overall'],
+          overallLabel: 'Duygusal Zeka Skoru',
+          analysis: aiReport.summary,
+          strengths: aiReport.strengths,
+          developmentAreas: aiReport.developmentAreas,
+          recommendations: aiReport.workplaceTips,
+          duration: testResult.duration,
+        }),
+      });
+      if (response.ok) {
+        setEmailSent(true);
+        setTimeout(() => setEmailSent(false), 5000);
+      }
+    } catch (error) {
+      console.error('Email gonderme hatasi:', error);
+    }
+    setSendingEmail(false);
   };
 
   if (!testResult) {
@@ -446,6 +483,21 @@ function ResultContent() {
             <Download className="mr-2 h-4 w-4" />
           )}
           PDF Indir
+        </Button>
+        <Button
+          variant="outline"
+          className="flex-1"
+          onClick={handleSendEmail}
+          disabled={sendingEmail || emailSent || !aiReport}
+        >
+          {sendingEmail ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : emailSent ? (
+            <Check className="mr-2 h-4 w-4 text-green-500" />
+          ) : (
+            <Mail className="mr-2 h-4 w-4" />
+          )}
+          {emailSent ? 'Gonderildi!' : 'Email Gonder'}
         </Button>
         <Link href="/tests" className="flex-1">
           <Button variant="outline" className="w-full">
