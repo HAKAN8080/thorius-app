@@ -112,6 +112,12 @@ export async function POST(req: Request) {
             balance: 'Denge',
             overall: 'Genel Skor',
           },
+          'leadership': {
+            transformational: 'Dönüşümcü Liderlik',
+            transactional: 'İşlemci Liderlik',
+            servant: 'Hizmetkar Liderlik',
+            visionary: 'Vizyoner Liderlik',
+          },
         };
 
         const labels = scoreLabels[test.testType] || {};
