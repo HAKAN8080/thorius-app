@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
+import { SessionConfirmModal } from '@/components/SessionConfirmModal';
 
 const MAX_USER_MESSAGES = 10;
 const MIN_WORD_COUNT = 50; // Minimum kelime sayısı
@@ -101,6 +102,11 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   // Kelime sayısı hesaplama
   const wordCount = input.trim().split(/\s+/).filter(w => w.length > 0).length;
   const isFirstMessage = useRef(true);
+
+  // Seans onay modalı
+  const [showSessionConfirm, setShowSessionConfirm] = useState(false);
+  const [sessionConfirmed, setSessionConfirmed] = useState(false);
+  const pendingInputRef = useRef<string>('');
 
   async function handleSpeak(messageId: string, text: string) {
     if (playingId === messageId) {
@@ -276,8 +282,23 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
       return; // Button zaten disabled olacak, ama yine de kontrol
     }
 
+    // İlk mesajda ve henüz onay alınmadıysa modal göster
+    if (userMessageCount === 0 && !sessionConfirmed) {
+      pendingInputRef.current = input;
+      setShowSessionConfirm(true);
+      return;
+    }
+
     isFirstMessage.current = false;
     sendMessage({ role: 'user', parts: [{ type: 'text', text: input }] });
+    setInput('');
+  };
+
+  const handleSessionConfirm = () => {
+    setShowSessionConfirm(false);
+    setSessionConfirmed(true);
+    isFirstMessage.current = false;
+    sendMessage({ role: 'user', parts: [{ type: 'text', text: pendingInputRef.current }] });
     setInput('');
   };
 
@@ -664,6 +685,16 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
           </div>
         </div>
       )}
+
+      {/* Seans Onay Modalı */}
+      <SessionConfirmModal
+        isOpen={showSessionConfirm}
+        onConfirm={handleSessionConfirm}
+        onCancel={() => setShowSessionConfirm(false)}
+        type="session"
+        title="Seans Başlatılacak"
+        description={`${mentor.title} ile koçluk/mentorluk seansı başlatmak üzeresiniz. 10 soruluk bir görüşme yapacak ve sonunda ödev ile özet alacaksınız.`}
+      />
     </div>
   );
 }

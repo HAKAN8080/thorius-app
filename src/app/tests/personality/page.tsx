@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { SessionConfirmModal } from '@/components/SessionConfirmModal';
 
 // Big Five Kategorileri
 const CATEGORIES = [
@@ -134,6 +135,7 @@ export default function PersonalityTestPage() {
   const [showIntro, setShowIntro] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [kvkkAccepted, setKvkkAccepted] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const currentCategory = CATEGORIES[currentCategoryIndex];
   const categoryQuestions = QUESTIONS.filter(q => q.category === currentCategory.id);
@@ -325,13 +327,25 @@ export default function PersonalityTestPage() {
               className="w-full"
               size="lg"
               disabled={!kvkkAccepted}
-              onClick={() => setShowIntro(false)}
+              onClick={() => setShowConfirmModal(true)}
             >
               Teste Başla
               <ChevronRight className="ml-2 h-5 w-5" />
             </Button>
           </motion.div>
         </div>
+
+        <SessionConfirmModal
+          isOpen={showConfirmModal}
+          onConfirm={() => {
+            setShowConfirmModal(false);
+            setShowIntro(false);
+          }}
+          onCancel={() => setShowConfirmModal(false)}
+          type="test"
+          title="Kişilik Testi Başlatılacak"
+          description="Bu testi tamamladığınızda seans hakkınızdan 1 adet düşülecektir. Karşılığında Big Five kişilik profiliniz ve detaylı AI analizi alacaksınız."
+        />
       </main>
     );
   }

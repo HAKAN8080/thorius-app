@@ -8,163 +8,179 @@ import {
   Loader2, CheckCircle2, Brain, Users, Shield, Zap, Target
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { SessionConfirmModal } from '@/components/SessionConfirmModal';
 
 // EQ-i Kategorileri (Bar-On, 1997)
 const CATEGORIES = [
   {
     id: 'self-awareness',
-    name: 'Oz Farkindalik',
+    name: 'Öz Farkındalık',
     nameEn: 'Self-Awareness',
     color: '#8B5CF6',
-    icon: Brain,
-    description: 'Kendi duygularini tanima ve anlama yetisi',
+    icon: '🧠',
+    description: 'Kendi duygularını tanıma ve anlama yetisi',
   },
   {
     id: 'self-management',
-    name: 'Oz Yonetim',
+    name: 'Öz Yönetim',
     nameEn: 'Self-Management',
     color: '#EC4899',
-    icon: Target,
-    description: 'Duygulari ve davranislari yonetme becerisi',
+    icon: '🎯',
+    description: 'Duyguları ve davranışları yönetme becerisi',
   },
   {
     id: 'social-awareness',
-    name: 'Sosyal Farkindalik',
+    name: 'Sosyal Farkındalık',
     nameEn: 'Social Awareness',
     color: '#06B6D4',
-    icon: Users,
-    description: 'Baskalarinin duygularini anlama ve empati',
+    icon: '👥',
+    description: 'Başkalarının duygularını anlama ve empati',
   },
   {
     id: 'relationship-management',
-    name: 'Iliski Yonetimi',
+    name: 'İlişki Yönetimi',
     nameEn: 'Relationship Management',
     color: '#10B981',
-    icon: Heart,
-    description: 'Saglikli iliskiler kurma ve surdurebilme',
+    icon: '💚',
+    description: 'Sağlıklı ilişkiler kurma ve sürdürebilme',
   },
   {
     id: 'stress-management',
-    name: 'Stres Yonetimi',
+    name: 'Stres Yönetimi',
     nameEn: 'Stress Management',
     color: '#F59E0B',
-    icon: Shield,
-    description: 'Stresle basa cikma ve esneklik',
+    icon: '🛡️',
+    description: 'Stresle başa çıkma ve esneklik',
   },
 ];
 
-// 50 Soru - Her kategoride 10 soru (Bar-On EQ-i 2.0 modelinden uyarlanmistir)
+// 50 Soru - Her kategoride 10 soru (Türkçe karakterlerle)
 const QUESTIONS: { id: number; text: string; category: string; reversed: boolean }[] = [
-  // Oz Farkindalik (10 soru)
-  { id: 1, text: 'Duygularimin ne oldugunu genellikle net bir sekilde bilirim.', category: 'self-awareness', reversed: false },
-  { id: 2, text: 'Neden belli bir sekilde hissettigimi anlamakta zorlanmam.', category: 'self-awareness', reversed: false },
-  { id: 3, text: 'Guclu ve zayif yonlerimin farkindayim.', category: 'self-awareness', reversed: false },
-  { id: 4, text: 'Duygularimin davranislarimi nasil etkiledigini gorebilirim.', category: 'self-awareness', reversed: false },
-  { id: 5, text: 'Kendime karsi durust ve gercekci bir bakis acisina sahibim.', category: 'self-awareness', reversed: false },
-  { id: 6, text: 'Baskalari beni nasil gordugunun farkindayim.', category: 'self-awareness', reversed: false },
-  { id: 7, text: 'Degerlerimin ve inanclarimin farkindayim.', category: 'self-awareness', reversed: false },
-  { id: 8, text: 'Duygusal tepkilerimin kaynaklarini anlayabilirim.', category: 'self-awareness', reversed: false },
-  { id: 9, text: 'Ic sesimi dinler ve ona guvenenim.', category: 'self-awareness', reversed: false },
-  { id: 10, text: 'Kendimi tanimak icin zaman ayiririm.', category: 'self-awareness', reversed: false },
+  // Öz Farkındalık (10 soru)
+  { id: 1, text: 'Duygularımın ne olduğunu genellikle net bir şekilde bilirim.', category: 'self-awareness', reversed: false },
+  { id: 2, text: 'Neden belli bir şekilde hissettiğimi anlamakta zorlanmam.', category: 'self-awareness', reversed: false },
+  { id: 3, text: 'Güçlü ve zayıf yönlerimin farkındayım.', category: 'self-awareness', reversed: false },
+  { id: 4, text: 'Duygularımın davranışlarımı nasıl etkilediğini görebilirim.', category: 'self-awareness', reversed: false },
+  { id: 5, text: 'Kendime karşı dürüst ve gerçekçi bir bakış açısına sahibim.', category: 'self-awareness', reversed: false },
+  { id: 6, text: 'Başkaları beni nasıl gördüğünün farkındayım.', category: 'self-awareness', reversed: false },
+  { id: 7, text: 'Değerlerimin ve inançlarımın farkındayım.', category: 'self-awareness', reversed: false },
+  { id: 8, text: 'Duygusal tepkilerimin kaynaklarını anlayabilirim.', category: 'self-awareness', reversed: false },
+  { id: 9, text: 'İç sesimi dinler ve ona güvenirim.', category: 'self-awareness', reversed: false },
+  { id: 10, text: 'Kendimi tanımak için zaman ayırırım.', category: 'self-awareness', reversed: false },
 
-  // Oz Yonetim (10 soru)
-  { id: 11, text: 'Olumsuz duygularimi kontrol altinda tutabilirim.', category: 'self-management', reversed: false },
-  { id: 12, text: 'Dusunmeden hareket etmek yerine once dusunurum.', category: 'self-management', reversed: false },
-  { id: 13, text: 'Zor durumlarda bile sakinligimi koruyabilirim.', category: 'self-management', reversed: false },
-  { id: 14, text: 'Hedeflerime ulasmak icin cabalamaya devam ederim.', category: 'self-management', reversed: false },
-  { id: 15, text: 'Hayal kirikliklarindan hizla toparlanabilirim.', category: 'self-management', reversed: false },
-  { id: 16, text: 'Ani kararlara kapilmak yerine planli hareket ederim.', category: 'self-management', reversed: false },
-  { id: 17, text: 'Olumsuz dusuncelerimi olumlu olanlara donusturebilirim.', category: 'self-management', reversed: false },
-  { id: 18, text: 'Motivasyonumu kaybettigimde kendimi yeniden motive edebilirim.', category: 'self-management', reversed: false },
-  { id: 19, text: 'Zaman yonetiminde basariliyim.', category: 'self-management', reversed: false },
-  { id: 20, text: 'Ofkelendigimde bunu yapici sekilde ifade edebilirim.', category: 'self-management', reversed: false },
+  // Öz Yönetim (10 soru)
+  { id: 11, text: 'Olumsuz duygularımı kontrol altında tutabilirim.', category: 'self-management', reversed: false },
+  { id: 12, text: 'Düşünmeden hareket etmek yerine önce düşünürüm.', category: 'self-management', reversed: false },
+  { id: 13, text: 'Zor durumlarda bile sakinliğimi koruyabilirim.', category: 'self-management', reversed: false },
+  { id: 14, text: 'Hedeflerime ulaşmak için çabalamaya devam ederim.', category: 'self-management', reversed: false },
+  { id: 15, text: 'Hayal kırıklıklarından hızla toparlanabilirim.', category: 'self-management', reversed: false },
+  { id: 16, text: 'Ani kararlara kapılmak yerine planlı hareket ederim.', category: 'self-management', reversed: false },
+  { id: 17, text: 'Olumsuz düşüncelerimi olumlu olanlara dönüştürebilirim.', category: 'self-management', reversed: false },
+  { id: 18, text: 'Motivasyonumu kaybettiğimde kendimi yeniden motive edebilirim.', category: 'self-management', reversed: false },
+  { id: 19, text: 'Zaman yönetiminde başarılıyım.', category: 'self-management', reversed: false },
+  { id: 20, text: 'Öfkelendiğimde bunu yapıcı şekilde ifade edebilirim.', category: 'self-management', reversed: false },
 
-  // Sosyal Farkindalik (10 soru)
-  { id: 21, text: 'Baskalarinin duygularini kolayca anlarim.', category: 'social-awareness', reversed: false },
-  { id: 22, text: 'Insanlarin soz1u olmayan isaretlerini (beden dili, yuz ifadesi) okuyabilirim.', category: 'social-awareness', reversed: false },
-  { id: 23, text: 'Kendimi baskalarinin yerine koyabilirim.', category: 'social-awareness', reversed: false },
-  { id: 24, text: 'Bir odadaki duygusal havay algilayabilirim.', category: 'social-awareness', reversed: false },
-  { id: 25, text: 'Baskalarinin ihtiyaclarini sezebilirim.', category: 'social-awareness', reversed: false },
-  { id: 26, text: 'Farkli bakis acilarini anlayip saygi gosterebilirim.', category: 'social-awareness', reversed: false },
-  { id: 27, text: 'Insanlar dertlerini benimle paylasmaktan cekinmezler.', category: 'social-awareness', reversed: false },
-  { id: 28, text: 'Grup dinamiklerini ve iliskilerini anlayabilirim.', category: 'social-awareness', reversed: false },
-  { id: 29, text: 'Kulturel farkliliklara karsi duyarliyim.', category: 'social-awareness', reversed: false },
-  { id: 30, text: 'Baskalarinin motivasyonlarini anlayabilirim.', category: 'social-awareness', reversed: false },
+  // Sosyal Farkındalık (10 soru)
+  { id: 21, text: 'Başkalarının duygularını kolayca anlarım.', category: 'social-awareness', reversed: false },
+  { id: 22, text: 'İnsanların sözsüz işaretlerini (beden dili, yüz ifadesi) okuyabilirim.', category: 'social-awareness', reversed: false },
+  { id: 23, text: 'Kendimi başkalarının yerine koyabilirim.', category: 'social-awareness', reversed: false },
+  { id: 24, text: 'Bir odadaki duygusal havayı algılayabilirim.', category: 'social-awareness', reversed: false },
+  { id: 25, text: 'Başkalarının ihtiyaçlarını sezebilirim.', category: 'social-awareness', reversed: false },
+  { id: 26, text: 'Farklı bakış açılarını anlayıp saygı gösterebilirim.', category: 'social-awareness', reversed: false },
+  { id: 27, text: 'İnsanlar dertlerini benimle paylaşmaktan çekinmezler.', category: 'social-awareness', reversed: false },
+  { id: 28, text: 'Grup dinamiklerini ve ilişkilerini anlayabilirim.', category: 'social-awareness', reversed: false },
+  { id: 29, text: 'Kültürel farklılıklara karşı duyarlıyım.', category: 'social-awareness', reversed: false },
+  { id: 30, text: 'Başkalarının motivasyonlarını anlayabilirim.', category: 'social-awareness', reversed: false },
 
-  // Iliski Yonetimi (10 soru)
-  { id: 31, text: 'Yeni insanlarla kolayca iletisim kurabilirim.', category: 'relationship-management', reversed: false },
-  { id: 32, text: 'Uzun sureli ve anlamli iliskiler kurabilirim.', category: 'relationship-management', reversed: false },
-  { id: 33, text: 'Catismalari yapici bir sekilde cozebilirim.', category: 'relationship-management', reversed: false },
-  { id: 34, text: 'Geri bildirim vermekte ve almakta rahatim.', category: 'relationship-management', reversed: false },
-  { id: 35, text: 'Takim calismasinda etkili bir rol ustlenirim.', category: 'relationship-management', reversed: false },
-  { id: 36, text: 'Baskalarini motive edebilir ve ilham verebilirim.', category: 'relationship-management', reversed: false },
-  { id: 37, text: 'Zor konusmalar yapabilir ve net iletisim kurabilirim.', category: 'relationship-management', reversed: false },
-  { id: 38, text: 'Guven insa etmekte basariliyim.', category: 'relationship-management', reversed: false },
-  { id: 39, text: 'Farkli kisilik tiplerine uyum saglayabilirim.', category: 'relationship-management', reversed: false },
-  { id: 40, text: 'Isbirligini tesvik eder ve desteklerim.', category: 'relationship-management', reversed: false },
+  // İlişki Yönetimi (10 soru)
+  { id: 31, text: 'Yeni insanlarla kolayca iletişim kurabilirim.', category: 'relationship-management', reversed: false },
+  { id: 32, text: 'Uzun süreli ve anlamlı ilişkiler kurabilirim.', category: 'relationship-management', reversed: false },
+  { id: 33, text: 'Çatışmaları yapıcı bir şekilde çözebilirim.', category: 'relationship-management', reversed: false },
+  { id: 34, text: 'Geri bildirim vermekte ve almakta rahatım.', category: 'relationship-management', reversed: false },
+  { id: 35, text: 'Takım çalışmasında etkili bir rol üstlenirim.', category: 'relationship-management', reversed: false },
+  { id: 36, text: 'Başkalarını motive edebilir ve ilham verebilirim.', category: 'relationship-management', reversed: false },
+  { id: 37, text: 'Zor konuşmalar yapabilir ve net iletişim kurabilirim.', category: 'relationship-management', reversed: false },
+  { id: 38, text: 'Güven inşa etmekte başarılıyım.', category: 'relationship-management', reversed: false },
+  { id: 39, text: 'Farklı kişilik tiplerine uyum sağlayabilirim.', category: 'relationship-management', reversed: false },
+  { id: 40, text: 'İşbirliğini teşvik eder ve desteklerim.', category: 'relationship-management', reversed: false },
 
-  // Stres Yonetimi (10 soru)
-  { id: 41, text: 'Yogun baski altinda bile etkili calisabilirim.', category: 'stress-management', reversed: false },
-  { id: 42, text: 'Belirsizlik durumlarinda rahat kalabilirim.', category: 'stress-management', reversed: false },
-  { id: 43, text: 'Degisikliklere kolayca uyum saglayabilirim.', category: 'stress-management', reversed: false },
-  { id: 44, text: 'Stresli durumlarda problem cozme yetenegimi koruyabilirim.', category: 'stress-management', reversed: false },
-  { id: 45, text: 'Krizlerde sogukkanli kalabilirim.', category: 'stress-management', reversed: false },
-  { id: 46, text: 'Is ve ozel hayat dengesini kurabilirim.', category: 'stress-management', reversed: false },
-  { id: 47, text: 'Olumsuz durumlardan ders cikarabilirim.', category: 'stress-management', reversed: false },
-  { id: 48, text: 'Saglikli stres yonetimi teknikleri kullanirim.', category: 'stress-management', reversed: false },
-  { id: 49, text: 'Iyimserligimi zor zamanlarda bile koruyabilirim.', category: 'stress-management', reversed: false },
-  { id: 50, text: 'Zorluklari firsata donusturebilirim.', category: 'stress-management', reversed: false },
+  // Stres Yönetimi (10 soru)
+  { id: 41, text: 'Yoğun baskı altında bile etkili çalışabilirim.', category: 'stress-management', reversed: false },
+  { id: 42, text: 'Belirsizlik durumlarında rahat kalabilirim.', category: 'stress-management', reversed: false },
+  { id: 43, text: 'Değişikliklere kolayca uyum sağlayabilirim.', category: 'stress-management', reversed: false },
+  { id: 44, text: 'Stresli durumlarda problem çözme yeteneğimi koruyabilirim.', category: 'stress-management', reversed: false },
+  { id: 45, text: 'Krizlerde soğukkanlı kalabilirim.', category: 'stress-management', reversed: false },
+  { id: 46, text: 'İş ve özel hayat dengesini kurabilirim.', category: 'stress-management', reversed: false },
+  { id: 47, text: 'Olumsuz durumlardan ders çıkarabilirim.', category: 'stress-management', reversed: false },
+  { id: 48, text: 'Sağlıklı stres yönetimi teknikleri kullanırım.', category: 'stress-management', reversed: false },
+  { id: 49, text: 'İyimserliğimi zor zamanlarda bile koruyabilirim.', category: 'stress-management', reversed: false },
+  { id: 50, text: 'Zorlukları fırsata dönüştürebilirim.', category: 'stress-management', reversed: false },
 ];
 
-// Likert olcegi
+// Likert ölçeği
 const LIKERT_OPTIONS = [
-  { value: 1, label: 'Kesinlikle Katilmiyorum' },
-  { value: 2, label: 'Katilmiyorum' },
-  { value: 3, label: 'Kararsizim' },
-  { value: 4, label: 'Katiliyorum' },
-  { value: 5, label: 'Kesinlikle Katiliyorum' },
+  { value: 1, label: 'Kesinlikle Katılmıyorum', short: '1' },
+  { value: 2, label: 'Katılmıyorum', short: '2' },
+  { value: 3, label: 'Kararsızım', short: '3' },
+  { value: 4, label: 'Katılıyorum', short: '4' },
+  { value: 5, label: 'Kesinlikle Katılıyorum', short: '5' },
 ];
 
 export default function EmotionalIntelligenceTestPage() {
   const router = useRouter();
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [startTime] = useState(Date.now());
   const [showIntro, setShowIntro] = useState(true);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [kvkkAccepted, setKvkkAccepted] = useState(false);
 
-  const question = QUESTIONS[currentQuestion];
-  const category = CATEGORIES.find(c => c.id === question?.category);
-  const progress = ((currentQuestion + 1) / QUESTIONS.length) * 100;
-  const answeredCount = Object.keys(answers).length;
-  const canProceed = answers[question?.id] !== undefined;
+  const currentCategory = CATEGORIES[currentCategoryIndex];
+  const categoryQuestions = QUESTIONS.filter(q => q.category === currentCategory.id);
 
-  const handleAnswer = (value: number) => {
-    setAnswers(prev => ({ ...prev, [question.id]: value }));
+  const categoryAnsweredCount = categoryQuestions.filter(q => answers[q.id] !== undefined).length;
+  const isCategoryComplete = categoryAnsweredCount === categoryQuestions.length;
+  const totalAnsweredCount = Object.keys(answers).length;
+
+  const handleAnswer = (questionId: number, value: number) => {
+    setAnswers(prev => ({ ...prev, [questionId]: value }));
   };
 
-  const handleNext = () => {
-    if (currentQuestion < QUESTIONS.length - 1) {
-      setCurrentQuestion(prev => prev + 1);
+  const handleNextCategory = () => {
+    if (currentCategoryIndex < CATEGORIES.length - 1) {
+      setCurrentCategoryIndex(prev => prev + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
-  const handlePrev = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(prev => prev - 1);
+  const handlePrevCategory = () => {
+    if (currentCategoryIndex > 0) {
+      setCurrentCategoryIndex(prev => prev - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  };
+
+  const handleStartTest = () => {
+    if (kvkkAccepted) {
+      setShowConfirm(true);
+    }
+  };
+
+  const handleConfirmStart = () => {
+    setShowConfirm(false);
+    setShowIntro(false);
   };
 
   const handleSubmit = async () => {
-    if (answeredCount < QUESTIONS.length) {
-      alert('Lutfen tum sorulari cevaplayin.');
+    if (totalAnsweredCount < QUESTIONS.length) {
+      alert('Lütfen tüm soruları cevaplayın.');
       return;
     }
 
     setSubmitting(true);
 
-    // Skorlari hesapla
     const scores: Record<string, { total: number; count: number }> = {};
     CATEGORIES.forEach(cat => {
       scores[cat.id] = { total: 0, count: 0 };
@@ -179,21 +195,18 @@ export default function EmotionalIntelligenceTestPage() {
       }
     });
 
-    // Normalize (0-100)
     const normalizedScores: Record<string, number> = {};
     Object.entries(scores).forEach(([key, val]) => {
       const avg = val.total / val.count;
       normalizedScores[key] = Math.round(((avg - 1) / 4) * 100);
     });
 
-    // Genel EQ skoru hesapla (ortalama)
     const totalScore = Object.values(normalizedScores).reduce((a, b) => a + b, 0);
     const overallEQ = Math.round(totalScore / Object.keys(normalizedScores).length);
     normalizedScores['overall'] = overallEQ;
 
     const duration = Math.round((Date.now() - startTime) / 1000 / 60);
 
-    // Seans kullan (1 seans dus)
     try {
       const response = await fetch('/api/tests/use-session', {
         method: 'POST',
@@ -210,15 +223,14 @@ export default function EmotionalIntelligenceTestPage() {
 
       if (!response.ok) {
         if (data.error === 'SESSION_LIMIT_REACHED') {
-          alert('Seans limitinize ulastiniz. Daha fazla test icin plan yukseltmeniz gerekiyor.');
+          alert('Seans limitinize ulaştınız. Daha fazla test için plan yükseltmeniz gerekiyor.');
           setSubmitting(false);
           router.push('/pricing');
           return;
         }
-        throw new Error(data.error || 'Bir hata olustu');
+        throw new Error(data.error || 'Bir hata oluştu');
       }
 
-      // Sonuclari kaydet
       const testResult = {
         id: data.sessionId || Date.now().toString(),
         type: 'eq-i',
@@ -228,17 +240,12 @@ export default function EmotionalIntelligenceTestPage() {
         duration,
       };
 
-      // LocalStorage'a kaydet
       localStorage.setItem('lastEQTestResult', JSON.stringify(testResult));
-
-      // Auth change event'i gonder
       window.dispatchEvent(new Event('auth-change'));
-
-      // Sonuc sayfasina yonlendir
       router.push(`/tests/emotional-intelligence/result?id=${testResult.id}`);
     } catch (error) {
       console.error('Test submit error:', error);
-      alert('Test kaydedilirken bir hata olustu. Lutfen tekrar deneyin.');
+      alert('Test kaydedilirken bir hata oluştu. Lütfen tekrar deneyin.');
       setSubmitting(false);
     }
   };
@@ -246,253 +253,281 @@ export default function EmotionalIntelligenceTestPage() {
   if (showIntro) {
     return (
       <main className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-20 pb-12 px-4">
-          <div className="max-w-2xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-card rounded-2xl border border-border p-6 sm:p-8"
+        <div className="max-w-2xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-card rounded-2xl border border-border p-6 sm:p-8"
+          >
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center mx-auto mb-4">
+                <Heart className="h-8 w-8 text-white" />
+              </div>
+              <h1 className="text-2xl font-bold mb-2">Duygusal Zeka Envanteri (EQ-i)</h1>
+              <p className="text-muted-foreground text-sm">
+                Bar-On Emotional Quotient Inventory (1997)
+              </p>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <div className="p-4 rounded-xl bg-muted/50">
+                <h3 className="font-medium mb-2">Test Hakkında</h3>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    5 kategori, her biri 10 soru
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-blue-500" />
+                    Yaklaşık 10-15 dakika
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-amber-500" />
+                    İş dünyasında en popüler EQ testi
+                  </li>
+                </ul>
+              </div>
+
+              {/* Kategoriler önizleme */}
+              <div className="grid grid-cols-5 gap-2">
+                {CATEGORIES.map((cat) => (
+                  <div
+                    key={cat.id}
+                    className="text-center p-2 rounded-lg"
+                    style={{ backgroundColor: `${cat.color}15` }}
+                  >
+                    <div className="text-2xl mb-1">{cat.icon}</div>
+                    <p className="text-[10px] font-medium" style={{ color: cat.color }}>{cat.name}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium text-primary mb-1">Önemli Bilgi</p>
+                    <p className="text-muted-foreground">
+                      Bu test tamamlandığında seans hakkınızdan 1 adet düşülecektir.
+                      Karşılığında detaylı AI raporu ve PDF çıktısı alacaksınız.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl border border-border">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={kvkkAccepted}
+                    onChange={(e) => setKvkkAccepted(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-border"
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    <strong className="text-foreground">KVKK Aydınlatma Metni:</strong> Kişisel verilerimin
+                    işlenmesine ilişkin aydınlatma metnini okudum ve kabul ediyorum. Verilerim
+                    yalnızca duygusal zeka analizi amacıyla kullanılacaktır.
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <Button
+              className="w-full bg-gradient-to-r from-pink-500 to-rose-600"
+              size="lg"
+              disabled={!kvkkAccepted}
+              onClick={handleStartTest}
             >
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center mx-auto mb-4">
-                  <Heart className="h-8 w-8 text-white" />
-                </div>
-                <h1 className="text-2xl font-bold mb-2">Duygusal Zeka Envanteri (EQ-i)</h1>
-                <p className="text-muted-foreground text-sm">
-                  Bar-On Emotional Quotient Inventory (1997)
-                </p>
-              </div>
+              Teste Başla
+              <ChevronRight className="ml-2 h-5 w-5" />
+            </Button>
+          </motion.div>
+        </div>
 
-              <div className="space-y-4 mb-6">
-                <div className="p-4 rounded-xl bg-muted/50">
-                  <h3 className="font-medium mb-3">Test Hakkinda</h3>
-                  <ul className="text-sm text-muted-foreground space-y-2">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
-                      50 soru, 5 ana alan
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-blue-500 shrink-0" />
-                      Yaklasik 10-15 dakika
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Zap className="h-4 w-4 text-amber-500 shrink-0" />
-                      Is dunyasinda en populer EQ testi
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="p-4 rounded-xl bg-gradient-to-r from-pink-500/10 to-rose-500/10 border border-pink-500/20">
-                  <h3 className="font-medium mb-3 text-pink-600">Olculen 5 Ana Alan</h3>
-                  <div className="grid gap-2">
-                    {CATEGORIES.map(cat => {
-                      const Icon = cat.icon;
-                      return (
-                        <div key={cat.id} className="flex items-center gap-2 text-sm">
-                          <div
-                            className="w-6 h-6 rounded flex items-center justify-center"
-                            style={{ backgroundColor: `${cat.color}20` }}
-                          >
-                            <Icon className="h-3.5 w-3.5" style={{ color: cat.color }} />
-                          </div>
-                          <span className="font-medium">{cat.name}</span>
-                          <span className="text-muted-foreground">- {cat.description}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <div className="text-sm">
-                      <p className="font-medium text-primary mb-1">Onemli Bilgi</p>
-                      <p className="text-muted-foreground">
-                        Bu test tamamlandiginda seans hakkinizdan 1 adet dusulecektir.
-                        Karsiliginda detayli AI raporu ve PDF ciktisi alacaksiniz.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl border border-border">
-                  <label className="flex items-start gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={kvkkAccepted}
-                      onChange={(e) => setKvkkAccepted(e.target.checked)}
-                      className="mt-1 h-4 w-4 rounded border-border"
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      <strong className="text-foreground">KVKK Aydinlatma Metni:</strong> Kisisel verilerimin
-                      islenmesine iliskin aydinlatma metnini okudum ve kabul ediyorum. Verilerim
-                      yalnizca duygusal zeka analizi amaciyla kullanilacaktir.
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <Button
-                className="w-full bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700"
-                size="lg"
-                disabled={!kvkkAccepted}
-                onClick={() => setShowIntro(false)}
-              >
-                Teste Basla
-                <ChevronRight className="ml-2 h-5 w-5" />
-              </Button>
-            </motion.div>
-          </div>
-        </main>
+        <SessionConfirmModal
+          isOpen={showConfirm}
+          onConfirm={handleConfirmStart}
+          onCancel={() => setShowConfirm(false)}
+          type="test"
+          title="EQ Testi Başlatılacak"
+        />
+      </main>
     );
   }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-20 pb-12 px-4">
-        <div className="max-w-2xl mx-auto">
-          {/* Progress */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between text-sm mb-2">
-              <span className="text-muted-foreground">
-                Soru {currentQuestion + 1} / {QUESTIONS.length}
-              </span>
-              <span className="text-muted-foreground">
-                {answeredCount} cevaplandi
-              </span>
-            </div>
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-gradient-to-r from-pink-500 to-rose-600 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.3 }}
-              />
-            </div>
-          </div>
-
-          {/* Kategori Badge */}
-          <div className="mb-4">
-            {category && (
-              <span
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium"
-                style={{ backgroundColor: `${category.color}20`, color: category.color }}
-              >
-                {(() => {
-                  const Icon = category.icon;
-                  return <Icon className="h-4 w-4" />;
-                })()}
-                {category.name}
-              </span>
-            )}
-          </div>
-
-          {/* Soru Karti */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentQuestion}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="bg-card rounded-2xl border border-border p-6 sm:p-8 mb-6"
-            >
-              <h2 className="text-xl font-medium mb-8 text-center">
-                {question.text}
-              </h2>
-
-              <div className="space-y-3">
-                {LIKERT_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => handleAnswer(option.value)}
-                    className={`w-full p-4 rounded-xl border text-left transition-all ${
-                      answers[question.id] === option.value
-                        ? 'border-pink-500 bg-pink-500/10 text-pink-600'
-                        : 'border-border hover:border-pink-500/50 hover:bg-muted/50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                          answers[question.id] === option.value
-                            ? 'border-pink-500 bg-pink-500'
-                            : 'border-muted-foreground'
-                        }`}
-                      >
-                        {answers[question.id] === option.value && (
-                          <div className="w-2 h-2 rounded-full bg-white" />
-                        )}
-                      </div>
-                      <span className="font-medium">{option.label}</span>
-                    </div>
-                  </button>
-                ))}
+      <div className="max-w-3xl mx-auto">
+        {/* Kategori Progress */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">{currentCategory.icon}</span>
+              <div>
+                <h2 className="font-bold text-lg" style={{ color: currentCategory.color }}>
+                  {currentCategory.name}
+                </h2>
+                <p className="text-xs text-muted-foreground">{currentCategory.description}</p>
               </div>
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Navigation */}
-          <div className="flex items-center justify-between gap-4">
-            <Button
-              variant="outline"
-              onClick={handlePrev}
-              disabled={currentQuestion === 0}
-            >
-              <ChevronLeft className="mr-2 h-4 w-4" />
-              Onceki
-            </Button>
-
-            {currentQuestion < QUESTIONS.length - 1 ? (
-              <Button
-                onClick={handleNext}
-                disabled={!canProceed}
-                className="bg-gradient-to-r from-pink-500 to-rose-600"
-              >
-                Sonraki
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            ) : (
-              <Button
-                onClick={handleSubmit}
-                disabled={answeredCount < QUESTIONS.length || submitting}
-                className="bg-gradient-to-r from-pink-500 to-rose-600"
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Hesaplaniyor...
-                  </>
-                ) : (
-                  <>
-                    Testi Tamamla
-                    <CheckCircle2 className="ml-2 h-4 w-4" />
-                  </>
-                )}
-              </Button>
-            )}
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-medium">
+                Kategori {currentCategoryIndex + 1} / {CATEGORIES.length}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {categoryAnsweredCount} / {categoryQuestions.length} cevaplandı
+              </p>
+            </div>
           </div>
 
-          {/* Quick Navigation */}
-          <div className="mt-6 p-4 rounded-xl bg-muted/50">
-            <p className="text-xs text-muted-foreground mb-2">Hizli Gecis:</p>
-            <div className="flex flex-wrap gap-1">
-              {QUESTIONS.map((_, idx) => (
+          {/* Kategori tab'ları */}
+          <div className="flex gap-1 mb-3">
+            {CATEGORIES.map((cat, idx) => {
+              const catQuestions = QUESTIONS.filter(q => q.category === cat.id);
+              const catAnswered = catQuestions.filter(q => answers[q.id] !== undefined).length;
+              const isComplete = catAnswered === catQuestions.length;
+
+              return (
                 <button
-                  key={idx}
-                  onClick={() => setCurrentQuestion(idx)}
-                  className={`w-7 h-7 rounded text-xs font-medium transition-all ${
-                    idx === currentQuestion
-                      ? 'bg-pink-500 text-white'
-                      : answers[QUESTIONS[idx].id] !== undefined
-                      ? 'bg-green-500/20 text-green-600'
-                      : 'bg-muted hover:bg-muted-foreground/20'
-                  }`}
-                >
-                  {idx + 1}
-                </button>
-              ))}
-            </div>
+                  key={cat.id}
+                  onClick={() => setCurrentCategoryIndex(idx)}
+                  className={cn(
+                    'flex-1 h-2 rounded-full transition-all',
+                    idx === currentCategoryIndex ? 'ring-2 ring-offset-2 ring-pink-500' : ''
+                  )}
+                  style={{
+                    backgroundColor: isComplete ? cat.color : `${cat.color}30`,
+                  }}
+                  title={`${cat.name}: ${catAnswered}/${catQuestions.length}`}
+                />
+              );
+            })}
           </div>
         </div>
-      </main>
+
+        {/* Sorular */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentCategory.id}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-4"
+          >
+            {/* Likert Scale Header */}
+            <div className="bg-card rounded-xl border border-border p-4 sticky top-16 z-10">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground w-1/2">İfade</span>
+                <div className="flex gap-1 sm:gap-2 w-1/2 justify-end">
+                  {LIKERT_OPTIONS.map((opt) => (
+                    <div key={opt.value} className="w-10 sm:w-14 text-center" title={opt.label}>
+                      <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">
+                        {opt.value === 1 ? 'Kesinlikle' : opt.value === 5 ? 'Kesinlikle' : ''}
+                      </span>
+                      <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">
+                        {opt.value === 1 ? 'Hayır' : opt.value === 3 ? 'Kararsız' : opt.value === 5 ? 'Evet' : ''}
+                      </span>
+                      <span className="text-xs font-bold sm:hidden">{opt.short}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Soru Listesi */}
+            {categoryQuestions.map((question, idx) => (
+              <div
+                key={question.id}
+                className={cn(
+                  'bg-card rounded-xl border p-4 transition-all',
+                  answers[question.id] !== undefined
+                    ? 'border-green-500/30 bg-green-500/5'
+                    : 'border-border hover:border-pink-500/30'
+                )}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="flex items-start gap-3 flex-1">
+                    <span
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                      style={{
+                        backgroundColor: answers[question.id] !== undefined ? '#22c55e' : `${currentCategory.color}20`,
+                        color: answers[question.id] !== undefined ? 'white' : currentCategory.color,
+                      }}
+                    >
+                      {answers[question.id] !== undefined ? '✓' : idx + 1}
+                    </span>
+                    <p className="text-sm sm:text-base">{question.text}</p>
+                  </div>
+
+                  <div className="flex gap-1 sm:gap-2 shrink-0">
+                    {LIKERT_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => handleAnswer(question.id, opt.value)}
+                        className={cn(
+                          'w-10 h-10 sm:w-12 sm:h-12 rounded-lg border-2 transition-all font-medium text-sm',
+                          answers[question.id] === opt.value
+                            ? 'border-pink-500 bg-pink-500 text-white scale-105'
+                            : 'border-border hover:border-pink-500/50 hover:bg-muted'
+                        )}
+                        title={opt.label}
+                      >
+                        {opt.short}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Navigation */}
+        <div className="mt-8 flex items-center justify-between gap-4 sticky bottom-4 bg-background/80 backdrop-blur-sm p-4 rounded-xl border border-border">
+          <Button
+            variant="outline"
+            onClick={handlePrevCategory}
+            disabled={currentCategoryIndex === 0}
+          >
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            Önceki
+          </Button>
+
+          <div className="text-center">
+            <p className="text-sm font-medium">{totalAnsweredCount} / {QUESTIONS.length}</p>
+            <p className="text-xs text-muted-foreground">toplam cevap</p>
+          </div>
+
+          {currentCategoryIndex < CATEGORIES.length - 1 ? (
+            <Button
+              onClick={handleNextCategory}
+              disabled={!isCategoryComplete}
+              className="bg-gradient-to-r from-pink-500 to-rose-600"
+            >
+              Sonraki
+              <ChevronRight className="ml-2 h-4 w-4" />
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSubmit}
+              disabled={totalAnsweredCount < QUESTIONS.length || submitting}
+              className="bg-gradient-to-r from-pink-500 to-rose-600"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Hesaplanıyor...
+                </>
+              ) : (
+                <>
+                  Testi Tamamla
+                  <CheckCircle2 className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+      </div>
+    </main>
   );
 }
