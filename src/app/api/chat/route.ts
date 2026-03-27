@@ -21,6 +21,17 @@ export async function POST(req: Request) {
   // Kullanıcının seanslarını al
   const snap = await getDb().collection('sessions').where('userId', '==', user.id).get();
 
+  // Kullanıcının test sonuçlarını al
+  const testsSnap = await getDb().collection('tests').where('userId', '==', user.id).get();
+  const userTests = testsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Array<{
+    id: string;
+    testType: string;
+    testName: string;
+    scores: Record<string, number>;
+    analysis?: string;
+    createdAt: string;
+  }>;
+
   // Bu mentor ile aktif seans var mı kontrol et
   const activeSession = snap.docs.find(d =>
     d.data().mentorId === mentorId && d.data().status === 'active'
@@ -65,6 +76,77 @@ export async function POST(req: Request) {
 
   const mentor = DEFAULT_MENTORS.find(m => m.id === mentorId);
   let systemPrompt = customSystemPrompt || mentor?.systemPrompt || 'Sen yardımcı bir asistansın.';
+
+  // Kullanıcının test sonuçlarını system prompt'a ekle
+  if (userTests.length > 0) {
+    const testSummaries = userTests
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 3) // Son 3 test
+      .map(test => {
+        let summary = `\n**${test.testName}** (${new Date(test.createdAt).toLocaleDateString('tr-TR')}):\n`;
+
+        // Skorları formatla
+        const scoreLabels: Record<string, Record<string, string>> = {
+          'big-five': {
+            extraversion: 'Dışadönüklük',
+            agreeableness: 'Uyumluluk',
+            conscientiousness: 'Sorumluluk',
+            neuroticism: 'Duygusal Denge',
+            openness: 'Açıklık',
+          },
+          'eq': {
+            selfAwareness: 'Öz Farkındalık',
+            selfRegulation: 'Öz Yönetim',
+            motivation: 'Motivasyon',
+            empathy: 'Empati',
+            socialSkills: 'Sosyal Beceriler',
+          },
+          'life-score': {
+            happiness: 'Mutluluk',
+            meaning: 'Anlam',
+            achievement: 'Başarı',
+            relationships: 'İlişkiler',
+            health: 'Sağlık',
+            finance: 'Finans',
+            growth: 'Gelişim',
+            balance: 'Denge',
+            overall: 'Genel Skor',
+          },
+        };
+
+        const labels = scoreLabels[test.testType] || {};
+        const scoreLines = Object.entries(test.scores)
+          .filter(([key]) => key !== 'overall' || test.testType === 'life-score')
+          .map(([key, value]) => {
+            const label = labels[key] || key;
+            const level = value >= 80 ? 'Yüksek' : value >= 50 ? 'Orta' : 'Düşük';
+            return `  • ${label}: ${value}/100 (${level})`;
+          })
+          .join('\n');
+
+        summary += scoreLines;
+
+        // AI analizi varsa özet olarak ekle
+        if (test.analysis) {
+          // Analizi kısalt - ilk 500 karakter
+          const shortAnalysis = test.analysis.length > 500
+            ? test.analysis.substring(0, 500) + '...'
+            : test.analysis;
+          summary += `\n  📝 AI Yorumu: ${shortAnalysis}`;
+        }
+
+        return summary;
+      })
+      .join('\n');
+
+    systemPrompt += `\n\n🧠 **DANIŞANIN TEST SONUÇLARI:**
+Bu danışan aşağıdaki testleri tamamlamış. Bu bilgileri görüşme sırasında KULLAN:
+- Test sonuçlarına atıfta bulunabilirsin ("Kişilik testinde dışadönüklük skorun oldukça yüksek çıkmıştı...")
+- Düşük skorlu alanlarda derinleştirici sorular sorabilirsin
+- Güçlü yönleri vurgulayabilirsin
+- Ancak HER YANITA test sonucu sıkıştırma, doğal akışta uygun olduğunda kullan
+${testSummaries}`;
+  }
 
   // Düşünce liderleri ve kitap bilgilerini ekle (öğrenci koçu hariç)
   const isStudentCoach = mentorId === 'student-coach';
