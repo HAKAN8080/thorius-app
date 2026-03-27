@@ -263,8 +263,8 @@ export default function ProfilePage() {
                 </div>
               </div>
             )}
-            <h1 className="text-3xl font-bold">Geçmiş Seanslarım</h1>
-            <p className="mt-1 text-muted-foreground">Görüşme özetleri ve ödevlerin</p>
+            <h1 className="text-3xl font-bold">Seanslarım & Testlerim</h1>
+            <p className="mt-1 text-muted-foreground">Görüşme özetleri, test sonuçları ve ödevlerin</p>
           </div>
           <Link href="/profile/report" className="shrink-0">
             <Button size="sm" className="gap-2 bg-gradient-to-r from-secondary to-primary hover:opacity-90">
