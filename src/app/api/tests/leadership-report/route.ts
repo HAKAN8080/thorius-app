@@ -46,27 +46,34 @@ export async function POST(req: Request) {
 
   const prompt = `Sen bir liderlik geliştirme uzmanısın. Aşağıdaki liderlik testi sonuçlarını analiz et ve kişiye özel gelişim önerileri sun.
 
-**Test Sonuçları:**
+Test Sonuçları:
 ${scoreText}
 
-**Dominant Liderlik Tarzı:** ${dominantInfo.name}
+Dominant Liderlik Tarzı: ${dominantInfo.name}
 ${dominantInfo.description}
 Akademik Temel: ${dominantInfo.theory}
 
-**Analiz İstekleri:**
+Analiz İstekleri:
 1. Bu kişinin liderlik profilini 2-3 cümleyle özetle
 2. Dominant tarzının iş hayatındaki avantajlarını belirt
 3. İkincil güçlü tarzını ve bunun dominant tarzla nasıl dengeleneceğini açıkla
 4. Düşük skorlu alanlarda gelişim için 2-3 somut öneri ver
 5. Bu liderlik profili için uygun kariyer/rol önerileri sun
 
-Yanıtını Türkçe, sıcak ve destekleyici bir dille yaz. Akademik terimler kullandığında kısa açıklamalar ekle.`;
+ÖNEMLİ FORMAT KURALLARI:
+- Markdown KULLANMA (yıldız, diyez, tire listeler vs. YASAK)
+- Düz metin olarak yaz
+- Paragraflar arasında boş satır bırak
+- Numaralı listeler için sadece "1." "2." gibi rakamlar kullan
+- Yanıtı TAMAMLA, yarım bırakma
+
+Yanıtını Türkçe, sıcak ve destekleyici bir dille yaz.`;
 
   try {
     const { text } = await generateText({
       model: anthropic('claude-haiku-4-5-20251001'),
       prompt,
-      maxOutputTokens: 800,
+      maxOutputTokens: 1500,
     });
 
     return Response.json({ analysis: text });

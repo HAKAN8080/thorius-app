@@ -19,29 +19,34 @@ export async function POST(req: Request) {
 
   const prompt = `Sen bir davranışsal değişim ve verimlilik uzmanısın. Piers Steel'in Temporal Motivation Theory'sine dayanan erteleme testi sonuçlarını analiz et ve KİŞİSELLEŞTİRİLMİŞ AKSİYON PLANI oluştur.
 
-**Test Sonuçları:**
+Test Sonuçları:
 - Başlama Direnci: ${scores.starting}%
 - Mükemmeliyetçilik: ${scores.perfectionism}%
 - Kaçınma Davranışı: ${scores.avoidance}%
 - Zaman Yönetimi: ${100 - scores.time}% (düşük = iyi)
 - Genel Erteleme Seviyesi: ${levelLabels[level]} (${scores.overall}%)
 
-**Analiz İstekleri:**
+Analiz İstekleri:
 1. Bu kişinin erteleme profilini 2-3 cümleyle özetle
 2. EN YÜKSEK skorlu faktör için özel stratejiler sun (en kritik alan)
-3. 3 somut, UYGULANABİLİR günlük aksiyon adımı ver:
-   - "2 Dakika Kuralı" gibi spesifik teknikler öner
-   - Pomodoro, time-blocking gibi kanıtlanmış yöntemler sun
+3. 3 somut, UYGULANABİLİR günlük aksiyon adımı ver (2 Dakika Kuralı, Pomodoro, time-blocking gibi teknikler)
 4. Bir haftalık başlangıç planı oluştur (Pazartesi'den başla)
 5. Motivasyonel bir kapanış cümlesi
 
-Yanıtını Türkçe, somut ve uygulanabilir şekilde yaz. Soyut tavsiyeler yerine "YARIN SABAH bunu yap" gibi net yönergeler ver.`;
+ÖNEMLİ FORMAT KURALLARI:
+- Markdown KULLANMA (yıldız, diyez, tire listeler vs. YASAK)
+- Düz metin olarak yaz
+- Paragraflar arasında boş satır bırak
+- Numaralı listeler için sadece "1." "2." gibi rakamlar kullan
+- Yanıtı TAMAMLA, yarım bırakma
+
+Yanıtını Türkçe, somut ve uygulanabilir şekilde yaz. Net yönergeler ver.`;
 
   try {
     const { text } = await generateText({
       model: anthropic('claude-haiku-4-5-20251001'),
       prompt,
-      maxOutputTokens: 800,
+      maxOutputTokens: 1500,
     });
 
     return Response.json({ analysis: text });

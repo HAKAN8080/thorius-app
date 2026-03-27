@@ -69,7 +69,9 @@ Yanıtını MUTLAKA aşağıdaki JSON formatında ver (başka hiçbir şey eklem
 - Sadece JSON döndür, açıklama ekleme
 - Skorlara göre kişiselleştirilmiş, özgün içerik üret
 - Akademik ve bilimsel bir dil kullan ama anlaşılır ol
-- Güçlü yönleri ve gelişim alanlarını dengeli sun`;
+- Güçlü yönleri ve gelişim alanlarını dengeli sun
+- Metin alanlarında MARKDOWN KULLANMA (yıldız, diyez, tire listeler YASAK)
+- Düz, akıcı Türkçe cümleler yaz`;
 
   try {
     const result = await generateText({

@@ -19,30 +19,34 @@ export async function POST(req: Request) {
 
   const prompt = `Sen Viktor Frankl'ın logotherapy yaklaşımına hakim bir yaşam koçusun. Yaşam amacı testi sonuçlarını analiz et ve KİŞİSELLEŞTİRİLMİŞ YÖN HARİTASI oluştur.
 
-**Test Sonuçları:**
+Test Sonuçları:
 - Anlam Duygusu: ${scores.meaning}%
 - Hayat Yönü: ${scores.direction}%
 - İçsel Motivasyon: ${scores.motivation}%
 - Bağlantı & Katkı: ${scores.connection}%
 - Genel Profil: ${levelLabels[level]} (${scores.overall}%)
 
-**Analiz İstekleri:**
+Analiz İstekleri:
 1. Bu kişinin anlam profilini 2-3 cümleyle özetle (Frankl'ın perspektifinden)
 2. EN DÜŞÜK skorlu boyut için derinleştirici sorular sor (keşif için)
 3. EN YÜKSEK skorlu boyutu nasıl leverage edebileceğini açıkla
-4. 3 somut "ANLAM BULMA" egzersizi öner:
-   - Değerler keşfi
-   - İkigai haritalama
-   - Miras vizyonu gibi pratikler
+4. 3 somut "ANLAM BULMA" egzersizi öner (Değerler keşfi, İkigai haritalama, Miras vizyonu gibi pratikler)
 5. Viktor Frankl'dan ilham verici bir alıntı ile bitir
 
-Yanıtını Türkçe, derin ama pratik yaz. Felsefi ama uygulanabilir olsun. Kişiyi düşündür ama somut adımlar da ver.`;
+ÖNEMLİ FORMAT KURALLARI:
+- Markdown KULLANMA (yıldız, diyez, tire listeler vs. YASAK)
+- Düz metin olarak yaz
+- Paragraflar arasında boş satır bırak
+- Numaralı listeler için sadece "1." "2." gibi rakamlar kullan
+- Yanıtı TAMAMLA, yarım bırakma
+
+Yanıtını Türkçe, derin ama pratik yaz. Felsefi ama uygulanabilir olsun.`;
 
   try {
     const { text } = await generateText({
       model: anthropic('claude-haiku-4-5-20251001'),
       prompt,
-      maxOutputTokens: 800,
+      maxOutputTokens: 1500,
     });
 
     return Response.json({ analysis: text });

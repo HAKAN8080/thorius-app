@@ -95,7 +95,9 @@ Yanıtını MUTLAKA aşağıdaki JSON formatında ver (başka hiçbir şey eklem
 - Hayat koçluğu tonu kullan: motive edici, destekleyici, somut
 - quickWins gerçekten bu hafta yapılabilecek kolay şeyler olsun
 - weeklyPlan düşük skorlu alanlara odaklansın
-- Her gün farklı bir alana odaklansın`;
+- Her gün farklı bir alana odaklansın
+- Metin alanlarında MARKDOWN KULLANMA (yıldız, diyez, tire listeler YASAK)
+- Düz, akıcı Türkçe cümleler yaz`;
 
   try {
     const result = await generateText({

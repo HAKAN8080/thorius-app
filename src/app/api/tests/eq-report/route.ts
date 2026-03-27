@@ -81,7 +81,9 @@ Yanıtını MUTLAKA aşağıdaki JSON formatında ver (başka hiçbir şey eklem
 - Skorlara göre kişiselleştirilmiş, özgün içerik üret
 - İş dünyası ve liderlik odaklı öneriler sun
 - Bar-On modeline uygun akademik bir dil kullan ama anlaşılır ol
-- Düşük alanlara özel gelişim önerileri ver`;
+- Düşük alanlara özel gelişim önerileri ver
+- Metin alanlarında MARKDOWN KULLANMA (yıldız, diyez, tire listeler YASAK)
+- Düz, akıcı Türkçe cümleler yaz`;
 
   try {
     const result = await generateText({

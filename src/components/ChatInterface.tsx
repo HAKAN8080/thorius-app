@@ -15,7 +15,7 @@ import ReactMarkdown from 'react-markdown';
 import { SessionConfirmModal } from '@/components/SessionConfirmModal';
 
 const MAX_USER_MESSAGES = 10;
-const MIN_WORD_COUNT = 50; // Minimum kelime sayısı
+const MIN_CHAR_COUNT = 50; // Minimum karakter sayısı
 
 interface ChatInterfaceProps {
   mentor: Mentor;
@@ -99,8 +99,8 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   const [npsScore, setNpsScore] = useState<number | null>(null); // 0-10 NPS
   const [ratingComment, setRatingComment] = useState('');
 
-  // Kelime sayısı hesaplama
-  const wordCount = input.trim().split(/\s+/).filter(w => w.length > 0).length;
+  // Karakter sayısı hesaplama
+  const charCount = input.trim().length;
   const isFirstMessage = useRef(true);
 
   // Seans onay modalı
@@ -194,16 +194,22 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   // Otomatik scroll - mesajlar değiştiğinde en alta kay
   useEffect(() => {
     const scrollToBottom = () => {
+      // Önce ref'i dene
+      if (scrollRef.current) {
+        scrollRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
+      // Scroll area viewport'u da dene
       if (scrollContainerRef.current) {
         const scrollElement = scrollContainerRef.current.querySelector('[data-radix-scroll-area-viewport]');
         if (scrollElement) {
-          scrollElement.scrollTop = scrollElement.scrollHeight;
+          scrollElement.scrollTo({ top: scrollElement.scrollHeight, behavior: 'smooth' });
         }
       }
     };
     // Küçük bir gecikme ile scroll yap
-    setTimeout(scrollToBottom, 100);
-  }, [messages, playingId]);
+    setTimeout(scrollToBottom, 50);
+    setTimeout(scrollToBottom, 200); // İkinci deneme
+  }, [messages, status, playingId]);
 
   // 10 soruya ulaşınca otomatik kapanış mesajı gönder
   useEffect(() => {
@@ -277,8 +283,8 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
     e.preventDefault();
     if (!input.trim() || isLoading || sessionEnded) return;
 
-    // İlk mesajda minimum kelime kontrolü
-    if (userMessageCount === 0 && wordCount < MIN_WORD_COUNT) {
+    // İlk mesajda minimum karakter kontrolü
+    if (userMessageCount === 0 && charCount < MIN_CHAR_COUNT) {
       return; // Button zaten disabled olacak, ama yine de kontrol
     }
 
@@ -384,66 +390,67 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
         </p>
       </div>
 
-      <div className="flex h-[calc(100vh-14rem)] flex-col rounded-xl border border-border/50 bg-card/30 backdrop-blur-sm">
-        {/* Header */}
-        <div className="flex items-center gap-3 border-b border-border/50 p-4">
+      <div className="flex h-[calc(100vh-14rem)] flex-col rounded-2xl border border-gray-200/80 dark:border-gray-700/50 bg-gray-50/80 dark:bg-gray-900/50 overflow-hidden shadow-sm">
+        {/* Header - Daha samimi */}
+        <div className="flex items-center gap-4 border-b border-border/30 bg-gradient-to-r from-violet-500/5 to-purple-500/5 p-4">
           <MentorAvatar size="md" />
-          <div>
-            <h3 className="font-semibold">{mentor.title}</h3>
-            <p className="text-sm text-muted-foreground">{mentor.category === 'coach' ? 'AI Koç' : 'AI Mentor'}</p>
-          </div>
-          <div className="ml-auto flex items-center gap-3">
-            <span className={cn(
-              'text-xs font-medium tabular-nums',
-              userMessageCount >= 8 ? 'text-amber-500' : 'text-muted-foreground'
-            )}>
-              {userMessageCount}/{MAX_USER_MESSAGES} soru
-            </span>
-            <button
-              onClick={() => {
-                if (voiceMode) { audioRef.current?.pause(); setPlayingId(null); }
-                setVoiceMode((v) => !v);
-              }}
-              title={voiceMode ? 'Sesi kapat (metin modu)' : 'Sesi aç (sesli mod)'}
-              className={cn(
-                'flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
-                voiceMode
-                  ? 'bg-primary/15 text-primary hover:bg-primary/25'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+          <div className="flex-1">
+            <h3 className="font-semibold text-foreground">{mentor.title}</h3>
+            <div className="flex items-center gap-2">
+              {!sessionEnded && (
+                <span className="flex items-center gap-1 text-xs text-emerald-600">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                  Aktif
+                </span>
               )}
-            >
-              {voiceMode ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-              {voiceMode ? 'Sesli' : 'Metin'}
-            </button>
-            {!sessionEnded && (
-              <div className="flex items-center gap-1.5 text-xs text-green-500">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
-                Çevrimiçi
-              </div>
-            )}
+              <span className="text-xs text-muted-foreground">
+                {userMessageCount}/{MAX_USER_MESSAGES}
+              </span>
+            </div>
           </div>
+          <button
+            onClick={() => {
+              if (voiceMode) { audioRef.current?.pause(); setPlayingId(null); }
+              setVoiceMode((v) => !v);
+            }}
+            title={voiceMode ? 'Sesi kapat' : 'Sesi aç'}
+            className={cn(
+              'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all',
+              voiceMode
+                ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300'
+                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+            )}
+          >
+            {voiceMode ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+            {voiceMode ? 'Sesli' : 'Sessiz'}
+          </button>
         </div>
 
         {/* Messages */}
         <ScrollArea ref={scrollContainerRef} className="flex-1 p-4">
           <div className="space-y-4">
             {messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="mb-4"><MentorAvatar size="lg" /></div>
-                <h3 className="mb-2 text-lg font-semibold">Merhaba! Ben {mentor.title}</h3>
-                <p className="max-w-md text-sm text-muted-foreground">
-                  {mentor.description}. Bugün sana nasıl yardımcı olabilirim?
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <div className="mb-4 rounded-full bg-gradient-to-br from-violet-100 to-purple-100 p-1 dark:from-violet-900/30 dark:to-purple-900/30">
+                  <MentorAvatar size="lg" />
+                </div>
+                <h3 className="mb-1 text-lg font-semibold text-foreground">Merhaba!</h3>
+                <p className="mb-3 text-sm text-muted-foreground">Ben {mentor.title}</p>
+                <p className="max-w-sm text-sm text-muted-foreground leading-relaxed">
+                  {mentor.description}
                 </p>
-                <div className="mt-4 flex flex-wrap justify-center gap-2">
-                  {mentor.expertise.map((skill) => (
-                    <span key={skill} className="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary">
+                <div className="mt-4 flex flex-wrap justify-center gap-1.5">
+                  {mentor.expertise.slice(0, 4).map((skill) => (
+                    <span key={skill} className="rounded-full bg-violet-50 px-2.5 py-1 text-xs text-violet-700 dark:bg-violet-900/20 dark:text-violet-300">
                       {skill}
                     </span>
                   ))}
                 </div>
-                <p className="mt-6 text-xs text-muted-foreground">
-                  Bu seansta <span className="font-medium">{MAX_USER_MESSAGES} soru</span> hakkınız var.
-                </p>
+                <div className="mt-6 rounded-2xl bg-gradient-to-r from-violet-50 to-purple-50 px-4 py-3 dark:from-violet-900/10 dark:to-purple-900/10">
+                  <p className="text-xs text-muted-foreground">
+                    Seninle <span className="font-medium text-violet-600 dark:text-violet-400">{MAX_USER_MESSAGES} soru</span> üzerinden sohbet edeceğiz
+                  </p>
+                </div>
               </div>
             )}
 
@@ -458,23 +465,24 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
                 // streaming devam ediyor, mesaj zaten visibleMessages'da gösteriliyor
               }
               return (
-                <div key={message.id} className={cn('flex gap-3', message.role === 'user' ? 'flex-row-reverse' : '')}>
+                <div key={message.id} className={cn('flex gap-2.5', message.role === 'user' ? 'flex-row-reverse' : '')}>
                   {message.role === 'user' ? (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-secondary/30 to-primary/30 text-sm">
-                      👤
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-100 text-sm dark:bg-violet-900/40">
+                      <span className="text-violet-600 dark:text-violet-300">Sen</span>
                     </div>
                   ) : (
                     <div className="shrink-0"><MentorAvatar size="sm" /></div>
                   )}
-                  <div className="flex flex-col gap-1">
-                    <div className={cn(
-                      'max-w-[80%] rounded-2xl px-4 py-2.5',
-                      message.role === 'user'
-                        ? 'bg-gradient-to-r from-primary to-secondary text-primary-foreground'
-                        : 'bg-muted/50'
-                    )}>
-                      {message.role === 'assistant' ? renderHighlightedText(text, message.id) : <p className="whitespace-pre-wrap text-sm leading-relaxed">{text}</p>}
-                    </div>
+                  <div className={cn(
+                    'max-w-[85%] px-4 py-3',
+                    message.role === 'user'
+                      ? 'rounded-3xl rounded-tr-lg bg-violet-600 text-white shadow-sm'
+                      : 'rounded-3xl rounded-tl-lg bg-white/80 dark:bg-gray-800/80 shadow-sm border border-gray-100 dark:border-gray-700/50'
+                  )}>
+                    {message.role === 'assistant'
+                      ? renderHighlightedText(text, message.id)
+                      : <p className="whitespace-pre-wrap text-sm leading-relaxed">{text}</p>
+                    }
                   </div>
                 </div>
               );
@@ -482,17 +490,17 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
 
             {/* Sesli mod: ses çalarken dalga animasyonu */}
             {voiceMode && playingId && (
-              <div className="flex gap-3">
+              <div className="flex gap-2.5">
                 <div className="shrink-0"><MentorAvatar size="sm" /></div>
-                <div className="flex items-center gap-1.5 rounded-2xl bg-muted/50 px-4 py-3">
-                  {[0, 0.15, 0.3, 0.15, 0].map((delay, i) => (
-                    <span key={i} className="h-4 w-1 rounded-full bg-primary animate-bounce" style={{ animationDelay: `${delay}s` }} />
+                <div className="flex items-center gap-2 rounded-3xl rounded-tl-lg bg-white/80 dark:bg-gray-800/80 shadow-sm border border-gray-100 dark:border-gray-700/50 px-4 py-3">
+                  {[0, 0.1, 0.2, 0.1, 0].map((delay, i) => (
+                    <span key={i} className="h-3 w-1 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: `${delay}s` }} />
                   ))}
                   <button
                     onClick={() => { audioRef.current?.pause(); setPlayingId(null); }}
-                    className="ml-2 flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors"
+                    className="ml-2 flex items-center gap-1 text-[11px] text-gray-500 hover:text-violet-600 transition-colors"
                   >
-                    <VolumeX className="h-3 w-3" /> Durdur
+                    <VolumeX className="h-3 w-3" /> Dur
                   </button>
                 </div>
               </div>
@@ -500,11 +508,14 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
 
             {/* Metin modunda yükleme göstergesi */}
             {!voiceMode && status === 'submitted' && (
-              <div className="flex gap-3">
+              <div className="flex gap-2.5">
                 <div className="shrink-0"><MentorAvatar size="sm" /></div>
-                <div className="flex items-center gap-2 rounded-2xl bg-muted/50 px-4 py-2.5">
-                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                  <span className="text-sm text-muted-foreground">Düşünüyor...</span>
+                <div className="flex items-center gap-2 rounded-3xl rounded-tl-lg bg-white/80 dark:bg-gray-800/80 shadow-sm border border-gray-100 dark:border-gray-700/50 px-4 py-3">
+                  <div className="flex gap-1">
+                    <span className="h-2 w-2 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '0s' }} />
+                    <span className="h-2 w-2 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '0.15s' }} />
+                    <span className="h-2 w-2 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '0.3s' }} />
+                  </div>
                 </div>
               </div>
             )}
@@ -513,63 +524,66 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
             )}
 
             {sessionEnded && sessionSaved && (
-              <div className="flex flex-col items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 px-6 py-6 text-center">
-                <Lock className="h-8 w-8 text-primary/60" />
+              <div className="flex flex-col items-center gap-3 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 px-6 py-6 text-center border border-violet-100 dark:border-violet-800/30">
+                <div className="h-12 w-12 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
+                  <Lock className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+                </div>
                 <div>
-                  <p className="font-semibold">Seans tamamlandı</p>
+                  <p className="font-semibold text-foreground">Seans tamamlandı</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Bu seansta {MAX_USER_MESSAGES} sorunuzu kullandınız.
-                    Yeni bir seans başlatmak için sayfayı yenileyin.
+                    Harika bir sohbetti! Tekrar görüşmek üzere.
                   </p>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => window.location.reload()} className="mt-1">
-                  Yeni Seans Başlat
+                <Button
+                  size="sm"
+                  onClick={() => window.location.reload()}
+                  className="mt-1 rounded-xl bg-violet-600 hover:bg-violet-700 text-white"
+                >
+                  Yeni Sohbet Başlat
                 </Button>
               </div>
             )}
+            {/* Scroll anchor */}
+            <div ref={scrollRef} />
           </div>
         </ScrollArea>
 
         {/* Input */}
-        <form onSubmit={onSubmit} className="border-t border-border/50 p-4">
-          <div className="flex gap-2">
-            <Textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={sessionEnded ? 'Seans sona erdi.' : 'Mesajınızı yazın...'}
-              className="min-h-[48px] max-h-32 resize-none bg-muted/30"
-              disabled={sessionEnded}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  onSubmit(e);
-                }
-              }}
-            />
+        <form onSubmit={onSubmit} className="border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 p-4">
+          <div className="flex gap-3 items-end">
+            <div className="flex-1 relative">
+              <Textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={sessionEnded ? 'Seans sona erdi' : 'Mesajını yaz...'}
+                className="min-h-[48px] max-h-32 resize-none rounded-2xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 pr-12 focus:ring-violet-500 focus:border-violet-500"
+                disabled={sessionEnded}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    onSubmit(e);
+                  }
+                }}
+              />
+              {/* İlk mesajda karakter sayısı */}
+              {userMessageCount === 0 && (
+                <span className={cn(
+                  'absolute right-3 bottom-3 text-[10px] tabular-nums',
+                  charCount < MIN_CHAR_COUNT ? 'text-gray-400' : 'text-emerald-500'
+                )}>
+                  {charCount}/{MIN_CHAR_COUNT}
+                </span>
+              )}
+            </div>
             <Button
               type="submit"
               size="icon"
-              disabled={isLoading || !input.trim() || sessionEnded || (userMessageCount === 0 && wordCount < MIN_WORD_COUNT)}
-              className="h-12 w-12 shrink-0 bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+              disabled={isLoading || !input.trim() || sessionEnded || (userMessageCount === 0 && charCount < MIN_CHAR_COUNT)}
+              className="h-12 w-12 shrink-0 rounded-xl bg-violet-600 hover:bg-violet-700 text-white shadow-sm"
             >
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
             </Button>
           </div>
-          {/* İlk mesajda kelime sayısı göstergesi */}
-          {userMessageCount === 0 && (
-            <p className={cn(
-              'mt-2 text-center text-xs',
-              wordCount < MIN_WORD_COUNT ? 'text-amber-500' : 'text-green-500'
-            )}>
-              {wordCount < MIN_WORD_COUNT
-                ? `En az ${MIN_WORD_COUNT} kelime yazın (${wordCount}/${MIN_WORD_COUNT})`
-                : `✓ ${wordCount} kelime`}
-            </p>
-          )}
-          <p className="mt-2 text-center text-xs text-muted-foreground">
-            <Sparkles className="mr-1 inline h-3 w-3" />
-            AI destekli {mentor.category === 'coach' ? 'koç' : 'mentor'}
-          </p>
         </form>
       </div>
 
