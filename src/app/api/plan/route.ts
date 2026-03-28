@@ -7,6 +7,10 @@ export async function POST(req: Request) {
     return new Response(JSON.stringify({ error: 'Oturum açmanız gerekmektedir.' }), { status: 401 });
   }
 
+  if (user.role !== 'admin') {
+    return new Response(JSON.stringify({ error: 'Yetkisiz erişim.' }), { status: 403 });
+  }
+
   const { plan } = await req.json();
 
   const validPlans: PlanType[] = ['free', 'starter', 'pro', 'premium', 'kurumsal'];

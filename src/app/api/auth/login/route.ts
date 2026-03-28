@@ -1,8 +1,18 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { comparePassword, getUserByEmail, signToken } from '@/lib/auth';
 import { getDb } from '@/lib/db';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = await rateLimit(`login:${ip}`, 10, 15); // 15 dakikada 10 deneme
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Çok fazla giriş denemesi. Lütfen 15 dakika bekleyin.' },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+    );
+  }
+
   const { email, password } = await req.json();
 
   if (!email || !password) {

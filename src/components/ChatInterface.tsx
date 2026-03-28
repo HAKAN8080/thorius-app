@@ -14,7 +14,8 @@ import ReactMarkdown from 'react-markdown';
 import { SessionConfirmModal } from '@/components/SessionConfirmModal';
 
 const MAX_USER_MESSAGES = 10;
-const MIN_CHAR_COUNT = 50; // Minimum karakter sayısı
+const MIN_CHAR_COUNT = 50;   // Minimum karakter sayısı
+const MAX_CHAR_COUNT = 1500; // Maksimum karakter sayısı
 
 interface ChatInterfaceProps {
   mentor: Mentor;
@@ -586,8 +587,12 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
       {/* ── Input ───────────────────────────────────────────────────── */}
       <div className="shrink-0 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 px-4 pb-4 pt-3">
         <div className="max-w-3xl mx-auto">
-          {/* İlk mesaj ipucu */}
-          {userMessageCount === 0 && (
+          {/* Karakter uyarısı */}
+          {charCount > MAX_CHAR_COUNT ? (
+            <p className="mb-2 text-[11px] text-red-500">
+              Mesaj çok uzun. Lütfen {charCount - MAX_CHAR_COUNT} karakter kısaltın ({charCount}/{MAX_CHAR_COUNT})
+            </p>
+          ) : userMessageCount === 0 && (
             <p className={cn(
               'mb-2 text-[11px] transition-colors',
               input.trim().length > 0 && charCount < MIN_CHAR_COUNT
@@ -618,19 +623,25 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
                     }
                   }}
                 />
-                {userMessageCount === 0 && input.trim().length > 0 && (
+                {input.trim().length > 0 && (
                   <span className={cn(
                     'absolute right-3 bottom-3 text-[10px] tabular-nums font-medium',
-                    charCount < MIN_CHAR_COUNT ? 'text-amber-400' : 'text-emerald-500'
+                    charCount > MAX_CHAR_COUNT
+                      ? 'text-red-500'
+                      : charCount > MAX_CHAR_COUNT * 0.85
+                      ? 'text-amber-400'
+                      : userMessageCount === 0 && charCount < MIN_CHAR_COUNT
+                      ? 'text-amber-400'
+                      : 'text-emerald-500'
                   )}>
-                    {charCount}/{MIN_CHAR_COUNT}
+                    {charCount}/{userMessageCount === 0 && charCount < MIN_CHAR_COUNT ? MIN_CHAR_COUNT : MAX_CHAR_COUNT}
                   </span>
                 )}
               </div>
               <Button
                 type="submit"
                 size="icon"
-                disabled={isLoading || !input.trim() || sessionEnded || (userMessageCount === 0 && charCount < MIN_CHAR_COUNT)}
+                disabled={isLoading || !input.trim() || sessionEnded || (userMessageCount === 0 && charCount < MIN_CHAR_COUNT) || charCount > MAX_CHAR_COUNT}
                 className="h-11 w-11 shrink-0 rounded-2xl bg-violet-600 hover:bg-violet-700 disabled:bg-gray-200 dark:disabled:bg-gray-800 text-white shadow-sm transition-all"
               >
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}

@@ -1,10 +1,20 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { Resend } from 'resend';
 import { getDb } from '@/lib/db';
 import { getUserByEmail } from '@/lib/auth';
 import { randomBytes } from 'crypto';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = await rateLimit(`forgot-password:${ip}`, 5, 60); // saatte 5 istek
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Çok fazla istek. Lütfen daha sonra tekrar deneyin.' },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+    );
+  }
+
   const { email } = await req.json();
 
   if (!email) {

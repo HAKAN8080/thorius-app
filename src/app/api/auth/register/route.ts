@@ -1,10 +1,19 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { createUser, getUserByEmail, hashPassword, PlanType } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { Resend } from 'resend';
 import { randomBytes } from 'crypto';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = await rateLimit(`register:${ip}`, 5, 60); // saatte 5 kayıt
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Çok fazla kayıt denemesi. Lütfen daha sonra tekrar deneyin.' },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+    );
+  }
   const {
     name, email, password,
     agreedToTerms, agreedToPrivacy, agreedToCoachingService, agreedToAiDisclaimer,

@@ -137,11 +137,10 @@ export async function POST(req: NextRequest) {
 
   console.log('[WC Webhook] Received. Signature present:', !!signature, '| Sig value:', signature);
 
-  // TODO: imza doğrulaması debug sonrası tekrar aktif edilecek
-  // if (!verifySignature(rawBody, signature, webhookSecret)) {
-  //   console.warn('[WC Webhook] Invalid signature');
-  //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  // }
+  if (!verifySignature(rawBody, signature, webhookSecret)) {
+    console.warn('[WC Webhook] Invalid signature');
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   let order: WooOrder;
   try {
