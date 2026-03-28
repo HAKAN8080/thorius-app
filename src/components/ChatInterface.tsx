@@ -22,7 +22,8 @@ interface ChatInterfaceProps {
 
 async function saveSession(
   mentor: Mentor,
-  messages: Array<{ role: string; content?: string; parts?: Array<{ type: string; text?: string }> }>
+  messages: Array<{ role: string; content?: string; parts?: Array<{ type: string; text?: string }> }>,
+  activeSessionId?: string | null
 ): Promise<string | null> {
   // İlk gerçek kullanıcı mesajını gündem olarak kaydet
   const firstUserMsg = messages.find(
@@ -40,6 +41,8 @@ async function saveSession(
         mentorTitle: mentor.title,
         messages: messages.map((m) => ({ role: m.role, text: getTextContent(m) })),
         agenda,
+        // Aktif seans varsa güncelle, yoksa yeni oluştur
+        ...(activeSessionId ? { sessionId: activeSessionId } : {}),
       }),
     });
     const data = await res.json();
@@ -106,6 +109,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   const [showSessionConfirm, setShowSessionConfirm] = useState(false);
   const [sessionConfirmed, setSessionConfirmed] = useState(false);
   const pendingInputRef = useRef<string>('');
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
   async function handleSpeak(messageId: string, text: string) {
     if (playingId === messageId) {
@@ -234,7 +238,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
     setSessionSaved(true);
 
     // Session kaydet ve ID'yi al
-    saveSession(mentor, messages as Parameters<typeof saveSession>[1]).then((id) => {
+    saveSession(mentor, messages as Parameters<typeof saveSession>[1], activeSessionId).then((id) => {
       if (id) setSessionId(id);
       // Değerlendirme anketini göster
       setTimeout(() => setShowRating(true), 1000);
@@ -293,10 +297,31 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
     setInput('');
   };
 
-  const handleSessionConfirm = () => {
+  const handleSessionConfirm = async () => {
     setShowSessionConfirm(false);
     setSessionConfirmed(true);
     isFirstMessage.current = false;
+
+    // /api/sessions/start → Firestore'a 'active' seans ekle, hakkı hemen düşür
+    try {
+      const res = await fetch('/api/sessions/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mentorId: mentor.id,
+          mentorName: mentor.name,
+          mentorTitle: mentor.title,
+          firstMessage: pendingInputRef.current,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.id) setActiveSessionId(data.id);
+      }
+    } catch {
+      // Sessiz hata — seans yine de devam etsin
+    }
+
     sendMessage({ role: 'user', parts: [{ type: 'text', text: pendingInputRef.current }] });
     setInput('');
   };
