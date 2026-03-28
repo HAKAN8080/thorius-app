@@ -1,4 +1,4 @@
-import { getCurrentUser, PlanType } from '@/lib/auth';
+import { getCurrentUser, isAdminUser, PlanType } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 
 export async function POST(req: Request) {
@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     return new Response(JSON.stringify({ error: 'Oturum açmanız gerekmektedir.' }), { status: 401 });
   }
 
-  if (user.role !== 'admin') {
+  if (!isAdminUser(user)) {
     return new Response(JSON.stringify({ error: 'Yetkisiz erişim.' }), { status: 403 });
   }
 
