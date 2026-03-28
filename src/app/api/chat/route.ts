@@ -56,16 +56,21 @@ export async function POST(req: Request) {
   let previousAgenda: string | null = null;
   let previousHomework: Array<{ text: string; completed: boolean }> = [];
   if (isFirstMessage) {
+    // Tamamlanmış veya status field'ı olmayan (eski) seansları dahil et
     const lastMentorSession = snap.docs
       .filter((d) => {
         const data = d.data();
-        return data.mentorId === mentorId &&
-               data.agenda &&
-               data.status === 'completed'; // Sadece tamamlanmış seanslar
+        const isCompleted = data.status === 'completed' || !data.status; // eski seanslar için fallback
+        return data.mentorId === mentorId && isCompleted;
       })
       .sort((a, b) => new Date(b.data().createdAt).getTime() - new Date(a.data().createdAt).getTime())[0];
-    previousAgenda = lastMentorSession?.data().agenda ?? null;
-    previousHomework = lastMentorSession?.data().homework ?? [];
+
+    if (lastMentorSession) {
+      const sessionData = lastMentorSession.data();
+      // agenda yoksa summary'i kısaltarak kullan
+      previousAgenda = sessionData.agenda ?? (sessionData.summary ? sessionData.summary.slice(0, 200) : null);
+      previousHomework = sessionData.homework ?? [];
+    }
   }
 
   // Premium mentor kontrolü
@@ -204,8 +209,11 @@ ${bookList}`
     systemPrompt = haikuQuoteInstruction + systemPrompt;
   }
 
-  // Bu mentor ile daha önce hiç seans yapılmış mı kontrol et
-  const hasAnyPreviousSession = snap.docs.some(d => d.data().mentorId === mentorId && d.data().status === 'completed');
+  // Bu mentor ile daha önce hiç seans yapılmış mı kontrol et (eski seanslar status field'ı olmayabilir)
+  const hasAnyPreviousSession = snap.docs.some(d => {
+    const data = d.data();
+    return data.mentorId === mentorId && (data.status === 'completed' || !data.status);
+  });
   const isVeryFirstSession = !hasAnyPreviousSession && !previousAgenda;
   const isCoach = mentor?.category === 'coach';
 

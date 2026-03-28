@@ -99,7 +99,8 @@ export async function getCurrentUser(): Promise<User | null> {
 
   const data = doc.data() as StoredUser;
   const { passwordHash: _, ...user } = data;
-  return user;
+  // Firestore doküman ID'sini fallback olarak kullan (id field'ı eksikse)
+  return { ...user, id: user.id ?? doc.id };
 }
 
 export async function getUserByEmail(email: string): Promise<StoredUser | null> {
