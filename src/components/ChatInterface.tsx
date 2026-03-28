@@ -5,8 +5,7 @@ import { useChat } from '@ai-sdk/react';
 import { TextStreamChatTransport } from 'ai';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Loader2, Sparkles, AlertTriangle, Lock, Crown, Volume2, VolumeX } from 'lucide-react';
+import { Send, Loader2, AlertTriangle, Lock, Crown, Volume2, VolumeX, ArrowLeft, ChevronRight } from 'lucide-react';
 import { Mentor } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
@@ -70,7 +69,7 @@ interface LimitInfo {
 
 export function ChatInterface({ mentor }: ChatInterfaceProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null); // overflow-y-auto div
   const [input, setInput] = useState('');
   const [sessionSaved, setSessionSaved] = useState(false);
   const [limitInfo, setLimitInfo] = useState<LimitInfo | null>(null);
@@ -194,21 +193,15 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   // Otomatik scroll - mesajlar değiştiğinde en alta kay
   useEffect(() => {
     const scrollToBottom = () => {
-      // Önce ref'i dene
       if (scrollRef.current) {
         scrollRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
       }
-      // Scroll area viewport'u da dene
       if (scrollContainerRef.current) {
-        const scrollElement = scrollContainerRef.current.querySelector('[data-radix-scroll-area-viewport]');
-        if (scrollElement) {
-          scrollElement.scrollTo({ top: scrollElement.scrollHeight, behavior: 'smooth' });
-        }
+        scrollContainerRef.current.scrollTo({ top: scrollContainerRef.current.scrollHeight, behavior: 'smooth' });
       }
     };
-    // Küçük bir gecikme ile scroll yap
     setTimeout(scrollToBottom, 50);
-    setTimeout(scrollToBottom, 200); // İkinci deneme
+    setTimeout(scrollToBottom, 200);
   }, [messages, status, playingId]);
 
   // 10 soruya ulaşınca otomatik kapanış mesajı gönder
@@ -378,56 +371,73 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* AI Disclaimer Banner */}
-      <div className="flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-500/8 px-4 py-3">
-        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-        <p className="text-xs leading-relaxed text-amber-700 dark:text-amber-400">
-          <span className="font-semibold">Önemli Uyarı:</span> Bu platformdaki tüm yanıtlar yapay zeka (AI) tarafından
-          otomatik olarak üretilmektedir. Thorius ve çalışanları, AI yanıtlarının doğruluğu veya bu yanıtlara dayanılarak
-          alınan kararların sonuçlarından <span className="font-semibold">hiçbir sorumluluk kabul etmez</span>.
-          Sağlık, hukuk veya finansal konularda mutlaka alanında uzman bir profesyonele danışınız.
+    <div className="flex h-full flex-col bg-white dark:bg-gray-950">
+
+      {/* ── Header ──────────────────────────────────────────────────── */}
+      <div className="shrink-0 flex items-center gap-3 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 px-4 py-3 shadow-sm z-10">
+        <Link
+          href="/mentors"
+          className="rounded-xl p-1.5 text-muted-foreground hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+
+        <MentorAvatar size="sm" />
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h2 className="font-semibold text-sm text-foreground truncate">{mentor.title}</h2>
+            {!sessionEnded ? (
+              <span className="flex items-center gap-1 text-[11px] text-emerald-600 shrink-0">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                Aktif
+              </span>
+            ) : (
+              <span className="text-[11px] text-muted-foreground shrink-0">Tamamlandı</span>
+            )}
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            {mentor.name} · {userMessageCount}/{MAX_USER_MESSAGES} soru
+          </p>
+        </div>
+
+        <button
+          onClick={() => {
+            if (voiceMode) { audioRef.current?.pause(); setPlayingId(null); }
+            setVoiceMode((v) => !v);
+          }}
+          title={voiceMode ? 'Sesi kapat' : 'Sesi aç'}
+          className={cn(
+            'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all shrink-0',
+            voiceMode
+              ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300'
+              : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+          )}
+        >
+          {voiceMode ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+          <span className="hidden sm:inline">{voiceMode ? 'Sesli' : 'Sessiz'}</span>
+        </button>
+      </div>
+
+      {/* ── Progress bar ────────────────────────────────────────────── */}
+      <div className="shrink-0 h-0.5 bg-gray-100 dark:bg-gray-800">
+        <div
+          className="h-full bg-gradient-to-r from-violet-500 to-purple-500 transition-all duration-500"
+          style={{ width: `${(userMessageCount / MAX_USER_MESSAGES) * 100}%` }}
+        />
+      </div>
+
+      {/* ── Compact disclaimer ──────────────────────────────────────── */}
+      <div className="shrink-0 flex items-center gap-2 bg-amber-50/80 dark:bg-amber-950/20 border-b border-amber-100 dark:border-amber-900/30 px-4 py-1.5">
+        <AlertTriangle className="h-3 w-3 shrink-0 text-amber-500" />
+        <p className="text-[10px] text-amber-700 dark:text-amber-400 leading-relaxed">
+          Yanıtlar yapay zeka tarafından üretilmektedir. Sağlık, hukuk veya finans konularında lütfen uzman görüşü alın.
         </p>
       </div>
 
-      <div className="flex h-[calc(100vh-14rem)] flex-col rounded-2xl border border-gray-200/80 dark:border-gray-700/50 bg-gray-50/80 dark:bg-gray-900/50 overflow-hidden shadow-sm">
-        {/* Header - Daha samimi */}
-        <div className="flex items-center gap-4 border-b border-border/30 bg-gradient-to-r from-violet-500/5 to-purple-500/5 p-4">
-          <MentorAvatar size="md" />
-          <div className="flex-1">
-            <h3 className="font-semibold text-foreground">{mentor.title}</h3>
-            <div className="flex items-center gap-2">
-              {!sessionEnded && (
-                <span className="flex items-center gap-1 text-xs text-emerald-600">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
-                  Aktif
-                </span>
-              )}
-              <span className="text-xs text-muted-foreground">
-                {userMessageCount}/{MAX_USER_MESSAGES}
-              </span>
-            </div>
-          </div>
-          <button
-            onClick={() => {
-              if (voiceMode) { audioRef.current?.pause(); setPlayingId(null); }
-              setVoiceMode((v) => !v);
-            }}
-            title={voiceMode ? 'Sesi kapat' : 'Sesi aç'}
-            className={cn(
-              'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all',
-              voiceMode
-                ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300'
-                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
-            )}
-          >
-            {voiceMode ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-            {voiceMode ? 'Sesli' : 'Sessiz'}
-          </button>
-        </div>
-
-        {/* Messages */}
-        <ScrollArea ref={scrollContainerRef} className="flex-1 p-4">
+      {/* ── Messages ────────────────────────────────────────────────── */}
+      <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-y-auto">
+        <div className="px-4 py-5 space-y-4 max-w-3xl mx-auto">
           <div className="space-y-4">
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -546,57 +556,65 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
             {/* Scroll anchor */}
             <div ref={scrollRef} />
           </div>
-        </ScrollArea>
+        </div>
 
-        {/* Input */}
-        <form onSubmit={onSubmit} className="border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 p-4">
-          <div className="flex gap-3 items-end">
-            <div className="flex-1 relative">
-              <Textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder={sessionEnded ? 'Seans sona erdi' : 'Mesajını yaz...'}
-                className="min-h-[48px] max-h-32 resize-none rounded-2xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 pr-12 focus:ring-violet-500 focus:border-violet-500"
-                disabled={sessionEnded}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    onSubmit(e);
-                  }
-                }}
-              />
-              {/* İlk mesajda karakter sayısı */}
-              {userMessageCount === 0 && (
-                <span className={cn(
-                  'absolute right-3 bottom-3 text-[10px] tabular-nums',
-                  charCount < MIN_CHAR_COUNT ? 'text-gray-400' : 'text-emerald-500'
-                )}>
-                  {charCount}/{MIN_CHAR_COUNT}
-                </span>
-              )}
+      {/* ── Input ───────────────────────────────────────────────────── */}
+      <div className="shrink-0 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 px-4 pb-4 pt-3">
+        <div className="max-w-3xl mx-auto">
+          {/* İlk mesaj ipucu */}
+          {userMessageCount === 0 && (
+            <p className={cn(
+              'mb-2 text-[11px] transition-colors',
+              input.trim().length > 0 && charCount < MIN_CHAR_COUNT
+                ? 'text-amber-500'
+                : 'text-gray-400'
+            )}>
+              {input.trim().length === 0
+                ? `İlk mesajınızda gündeминizi detaylıca yazın — en az ${MIN_CHAR_COUNT} karakter`
+                : charCount < MIN_CHAR_COUNT
+                  ? `Seansı daha verimli kullanmak için en az ${MIN_CHAR_COUNT} karakter yazın (${charCount}/${MIN_CHAR_COUNT})`
+                  : null
+              }
+            </p>
+          )}
+          <form onSubmit={onSubmit}>
+            <div className="flex gap-2 items-end">
+              <div className="flex-1 relative">
+                <Textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder={sessionEnded ? 'Seans sona erdi' : 'Mesajınızı yazın...'}
+                  className="min-h-[44px] max-h-36 resize-none rounded-2xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 pr-12 py-3 text-sm focus:ring-violet-500 focus:border-violet-500 transition-colors"
+                  disabled={sessionEnded}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      onSubmit(e);
+                    }
+                  }}
+                />
+                {userMessageCount === 0 && input.trim().length > 0 && (
+                  <span className={cn(
+                    'absolute right-3 bottom-3 text-[10px] tabular-nums font-medium',
+                    charCount < MIN_CHAR_COUNT ? 'text-amber-400' : 'text-emerald-500'
+                  )}>
+                    {charCount}/{MIN_CHAR_COUNT}
+                  </span>
+                )}
+              </div>
+              <Button
+                type="submit"
+                size="icon"
+                disabled={isLoading || !input.trim() || sessionEnded || (userMessageCount === 0 && charCount < MIN_CHAR_COUNT)}
+                className="h-11 w-11 shrink-0 rounded-2xl bg-violet-600 hover:bg-violet-700 disabled:bg-gray-200 dark:disabled:bg-gray-800 text-white shadow-sm transition-all"
+              >
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              </Button>
             </div>
-            <Button
-              type="submit"
-              size="icon"
-              disabled={isLoading || !input.trim() || sessionEnded || (userMessageCount === 0 && charCount < MIN_CHAR_COUNT)}
-              className="h-12 w-12 shrink-0 rounded-xl bg-violet-600 hover:bg-violet-700 text-white shadow-sm"
-            >
-              {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
-            </Button>
-          </div>
-          {/* İlk mesaj uyarısı */}
-          {userMessageCount === 0 && charCount < MIN_CHAR_COUNT && input.trim().length > 0 && (
-            <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-              Seansı daha verimli kullanmak için en az {MIN_CHAR_COUNT} karakter yazmalısınız. ({charCount}/{MIN_CHAR_COUNT})
-            </p>
-          )}
-          {userMessageCount === 0 && input.trim().length === 0 && (
-            <p className="mt-2 text-xs text-gray-400">
-              İlk mesajınızda gündemizi detaylıca paylaşın — en az {MIN_CHAR_COUNT} karakter gereklidir.
-            </p>
-          )}
-        </form>
+          </form>
+        </div>
       </div>
+    </div>
 
       {/* Değerlendirme Anketi Modal */}
       {showRating && !ratingSubmitted && (
