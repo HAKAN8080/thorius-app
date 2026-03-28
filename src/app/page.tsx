@@ -9,6 +9,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { CherryBlossom } from '@/components/CherryBlossom';
 import { PackageCarousel } from '@/components/PackageCarousel';
 import { UserDashboard } from '@/components/UserDashboard';
+import { HeroRotatingText } from '@/components/HeroRotatingText';
 
 export default async function HomePage() {
   const user = await getCurrentUser();
@@ -43,16 +44,7 @@ export default async function HomePage() {
                 Yapay Zeka Destekli Platform
               </div>
 
-              <h1 className="mb-6 text-5xl font-bold leading-tight tracking-tight text-foreground lg:text-6xl">
-                Profesyonel
-                <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"> AI Koçluk </span>
-                ve Mentorluk
-              </h1>
-
-              <p className="mb-8 max-w-lg text-lg leading-relaxed text-muted-foreground lg:text-xl">
-                Uluslararası Koçluk Standartlarında AI koç ve mentorlarla kariyer, liderlik ve kişisel gelişiminizi
-                sistematik olarak yönetin. 7/24 erişim, gerçek seans deneyimi.
-              </p>
+              <HeroRotatingText />
 
               <div className="mb-10 flex flex-col items-center gap-3 sm:flex-row lg:items-start">
                 <Link href="/mentors">

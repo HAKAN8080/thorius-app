@@ -54,6 +54,7 @@ export async function POST(req: Request) {
   const userMessages = messages.filter((m: { role: string }) => m.role === 'user');
   const isFirstMessage = userMessages.length === 1;
   let previousAgenda: string | null = null;
+  let previousHomework: Array<{ text: string; completed: boolean }> = [];
   if (isFirstMessage) {
     const lastMentorSession = snap.docs
       .filter((d) => {
@@ -64,6 +65,7 @@ export async function POST(req: Request) {
       })
       .sort((a, b) => new Date(b.data().createdAt).getTime() - new Date(a.data().createdAt).getTime())[0];
     previousAgenda = lastMentorSession?.data().agenda ?? null;
+    previousHomework = lastMentorSession?.data().homework ?? [];
   }
 
   // Premium mentor kontrolü
@@ -210,7 +212,24 @@ ${bookList}`
   // İlk mesajsa ve önceki gündem varsa mentora hatırlat, yoksa ilk görüşme olduğunu belirt
   if (isFirstMessage) {
     if (previousAgenda) {
-      systemPrompt += `\n\n📌 ÖNCEKİ SEANS GÜNDEMI: "${previousAgenda}"\nBu ilk mesajında MUTLAKA şu şekilde başla: Geçen seanste konuştuğunuz konuyu kısaca hatırlat (1 cümle), ardından "Bugün bununla devam etmek ister misin, yoksa farklı bir gündemin mi var?" diye sor. Sonra kullanıcının cevabına göre devam et.`;
+      // Ödevleri durumlarına göre formatla
+      let homeworkSection = '';
+      if (previousHomework.length > 0) {
+        const completedCount = previousHomework.filter(h => h.completed).length;
+        const pendingItems = previousHomework.filter(h => !h.completed);
+        const completedItems = previousHomework.filter(h => h.completed);
+
+        homeworkSection = `\n\n📋 ÖNCEKİ SEANS ÖDEVLERİ (${completedCount}/${previousHomework.length} tamamlandı):`;
+        if (completedItems.length > 0) {
+          homeworkSection += `\n✅ Tamamlanan: ${completedItems.map(h => `"${h.text}"`).join(', ')}`;
+        }
+        if (pendingItems.length > 0) {
+          homeworkSection += `\n⏳ Tamamlanmayan: ${pendingItems.map(h => `"${h.text}"`).join(', ')}`;
+        }
+        homeworkSection += `\nBu ilk mesajında ödev durumunu da kısaca değerlendirip tamamlanmayanlar için motivasyon ver.`;
+      }
+
+      systemPrompt += `\n\n📌 ÖNCEKİ SEANS GÜNDEMI: "${previousAgenda}"${homeworkSection}\nBu ilk mesajında MUTLAKA şu şekilde başla: Geçen seanste konuştuğunuz konuyu kısaca hatırlat (1 cümle)${previousHomework.length > 0 ? ', ardından ödev durumunu değerlendir' : ''}, ardından "Bugün bununla devam etmek ister misin, yoksa farklı bir gündemin mi var?" diye sor. Sonra kullanıcının cevabına göre devam et.`;
     } else if (isVeryFirstSession) {
       // Bu danışanla İLK KEZ görüşülüyor - tanışma ile başla
       if (isCoach) {

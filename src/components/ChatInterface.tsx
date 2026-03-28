@@ -584,6 +584,17 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
             </Button>
           </div>
+          {/* İlk mesaj uyarısı */}
+          {userMessageCount === 0 && charCount < MIN_CHAR_COUNT && input.trim().length > 0 && (
+            <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+              Seansı daha verimli kullanmak için en az {MIN_CHAR_COUNT} karakter yazmalısınız. ({charCount}/{MIN_CHAR_COUNT})
+            </p>
+          )}
+          {userMessageCount === 0 && input.trim().length === 0 && (
+            <p className="mt-2 text-xs text-gray-400">
+              İlk mesajınızda gündemizi detaylıca paylaşın — en az {MIN_CHAR_COUNT} karakter gereklidir.
+            </p>
+          )}
         </form>
       </div>
 
