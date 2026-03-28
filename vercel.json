@@ -18,7 +18,7 @@
     },
     {
       "path": "/api/cron/monitor-credits",
-      "schedule": "0 8,14,20 * * *"
+      "schedule": "0 8 * * *"
     }
   ]
 }
