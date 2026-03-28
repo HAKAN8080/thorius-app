@@ -200,14 +200,29 @@ ${bookList}`
 
   systemPrompt += sessionStatus + quoteInstruction;
 
-  // Haiku küçük model — alıntı talimatını promptun başına da ekle ki atlamasın
-  const useHaikuCheck = currentMessageNum > 2 && currentMessageNum < 9;
-  if (useHaikuCheck && shouldUseQuote) {
-    const haikuQuoteInstruction = isStudentCoach
-      ? `[KRİTİK KURAL] Bu yanıtta:\n1. Aşağıdaki alıntılardan BİRİNİ doğal şekilde kullan — ATLAMAK YASAK\n2. Konuyu derinleştir\n3. Bir soru sor — KAPANIŞ YAPMA\n\nALINTILAR:\n${leaderInfo}\n\n`
-      : `[KRİTİK KURAL] Bu yanıtta:\n1. Aşağıdaki alıntılardan BİRİNİ doğal şekilde kullan — ATLAMAK YASAK\n2. Uygunsa bir kitaptan bahset\n3. Konuyu derinleştir\n4. Bir soru sor — KAPANIŞ YAPMA\n\nALINTILAR:\n${leaderInfo}\nKİTAPLAR: ${bookList}\n\n`;
-    systemPrompt = haikuQuoteInstruction + systemPrompt;
-  }
+  // Yanıt kalitesi talimatı — promptun başına ekle (her mesajda geçerli)
+  const qualityInstruction = isStudentCoach
+    ? `[YANIT KALİTESİ — KESİNLİKLE UYGULA]
+Her yanıtın EN AZ 4-6 cümle olmalı. Tek cümleyle geçme YASAK.
+Yapman gerekenler:
+1. Kullanıcının söylediğini 1 cümleyle yansıt (empati/onaylama)
+2. Konuyu derinleştir, perspektif ekle
+3. Alıntı kullan (${shouldUseQuote ? 'ZORUNLU' : 'varsa'})
+4. Merak uyandıran, açık uçlu 1 soru sor
+
+ALINTILAR:\n${leaderInfo}\n\n`
+    : `[YANIT KALİTESİ — KESİNLİKLE UYGULA]
+Her yanıtın EN AZ 5-8 cümle olmalı. Tek veya iki cümleyle geçme YASAK.
+Yapman gerekenler:
+1. Kullanıcının söylediğini 1 cümleyle derin şekilde yansıt (ne hissettirdiğini anla)
+2. Konuyu derinleştir — neden önemli, ne anlama geliyor
+3. Alıntı kullan ve konuya doğal bağla (${shouldUseQuote ? 'ZORUNLU' : 'uygunsa'})
+4. Varsa ilgili bir kitap veya kavramdan bahset
+5. Merak uyandıran, açık uçlu 1 soru sor — kısa değil, düşündürücü olsun
+
+ALINTILAR:\n${leaderInfo}\n\nKİTAPLAR:\n${bookList}\n\n`;
+
+  systemPrompt = qualityInstruction + systemPrompt;
 
   // Bu mentor ile daha önce hiç seans yapılmış mı kontrol et (eski seanslar status field'ı olmayabilir)
   const hasAnyPreviousSession = snap.docs.some(d => {
@@ -324,18 +339,15 @@ TEKRAR: Hiçbir soru sormayacaksın. Sadece özet + ödev listesi + veda.\n\n`;
         : '',
   }));
 
-  // İlk 2 ve son 2 mesaj Sonnet, ortası Haiku
-  const useHaiku = currentMessageNum > 2 && currentMessageNum < 9;
-  const selectedModel = useHaiku
-    ? anthropic('claude-haiku-4-5-20251001')
-    : anthropic('claude-sonnet-4-6');
+  // Tüm mesajlarda Sonnet — kalite öncelikli (lansman)
+  const selectedModel = anthropic('claude-sonnet-4-6');
 
   try {
     const result = streamText({
       model: selectedModel,
       system: systemPrompt,
       messages: coreMessages,
-      maxOutputTokens: 2048,
+      maxOutputTokens: 3000,
     });
 
     return result.toTextStreamResponse();
