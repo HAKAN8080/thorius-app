@@ -330,7 +330,7 @@ TEKRAR: Hiçbir soru sormayacaksın. Sadece özet + ödev listesi + veda.\n\n`;
 
   // UIMessage (parts) → CoreMessage (content) dönüşümü — tüm mesajları gönder
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const coreMessages = messages.slice(-20).map((m: any) => ({
+  const chatMessages = messages.slice(-20).map((m: any) => ({
     role: m.role as 'user' | 'assistant',
     content: typeof m.content === 'string'
       ? m.content
@@ -339,13 +339,25 @@ TEKRAR: Hiçbir soru sormayacaksın. Sadece özet + ödev listesi + veda.\n\n`;
         : '',
   }));
 
+  // Sistem promptunu cache'lenebilir mesaj olarak ekle
+  // Anthropic prompt caching: tekrar eden büyük sistem prompt token maliyetini %90 düşürür
+  const coreMessages = [
+    {
+      role: 'system' as const,
+      content: systemPrompt,
+      experimental_providerMetadata: {
+        anthropic: { cacheControl: { type: 'ephemeral' } },
+      },
+    },
+    ...chatMessages,
+  ];
+
   // Tüm mesajlarda Sonnet — kalite öncelikli (lansman)
   const selectedModel = anthropic('claude-sonnet-4-6');
 
   try {
     const result = streamText({
       model: selectedModel,
-      system: systemPrompt,
       messages: coreMessages,
       maxOutputTokens: 3000,
     });
