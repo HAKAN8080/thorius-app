@@ -12,6 +12,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import { SessionConfirmModal } from '@/components/SessionConfirmModal';
+import { SpeakingAvatar } from '@/components/SpeakingAvatar';
 
 const MAX_USER_MESSAGES = 10;
 const MIN_CHAR_COUNT = 50;   // Minimum karakter sayısı
@@ -82,6 +83,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [voiceMode, setVoiceMode] = useState(true);
   const [audioTime, setAudioTime] = useState(0);
+  const [spokenIds, setSpokenIds] = useState<Set<string>>(new Set());
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
   const wordTimingsRef = useRef<Map<string, Array<{ word: string; start: number; end: number }>>>(new Map());
@@ -137,7 +139,12 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
       audioRef.current = new Audio(url);
       audioRef.current.ontimeupdate = () => setAudioTime(audioRef.current?.currentTime ?? 0);
       audioRef.current.play();
-      audioRef.current.onended = () => { setPlayingId(null); setAudioTime(0); URL.revokeObjectURL(url); };
+      audioRef.current.onended = () => {
+        setPlayingId(null);
+        setAudioTime(0);
+        URL.revokeObjectURL(url);
+        setSpokenIds((prev) => new Set([...prev, messageId]));
+      };
     } catch { setPlayingId(null); }
   }
 
@@ -463,6 +470,15 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
 
       {/* ── Messages ────────────────────────────────────────────────── */}
       <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-y-auto bg-[#f5f0ff]">
+
+        {/* Konuşan avatar — ses çalarken kayarak açılır */}
+        <SpeakingAvatar
+          mentor={mentor}
+          isPlaying={!!playingId}
+          audioTime={audioTime}
+          wordTimings={playingId ? (wordTimingsRef.current.get(playingId) ?? []) : []}
+        />
+
         <div className="px-4 py-5 space-y-4 max-w-3xl mx-auto">
           <div className="space-y-4">
             {messages.length === 0 && (
@@ -493,8 +509,8 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
             {visibleMessages.map((message) => {
               const text = getTextContent(message as Parameters<typeof getTextContent>[0]);
               if (!text) return null;
-              // Sesli modda: asistan mesajları gösterilmez — sadece ses çalar
-              if (voiceMode && message.role === 'assistant') return null;
+              // Sesli modda metin sadece konuşma bittikten sonra göster
+              if (voiceMode && message.role === 'assistant' && !spokenIds.has(message.id)) return null;
               // Sesli modda streaming olan son asistan mesajını da gizle
               if (!voiceMode && status === 'streaming' &&
                 message.role === 'assistant' && message.id === messages[messages.length - 1]?.id) {
@@ -524,26 +540,8 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
               );
             })}
 
-            {/* Sesli mod: ses çalarken dalga animasyonu */}
-            {voiceMode && playingId && (
-              <div className="flex gap-2.5">
-                <div className="shrink-0"><MentorAvatar size="sm" /></div>
-                <div className="flex items-center gap-2 rounded-3xl rounded-tl-lg bg-white shadow-sm border border-violet-100 px-4 py-3">
-                  {[0, 0.1, 0.2, 0.1, 0].map((delay, i) => (
-                    <span key={i} className="h-3 w-1 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: `${delay}s` }} />
-                  ))}
-                  <button
-                    onClick={() => { audioRef.current?.pause(); setPlayingId(null); }}
-                    className="ml-2 flex items-center gap-1 text-[11px] text-gray-500 hover:text-violet-600 transition-colors"
-                  >
-                    <VolumeX className="h-3 w-3" /> Dur
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Metin modunda yükleme göstergesi */}
-            {!voiceMode && status === 'submitted' && (
+            {/* Yükleme göstergesi — her iki modda da */}
+            {status === 'submitted' && (
               <div className="flex gap-2.5">
                 <div className="shrink-0"><MentorAvatar size="sm" /></div>
                 <div className="flex items-center gap-2 rounded-3xl rounded-tl-lg bg-white shadow-sm border border-violet-100 px-4 py-3">
