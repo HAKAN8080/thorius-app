@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { Resend } from 'resend';
 import { getDb } from '@/lib/db';
 import { getUserByEmail } from '@/lib/auth';
-import { randomBytes } from 'crypto';
+import { randomBytes, createHash } from 'crypto';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
@@ -31,11 +31,12 @@ export async function POST(req: NextRequest) {
 
   // Reset token oluştur (32 byte = 64 hex karakter)
   const resetToken = randomBytes(32).toString('hex');
+  const resetTokenHash = createHash('sha256').update(resetToken).digest('hex');
   const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 saat
 
-  // Token'ı kaydet
+  // Firestore'a sadece hash'i kaydet (düz token saklanmaz)
   await getDb().collection('password_resets').doc(normalizedEmail).set({
-    token: resetToken,
+    tokenHash: resetTokenHash,
     expiry: resetTokenExpiry,
     createdAt: new Date().toISOString(),
   });

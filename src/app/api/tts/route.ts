@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser, FULL_TTS_PLANS } from '@/lib/auth';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 /** Karma ses modeli: sadece bu mesaj numaraları seslendirilir (1-indeksli) */
 const KARMA_TTS_MESSAGES = new Set([1, 2, 10]);
@@ -143,6 +144,16 @@ function buildWordTimings(alignment: ElevenLabsAlignment): WordTiming[] {
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Yetkisiz' }, { status: 401 });
+
+  // Rate limiting: kullanıcı başına dakikada 20 TTS isteği
+  const ip = getClientIp(req);
+  const rl = await rateLimit(`tts:${user.id}:${ip}`, 20, 1);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Çok fazla ses isteği. Lütfen bekleyin.' },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+    );
+  }
 
   const { text, mentorId, messageIndex } = await req.json();
   if (!text) return NextResponse.json({ error: 'Metin gerekli' }, { status: 400 });

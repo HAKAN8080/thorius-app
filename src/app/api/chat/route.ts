@@ -4,10 +4,14 @@ import { DEFAULT_MENTORS, PREMIUM_MENTOR_IDS } from '@/lib/types';
 import { getCurrentUser, PLAN_LIMITS, PREMIUM_ACCESS_PLANS } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { getBookForMentor, getAllBooksForMentor, getThoughtLeaderForMentor, THOUGHT_LEADERS } from '@/lib/books';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { NextRequest } from 'next/server';
 
 export const maxDuration = 60;
 
-export async function POST(req: Request) {
+const MAX_USER_MESSAGE_LENGTH = 1500;
+
+export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) {
     return new Response(JSON.stringify({ error: 'Oturum açmanız gerekmektedir.' }), {
@@ -16,7 +20,27 @@ export async function POST(req: Request) {
     });
   }
 
+  // Rate limiting: kullanıcı başına 30 mesaj/dakika
+  const ip = getClientIp(req);
+  const rl = await rateLimit(`chat:${user.id}:${ip}`, 30, 1);
+  if (!rl.allowed) {
+    return new Response(JSON.stringify({ error: 'Çok fazla mesaj gönderdiniz. Lütfen biraz bekleyin.' }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) },
+    });
+  }
+
   const { messages, mentorId, customSystemPrompt, isLastMessage: isLastMsg } = await req.json();
+
+  // Sunucu tarafı mesaj uzunluğu kontrolü
+  const lastUserMessage = [...(messages ?? [])].reverse().find((m: { role: string }) => m.role === 'user');
+  const lastContent = typeof lastUserMessage?.content === 'string' ? lastUserMessage.content : '';
+  if (lastContent.length > MAX_USER_MESSAGE_LENGTH) {
+    return new Response(JSON.stringify({ error: `Mesaj çok uzun. Maksimum ${MAX_USER_MESSAGE_LENGTH} karakter.` }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   // Kullanıcının seanslarını al
   const snap = await getDb().collection('sessions').where('userId', '==', user.id).get();

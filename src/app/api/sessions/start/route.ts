@@ -15,34 +15,42 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Eksik parametreler' }, { status: 400 });
   }
 
-  // Seans limiti kontrolü
   const sessionLimit = user.sessionLimit ?? (user.plan ? PLAN_LIMITS[user.plan] : 1);
-  const snap = await getDb().collection('sessions').where('userId', '==', user.id).get();
+  const db = getDb();
 
-  if (snap.size >= sessionLimit) {
-    return NextResponse.json({
-      error: 'SESSION_LIMIT_REACHED',
-      plan: user.plan ?? 'free'
-    }, { status: 403 });
+  // Transaction ile atomik limit kontrolü + seans oluşturma (race condition önlemi)
+  let newSessionId: string;
+  try {
+    const newRef = db.collection('sessions').doc(); // önceden ID al
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(
+        db.collection('sessions').where('userId', '==', user.id) as FirebaseFirestore.Query
+      );
+      if (snap.size >= sessionLimit) {
+        throw new Error('SESSION_LIMIT_REACHED');
+      }
+      tx.set(newRef, {
+        userId: user.id,
+        mentorId,
+        mentorName: mentorName || mentorId,
+        mentorTitle: mentorTitle || '',
+        createdAt: new Date().toISOString(),
+        status: 'active',
+        agenda: firstMessage.slice(0, 300),
+        messageCount: 1,
+        messages: [{ role: 'user', text: firstMessage }],
+      });
+    });
+    newSessionId = newRef.id;
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message === 'SESSION_LIMIT_REACHED') {
+      return NextResponse.json({ error: 'SESSION_LIMIT_REACHED', plan: user.plan ?? 'free' }, { status: 403 });
+    }
+    throw err;
   }
 
-  // Yeni seans oluştur (aktif durumda)
-  const sessionDoc = {
-    userId: user.id,
-    mentorId,
-    mentorName: mentorName || mentorId,
-    mentorTitle: mentorTitle || '',
-    createdAt: new Date().toISOString(),
-    status: 'active', // aktif seans
-    agenda: firstMessage.slice(0, 300),
-    messageCount: 1,
-    messages: [{ role: 'user', text: firstMessage }],
-  };
-
-  const ref = await getDb().collection('sessions').add(sessionDoc);
-
   return NextResponse.json({
-    id: ref.id,
+    id: newSessionId,
     success: true,
     message: 'Seans başladı, hakkınız düşürüldü.'
   });

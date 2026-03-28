@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getUserByEmail, hashPassword } from '@/lib/auth';
+import { createHash } from 'crypto';
 
 export async function POST(req: Request) {
   const { email, token, password } = await req.json();
@@ -22,10 +23,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Geçersiz veya süresi dolmuş link.' }, { status: 400 });
   }
 
-  const resetData = resetDoc.data() as { token: string; expiry: string };
+  const resetData = resetDoc.data() as { token?: string; tokenHash?: string; expiry: string };
 
-  // Token eşleşme kontrolü
-  if (resetData.token !== token) {
+  // Token eşleşme kontrolü (hash karşılaştırması)
+  const incomingHash = createHash('sha256').update(token).digest('hex');
+  const storedHash = resetData.tokenHash ?? (resetData.token ? createHash('sha256').update(resetData.token).digest('hex') : null);
+  if (!storedHash || incomingHash !== storedHash) {
     return NextResponse.json({ error: 'Geçersiz veya süresi dolmuş link.' }, { status: 400 });
   }
 
