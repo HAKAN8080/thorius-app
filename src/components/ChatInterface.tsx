@@ -397,13 +397,13 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   }
 
   return (
-    <div className="flex h-full flex-col bg-white dark:bg-gray-950">
+    <div className="flex h-full flex-col rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-violet-200/60">
 
       {/* ── Header ──────────────────────────────────────────────────── */}
-      <div className="shrink-0 flex items-center gap-3 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 px-4 py-3 shadow-sm z-10">
+      <div className="shrink-0 flex items-center gap-3 bg-gradient-to-r from-violet-600 to-purple-700 px-4 py-3.5 z-10">
         <Link
           href="/mentors"
-          className="rounded-xl p-1.5 text-muted-foreground hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-foreground transition-colors"
+          className="rounded-xl p-1.5 text-white/70 hover:bg-white/15 hover:text-white transition-colors"
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
@@ -412,17 +412,17 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h2 className="font-semibold text-sm text-foreground truncate">{mentor.title}</h2>
+            <h2 className="font-semibold text-sm text-white truncate">{mentor.title}</h2>
             {!sessionEnded ? (
-              <span className="flex items-center gap-1 text-[11px] text-emerald-600 shrink-0">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+              <span className="flex items-center gap-1 text-[11px] text-emerald-300 shrink-0">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-300" />
                 Aktif
               </span>
             ) : (
-              <span className="text-[11px] text-muted-foreground shrink-0">Tamamlandı</span>
+              <span className="text-[11px] text-white/60 shrink-0">Tamamlandı</span>
             )}
           </div>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-[11px] text-white/65">
             {mentor.name} · {userMessageCount}/{MAX_USER_MESSAGES} soru
           </p>
         </div>
@@ -436,8 +436,8 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
           className={cn(
             'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all shrink-0',
             voiceMode
-              ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300'
-              : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+              ? 'bg-white/20 text-white'
+              : 'bg-white/10 text-white/60'
           )}
         >
           {voiceMode ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
@@ -446,23 +446,23 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
       </div>
 
       {/* ── Progress bar ────────────────────────────────────────────── */}
-      <div className="shrink-0 h-0.5 bg-gray-100 dark:bg-gray-800">
+      <div className="shrink-0 h-1 bg-white/25">
         <div
-          className="h-full bg-gradient-to-r from-violet-500 to-purple-500 transition-all duration-500"
+          className="h-full bg-white/70 transition-all duration-500"
           style={{ width: `${(userMessageCount / MAX_USER_MESSAGES) * 100}%` }}
         />
       </div>
 
       {/* ── Compact disclaimer ──────────────────────────────────────── */}
-      <div className="shrink-0 flex items-center gap-2 bg-amber-50/80 dark:bg-amber-950/20 border-b border-amber-100 dark:border-amber-900/30 px-4 py-1.5">
-        <AlertTriangle className="h-3 w-3 shrink-0 text-amber-500" />
-        <p className="text-[10px] text-amber-700 dark:text-amber-400 leading-relaxed">
+      <div className="shrink-0 flex items-center gap-2 bg-violet-50 border-b border-violet-100 px-4 py-1.5">
+        <AlertTriangle className="h-3 w-3 shrink-0 text-violet-400" />
+        <p className="text-[10px] text-violet-500 leading-relaxed">
           Yanıtlar yapay zeka tarafından üretilmektedir. Sağlık, hukuk veya finans konularında lütfen uzman görüşü alın.
         </p>
       </div>
 
       {/* ── Messages ────────────────────────────────────────────────── */}
-      <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-y-auto">
+      <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-y-auto bg-[#f5f0ff]">
         <div className="px-4 py-5 space-y-4 max-w-3xl mx-auto">
           <div className="space-y-4">
             {messages.length === 0 && (
@@ -513,7 +513,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
                     'max-w-[85%] px-4 py-3',
                     message.role === 'user'
                       ? 'rounded-3xl rounded-tr-lg bg-violet-600 text-white shadow-sm'
-                      : 'rounded-3xl rounded-tl-lg bg-white/80 dark:bg-gray-800/80 shadow-sm border border-gray-100 dark:border-gray-700/50'
+                      : 'rounded-3xl rounded-tl-lg bg-white shadow-sm border border-violet-100'
                   )}>
                     {message.role === 'assistant'
                       ? renderHighlightedText(text, message.id)
@@ -528,7 +528,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
             {voiceMode && playingId && (
               <div className="flex gap-2.5">
                 <div className="shrink-0"><MentorAvatar size="sm" /></div>
-                <div className="flex items-center gap-2 rounded-3xl rounded-tl-lg bg-white/80 dark:bg-gray-800/80 shadow-sm border border-gray-100 dark:border-gray-700/50 px-4 py-3">
+                <div className="flex items-center gap-2 rounded-3xl rounded-tl-lg bg-white shadow-sm border border-violet-100 px-4 py-3">
                   {[0, 0.1, 0.2, 0.1, 0].map((delay, i) => (
                     <span key={i} className="h-3 w-1 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: `${delay}s` }} />
                   ))}
@@ -546,7 +546,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
             {!voiceMode && status === 'submitted' && (
               <div className="flex gap-2.5">
                 <div className="shrink-0"><MentorAvatar size="sm" /></div>
-                <div className="flex items-center gap-2 rounded-3xl rounded-tl-lg bg-white/80 dark:bg-gray-800/80 shadow-sm border border-gray-100 dark:border-gray-700/50 px-4 py-3">
+                <div className="flex items-center gap-2 rounded-3xl rounded-tl-lg bg-white shadow-sm border border-violet-100 px-4 py-3">
                   <div className="flex gap-1">
                     <span className="h-2 w-2 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '0s' }} />
                     <span className="h-2 w-2 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '0.15s' }} />
@@ -585,7 +585,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
         </div>
 
       {/* ── Input ───────────────────────────────────────────────────── */}
-      <div className="shrink-0 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 px-4 pb-4 pt-3">
+      <div className="shrink-0 border-t border-violet-100 bg-white px-4 pb-4 pt-3">
         <div className="max-w-3xl mx-auto">
           {/* Karakter uyarısı */}
           {charCount > MAX_CHAR_COUNT ? (
@@ -614,7 +614,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder={sessionEnded ? 'Seans sona erdi' : 'Mesajınızı yazın...'}
-                  className="min-h-[44px] max-h-36 resize-none rounded-2xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 pr-12 py-3 text-sm focus:ring-violet-500 focus:border-violet-500 transition-colors"
+                  className="min-h-[44px] max-h-36 resize-none rounded-2xl border-violet-200 bg-violet-50/60 pr-12 py-3 text-sm focus:ring-violet-400 focus:border-violet-400 transition-colors"
                   disabled={sessionEnded}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {

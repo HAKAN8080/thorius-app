@@ -15,8 +15,10 @@ export default async function ChatPage({ params }: ChatPageProps) {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gray-50 dark:bg-gray-950" style={{ top: 'var(--header-height, 4rem)' }}>
-      <ChatInterface mentor={mentor} />
+    <div className="h-[calc(100vh-4rem)] bg-gradient-to-br from-violet-100 via-purple-50 to-fuchsia-50 flex flex-col p-2 sm:p-5">
+      <div className="flex-1 min-h-0 max-w-3xl mx-auto w-full flex flex-col">
+        <ChatInterface mentor={mentor} />
+      </div>
     </div>
   );
 }
