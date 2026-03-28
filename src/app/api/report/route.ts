@@ -15,26 +15,30 @@ export async function GET() {
     .limit(50)
     .get();
 
-  const sessions = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as {
+  const allSessions = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as {
     id: string;
     mentorTitle: string;
     createdAt: string;
     summary: string;
-    homework: { id: string; text: string; completed: boolean }[];
+    status?: string;
+    homework: { id: string; text: string; completed: boolean }[] | undefined;
   }[];
 
+  // Sadece tamamlanmış seansları raporda kullan
+  const sessions = allSessions.filter((s) => s.status === 'completed' || s.summary);
+
   if (sessions.length === 0) {
-    return Response.json({ report: null, message: 'Henüz seans bulunmuyor.' });
+    return Response.json({ report: null, message: 'Henüz tamamlanmış seans bulunmuyor.' });
   }
 
-  const totalHomework = sessions.reduce((acc, s) => acc + s.homework.length, 0);
-  const completedHomework = sessions.reduce((acc, s) => acc + s.homework.filter((h) => h.completed).length, 0);
+  const totalHomework = sessions.reduce((acc, s) => acc + (s.homework?.length ?? 0), 0);
+  const completedHomework = sessions.reduce((acc, s) => acc + (s.homework?.filter((h) => h.completed).length ?? 0), 0);
 
   const sessionsSummary = sessions
     .map((s, i) => {
-      const hw = s.homework.map((h) => `  - [${h.completed ? 'x' : ' '}] ${h.text}`).join('\n');
+      const hw = (s.homework ?? []).map((h) => `  - [${h.completed ? 'x' : ' '}] ${h.text}`).join('\n');
       return `Seans ${i + 1} (${s.mentorTitle}, ${new Date(s.createdAt).toLocaleDateString('tr-TR')}):
-Özet: ${s.summary}
+Özet: ${s.summary || 'Özet yok'}
 Ödevler:\n${hw || '  - Yok'}`;
     })
     .join('\n\n');

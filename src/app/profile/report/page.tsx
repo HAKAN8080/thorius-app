@@ -30,6 +30,8 @@ interface Session {
   mentorId: string;
   mentorTitle: string;
   createdAt: string;
+  status?: string;
+  summary?: string;
   homework: { id: string; text: string; completed: boolean }[];
 }
 
@@ -72,7 +74,11 @@ export default function ReportPage() {
 
       if (sessionsRes.ok) {
         const sessionsData = await sessionsRes.json();
-        setSessions(sessionsData.sessions ?? []);
+        // Sadece tamamlanmış seansları istatistiklerde göster
+        const completedSessions = (sessionsData.sessions ?? []).filter(
+          (s: Session) => s.status === 'completed' || s.summary
+        );
+        setSessions(completedSessions);
       }
     } catch {
       setMessage('Bir hata oluştu.');
