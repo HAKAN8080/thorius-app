@@ -88,10 +88,18 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   const lastSpokenIdRef = useRef<string | null>(null);
   const wordTimingsRef = useRef<Map<string, Array<{ word: string; start: number; end: number }>>>(new Map());
 
-  // Değerlendirme anketi state
+  // Değerlendirme anketi state - her zaman false olarak başla
   const [showRating, setShowRating] = useState(false);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+
+  // Component mount olduğunda değerlendirme state'lerini sıfırla
+  useEffect(() => {
+    setShowRating(false);
+    setRatingSubmitted(false);
+    setSessionSaved(false);
+    setClosingSent(false);
+  }, []);
 
   // Detaylı değerlendirme soruları
   const [ratings, setRatings] = useState({
