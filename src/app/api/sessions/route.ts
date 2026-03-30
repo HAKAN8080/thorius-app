@@ -159,22 +159,29 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: 'Seans bulunamadı' }), { status: 404 });
     }
 
-    // Konuşma metnini oluştur
+    // Konuşma metnini oluştur (__KAPANIS__ mesajını filtrele)
     const conversation = messages
-      .filter((m: { role: string; text: string }) => m.text?.trim())
+      .filter((m: { role: string; text: string }) => m.text?.trim() && m.text !== '__KAPANIS__')
       .map((m: { role: string; text: string }) =>
         `${m.role === 'user' ? 'Kullanıcı' : 'Koç/Mentor'}: ${m.text}`
       )
       .join('\n\n');
 
+    console.log('[Session] Conversation length:', conversation.length, 'chars, messages:', messages.length);
+
     // Claude ile özet + ödev üret
     let summary = '';
     let homeworkItems: string[] = [];
 
-    try {
-      const { text } = await generateText({
-        model: anthropic('claude-haiku-4-5-20251001'),
-        prompt: `Aşağıdaki koçluk/mentorluk görüşmesini analiz et. Türkçe olarak SADECE JSON formatında yanıtla, başka hiçbir şey yazma:
+    if (conversation.length < 50) {
+      console.warn('[Session] Conversation too short, using fallback');
+      summary = 'Seans tamamlandı.';
+      homeworkItems = [];
+    } else {
+      try {
+        const { text } = await generateText({
+          model: anthropic('claude-haiku-4-5-20251001'),
+          prompt: `Aşağıdaki koçluk/mentorluk görüşmesini analiz et. Türkçe olarak SADECE JSON formatında yanıtla, başka hiçbir şey yazma:
 
 {"summary":"2-3 cümlelik özet","homework":["ödev 1","ödev 2"]}
 
@@ -185,16 +192,19 @@ Kurallar:
 
 Görüşme:
 ${conversation}`,
-        maxOutputTokens: 400,
-      });
+          maxOutputTokens: 400,
+        });
 
-      const cleaned = text.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
-      const json = JSON.parse(cleaned);
-      summary = json.summary ?? '';
-      homeworkItems = json.homework ?? [];
-    } catch {
-      summary = 'Seans tamamlandı.';
-      homeworkItems = [];
+        console.log('[Session] Claude response:', text.substring(0, 200));
+        const cleaned = text.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+        const json = JSON.parse(cleaned);
+        summary = json.summary ?? 'Seans tamamlandı.';
+        homeworkItems = json.homework ?? [];
+      } catch (err) {
+        console.error('[Session] Claude summary error:', err);
+        summary = 'Seans tamamlandı.';
+        homeworkItems = [];
+      }
     }
 
     const homework = homeworkItems.map((text: string, i: number) => ({
@@ -212,25 +222,42 @@ ${conversation}`,
       messages: messages.map((m: { role: string; text: string }) => ({ role: m.role, text: m.text })),
     });
 
+    // Seans özeti emaili gönder (arka planda)
+    sendSessionSummaryEmail(
+      user.email,
+      user.name || user.email.split('@')[0],
+      mentorTitle,
+      agenda || null,
+      summary,
+      homework
+    ).catch(err => console.error('[Session Email] Background error:', err));
+
     return Response.json({ id: sessionId, summary, homework });
   }
 
-  // Konuşma metnini oluştur
+  // Konuşma metnini oluştur (__KAPANIS__ mesajını filtrele)
   const conversation = messages
-    .filter((m: { role: string; text: string }) => m.text?.trim())
+    .filter((m: { role: string; text: string }) => m.text?.trim() && m.text !== '__KAPANIS__')
     .map((m: { role: string; text: string }) =>
       `${m.role === 'user' ? 'Kullanıcı' : 'Koç/Mentor'}: ${m.text}`
     )
     .join('\n\n');
 
+  console.log('[Session NEW] Conversation length:', conversation.length, 'chars, messages:', messages.length);
+
   // Claude ile özet + ödev üret
   let summary = '';
   let homeworkItems: string[] = [];
 
-  try {
-    const { text } = await generateText({
-      model: anthropic('claude-haiku-4-5-20251001'),
-      prompt: `Aşağıdaki koçluk/mentorluk görüşmesini analiz et. Türkçe olarak SADECE JSON formatında yanıtla, başka hiçbir şey yazma:
+  if (conversation.length < 50) {
+    console.warn('[Session NEW] Conversation too short, using fallback');
+    summary = 'Seans tamamlandı.';
+    homeworkItems = [];
+  } else {
+    try {
+      const { text } = await generateText({
+        model: anthropic('claude-haiku-4-5-20251001'),
+        prompt: `Aşağıdaki koçluk/mentorluk görüşmesini analiz et. Türkçe olarak SADECE JSON formatında yanıtla, başka hiçbir şey yazma:
 
 {"summary":"2-3 cümlelik özet","homework":["ödev 1","ödev 2"]}
 
@@ -241,17 +268,19 @@ Kurallar:
 
 Görüşme:
 ${conversation}`,
-      maxOutputTokens: 400,
-    });
+        maxOutputTokens: 400,
+      });
 
-    // Markdown code block varsa temizle
-    const cleaned = text.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
-    const json = JSON.parse(cleaned);
-    summary = json.summary ?? '';
-    homeworkItems = json.homework ?? [];
-  } catch {
-    summary = 'Seans tamamlandı.';
-    homeworkItems = [];
+      console.log('[Session NEW] Claude response:', text.substring(0, 200));
+      const cleaned = text.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+      const json = JSON.parse(cleaned);
+      summary = json.summary ?? 'Seans tamamlandı.';
+      homeworkItems = json.homework ?? [];
+    } catch (err) {
+      console.error('[Session NEW] Claude summary error:', err);
+      summary = 'Seans tamamlandı.';
+      homeworkItems = [];
+    }
   }
 
   const homework = homeworkItems.map((text: string, i: number) => ({
