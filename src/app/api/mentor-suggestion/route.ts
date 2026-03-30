@@ -2,9 +2,6 @@ import { NextResponse, NextRequest } from 'next/server';
 import { Resend } from 'resend';
 import { getCurrentUser } from '@/lib/auth';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@thorius.com.tr';
-
 export async function POST(req: NextRequest) {
   try {
     // Kullanıcı kontrolü
@@ -26,6 +23,10 @@ export async function POST(req: NextRequest) {
     }
 
     const typeLabel = type === 'coach' ? 'AI Koç' : 'AI Mentor';
+
+    // Resend'i lazy initialize et
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@thorius.com.tr';
 
     // Admin'e mail gönder
     await resend.emails.send({
