@@ -18,24 +18,23 @@ const SLIDES = [
   {
     title: (
       <>
-        Testlerini Yorumla,
-        <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"> Geleceğine </span>
-        Yatırım Yap
+        Testlerle
+        <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"> Nerede Olduğunu </span>
+        Gör
       </>
     ),
     description:
-      'AI koç ve mentorların rehberliğinde kişilik, liderlik ve yetkinlik testlerini birlikte yorumla. Güçlü yönlerini keşfet, gelişim alanlarını belirle ve kariyerini bilinçli şekilde inşa et.',
+      'Kişilik, liderlik ve yetkinlik testleriyle potansiyelini ölç. Veriye dayalı içgörülerle güçlü yönlerini keşfet ve kariyer hedeflerine stratejik adımlar at.',
   },
   {
     title: (
       <>
-        Gelişimini
-        <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"> Takip Et, </span>
-        Kontrolü Al
+        Akıllı Panel,
+        <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"> Tam Kontrol </span>
       </>
     ),
     description:
-      'Kullanıcı panelinle geçmiş seanslarına ulaş, ödevlerini takip et ve test sonuçlarını görüntüle. Tüm gelişim yolculuğun tek bir yerde.',
+      'AI destekli dashboard ile tüm gelişim verilerini tek ekranda izle. Seans analizleri, test sonuçları ve kişiselleştirilmiş öneriler parmaklarının ucunda.',
   },
 ];
 

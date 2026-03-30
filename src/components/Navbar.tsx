@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Menu, LogOut, User, LayoutDashboard, BarChart3, X, ChevronDown, Shield } from 'lucide-react';
+import { Menu, LogOut, User, LayoutDashboard, BarChart3, X, ChevronDown, Shield, Mail, Info } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -20,6 +20,11 @@ const NAV_LINKS = [
   { href: '/kocluk-mentorluk', label: 'Koçluk & Mentorluk' },
   { href: '/etik-standartlar', label: 'Etik Standartlar' },
   { href: '/pricing', label: 'Fiyatlandırma' },
+];
+
+const TOP_LINKS = [
+  { href: '/about', label: 'Hakkımızda' },
+  { href: '/contact', label: 'İletişim' },
 ];
 
 export function Navbar() {
@@ -80,124 +85,150 @@ export function Navbar() {
   const planLabel = user?.plan === 'premium' ? 'Premium' : user?.plan === 'essential' ? 'Essential' : user ? 'Free' : null;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-white/95 backdrop-blur-md">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between gap-8">
-
-          {/* Logo */}
-          <Link href="/" className="flex shrink-0 items-center gap-2.5 group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-violet-600 shadow-sm">
-              <svg width="16" height="16" viewBox="0 0 512 512" fill="none">
-                <path d="M130 260 L220 350 L390 170" stroke="white" strokeWidth="60" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-              </svg>
-            </div>
-            <span className="text-lg font-800 tracking-tight text-foreground group-hover:text-primary transition-colors">
-              Thorius
-            </span>
-          </Link>
-
-          {/* Desktop Nav Links */}
-          <nav className="hidden md:flex md:items-center md:gap-1 flex-1">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Auth Section */}
-          <div className="hidden md:flex md:items-center md:gap-2 shrink-0">
-            {!authChecked ? (
-              <div className="h-8 w-32 animate-pulse rounded-lg bg-muted" />
-            ) : user ? (
-              <div className="relative" ref={userMenuRef}>
-                <button
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-2.5 rounded-lg border border-border bg-white px-3 py-2 text-sm font-medium text-foreground shadow-sm transition-all hover:border-primary/30 hover:shadow-md"
+    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md">
+      {/* Üst Satır - About, Contact, Hesabım */}
+      <div className="border-b border-border/50 bg-muted/30">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-9 items-center justify-end gap-1">
+            {/* Sol: About & Contact */}
+            <div className="hidden md:flex md:items-center md:gap-1 mr-auto">
+              {TOP_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
                 >
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-accent/20 text-xs font-bold text-primary">
-                    {user.name.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="max-w-[100px] truncate">{user.name}</span>
-                  {planLabel && (
-                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${planLabel === 'Free' ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary'}`}>
-                      {planLabel}
-                    </span>
-                  )}
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+
+            {/* Sağ: Hesap bilgileri */}
+            <div className="hidden md:flex md:items-center md:gap-3">
+              {!authChecked ? (
+                <div className="h-5 w-24 animate-pulse rounded bg-muted" />
+              ) : user ? (
+                <>
+                  {/* Seans bilgisi */}
                   {sessionInfo && (
-                    <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                      {sessionInfo.sessionLimit - sessionInfo.sessionCount} Kalan/{sessionInfo.sessionLimit}
+                    <span className="text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground">{sessionInfo.sessionLimit - sessionInfo.sessionCount}</span> seans kaldı
                     </span>
                   )}
-                  <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
-                </button>
-
-                {userMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-52 rounded-xl border border-border bg-white p-1.5 shadow-lg">
-                    <div className="px-3 py-2 mb-1">
-                      <p className="text-xs font-semibold text-foreground truncate">{user.name}</p>
-                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                    </div>
-                    <div className="h-px bg-border mb-1" />
-                    <Link href="/profile" onClick={() => setUserMenuOpen(false)}>
-                      <button className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors">
-                        <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
-                        Seanslarım & Testlerim
-                      </button>
+                  <div className="h-3 w-px bg-border" />
+                  {/* Seanslarım */}
+                  <Link href="/profile" className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                    <LayoutDashboard className="h-3 w-3" />
+                    Seanslarım
+                  </Link>
+                  {/* Gelişim Raporu */}
+                  <Link href="/profile/report" className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                    <BarChart3 className="h-3 w-3" />
+                    Gelişim Raporum
+                  </Link>
+                  {/* Admin */}
+                  {user.isAdmin && (
+                    <Link href="/admin" className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors">
+                      <Shield className="h-3 w-3" />
+                      Admin
                     </Link>
-                    <Link href="/profile/report" onClick={() => setUserMenuOpen(false)}>
-                      <button className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors">
-                        <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                        Gelişim Raporum
-                      </button>
-                    </Link>
-                    {user.isAdmin && (
-                      <Link href="/admin" onClick={() => setUserMenuOpen(false)}>
-                        <button className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors">
-                          <Shield className="h-4 w-4 text-primary" />
-                          Admin Panel
-                        </button>
-                      </Link>
-                    )}
-                    <div className="h-px bg-border my-1" />
+                  )}
+                  <div className="h-3 w-px bg-border" />
+                  {/* Hesabım dropdown */}
+                  <div className="relative" ref={userMenuRef}>
                     <button
-                      onClick={handleLogout}
-                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                      onClick={() => setUserMenuOpen(!userMenuOpen)}
+                      className="flex items-center gap-1.5 text-xs font-medium text-foreground hover:text-primary transition-colors"
                     >
-                      <LogOut className="h-4 w-4" />
-                      Çıkış Yap
+                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-accent/20 text-[10px] font-bold text-primary">
+                        {user.name.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="max-w-[80px] truncate">{user.name}</span>
+                      {planLabel && (
+                        <span className={`rounded px-1 py-0.5 text-[9px] font-semibold ${planLabel === 'Free' ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary'}`}>
+                          {planLabel}
+                        </span>
+                      )}
+                      <ChevronDown className={`h-3 w-3 text-muted-foreground transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
                     </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>
-                <Link href="/auth/login">
-                  <Button variant="ghost" size="sm" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-                    Giriş Yap
-                  </Button>
-                </Link>
-                <Link href="/auth/register">
-                  <Button size="sm" className="bg-primary text-white shadow-sm hover:bg-primary/90 font-medium">
-                    Ücretsiz Başla
-                  </Button>
-                </Link>
-              </>
-            )}
-          </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden rounded-lg p-2 text-muted-foreground hover:bg-muted transition-colors"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Menü"
-          >
-            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+                    {userMenuOpen && (
+                      <div className="absolute right-0 top-full mt-1 w-44 rounded-lg border border-border bg-white p-1 shadow-lg">
+                        <div className="px-2.5 py-1.5 mb-0.5">
+                          <p className="text-xs font-semibold text-foreground truncate">{user.name}</p>
+                          <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
+                        </div>
+                        <div className="h-px bg-border mb-0.5" />
+                        <button
+                          onClick={handleLogout}
+                          className="flex w-full items-center gap-2 rounded px-2.5 py-1.5 text-xs text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                          <LogOut className="h-3 w-3" />
+                          Çıkış Yap
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Link href="/auth/login" className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+                    Giriş Yap
+                  </Link>
+                  <Link href="/auth/register">
+                    <Button size="sm" className="h-6 px-2.5 text-xs bg-primary text-white hover:bg-primary/90">
+                      Ücretsiz Başla
+                    </Button>
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Alt Satır - Logo & Ana Menü */}
+      <div className="border-b border-border">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-14 items-center justify-between gap-8">
+
+            {/* Logo */}
+            <Link href="/" className="flex shrink-0 items-center gap-2.5 group">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-violet-600 shadow-sm">
+                <svg width="16" height="16" viewBox="0 0 512 512" fill="none">
+                  <path d="M130 260 L220 350 L390 170" stroke="white" strokeWidth="60" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                </svg>
+              </div>
+              <span className="text-lg font-800 tracking-tight text-foreground group-hover:text-primary transition-colors">
+                Thorius
+              </span>
+            </Link>
+
+            {/* Desktop Nav Links */}
+            <nav className="hidden md:flex md:items-center md:gap-1 flex-1 justify-center">
+              {NAV_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+
+            {/* Sağ boşluk için logo ile simetri */}
+            <div className="hidden md:block w-[120px]" />
+
+            {/* Mobile Menu Button */}
+            <button
+              className="md:hidden rounded-lg p-2 text-muted-foreground hover:bg-muted transition-colors"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Menü"
+            >
+              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -205,11 +236,26 @@ export function Navbar() {
       {isMenuOpen && (
         <div className="border-t border-border bg-white md:hidden">
           <div className="mx-auto max-w-7xl px-4 py-4 space-y-1">
+            {/* Ana Menü */}
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 className="block rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ))}
+
+            <div className="h-px bg-border my-3" />
+
+            {/* Hakkımızda & İletişim */}
+            {TOP_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="block rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {link.label}
@@ -224,14 +270,19 @@ export function Navbar() {
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-accent/20 text-sm font-bold text-primary">
                     {user.name.charAt(0).toUpperCase()}
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-semibold">{user.name}</p>
-                    {planLabel && <p className="text-xs text-primary">{planLabel} Plan</p>}
+                    <div className="flex items-center gap-2">
+                      {planLabel && <span className="text-xs text-primary">{planLabel}</span>}
+                      {sessionInfo && (
+                        <span className="text-xs text-muted-foreground">• {sessionInfo.sessionLimit - sessionInfo.sessionCount} seans</span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <Link href="/profile" onClick={() => setIsMenuOpen(false)}>
                   <button className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-muted">
-                    <LayoutDashboard className="h-4 w-4 text-muted-foreground" /> Seanslarım & Testlerim
+                    <LayoutDashboard className="h-4 w-4 text-muted-foreground" /> Seanslarım
                   </button>
                 </Link>
                 <Link href="/profile/report" onClick={() => setIsMenuOpen(false)}>
