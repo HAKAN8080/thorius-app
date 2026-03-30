@@ -756,7 +756,13 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
       {/* Değerlendirme Teşekkür */}
       {ratingSubmitted && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-md rounded-2xl border border-border bg-card p-6 text-center shadow-xl">
+          <div className="relative mx-4 w-full max-w-md rounded-2xl border border-border bg-card p-6 text-center shadow-xl">
+            <button
+              onClick={() => setRatingSubmitted(false)}
+              className="absolute right-3 top-3 rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
             <div className="mb-4 text-4xl">🙏</div>
             <h3 className="mb-2 text-lg font-semibold">Teşekkürler!</h3>
             <p className="mb-4 text-sm text-muted-foreground">
