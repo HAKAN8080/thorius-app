@@ -1,4 +1,6 @@
 import { MentorCard } from '@/components/MentorCard';
+import { MentorIntroCard } from '@/components/MentorIntroCard';
+import { MentorSuggestionForm } from '@/components/MentorSuggestionForm';
 import { DEFAULT_MENTORS } from '@/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getCurrentUser } from '@/lib/auth';
@@ -36,20 +38,31 @@ export default async function MentorsPage() {
           </TabsList>
 
           <TabsContent value="all">
-            <div className="space-y-10">
+            <div className="space-y-16">
+              {/* Koçlar */}
               <div>
-                <h2 className="mb-6 text-center text-lg font-semibold text-muted-foreground">Koçlar</h2>
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <h2 className="mb-8 text-center text-xl font-bold text-foreground">
+                  <span className="inline-block rounded-full bg-primary/10 px-4 py-1.5 text-primary">
+                    AI Koçlar
+                  </span>
+                </h2>
+                <div className="space-y-6">
                   {coaches.map((mentor) => (
-                    <MentorCard key={mentor.id} mentor={mentor} userPlan={userPlan} />
+                    <MentorIntroCard key={mentor.id} mentor={mentor} userPlan={userPlan} />
                   ))}
                 </div>
               </div>
+
+              {/* Mentorlar */}
               <div>
-                <h2 className="mb-6 text-center text-lg font-semibold text-muted-foreground">Mentorlar</h2>
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <h2 className="mb-8 text-center text-xl font-bold text-foreground">
+                  <span className="inline-block rounded-full bg-secondary/10 px-4 py-1.5 text-secondary">
+                    AI Mentorlar
+                  </span>
+                </h2>
+                <div className="space-y-6">
                   {mentors.map((mentor) => (
-                    <MentorCard key={mentor.id} mentor={mentor} userPlan={userPlan} />
+                    <MentorIntroCard key={mentor.id} mentor={mentor} userPlan={userPlan} />
                   ))}
                 </div>
               </div>
@@ -57,21 +70,24 @@ export default async function MentorsPage() {
           </TabsContent>
 
           <TabsContent value="coaches">
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="space-y-6">
               {coaches.map((mentor) => (
-                <MentorCard key={mentor.id} mentor={mentor} userPlan={userPlan} />
+                <MentorIntroCard key={mentor.id} mentor={mentor} userPlan={userPlan} />
               ))}
             </div>
           </TabsContent>
 
           <TabsContent value="mentors">
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="space-y-6">
               {mentors.map((mentor) => (
-                <MentorCard key={mentor.id} mentor={mentor} userPlan={userPlan} />
+                <MentorIntroCard key={mentor.id} mentor={mentor} userPlan={userPlan} />
               ))}
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Koç / Mentor Öner Formu */}
+        <MentorSuggestionForm isLoggedIn={!!user} userEmail={user?.email} userName={user?.name} />
       </div>
     </div>
   );
