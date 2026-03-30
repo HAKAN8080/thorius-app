@@ -28,7 +28,10 @@ export async function GET() {
   const sessions = allSessions.filter((s) => s.status === 'completed' || s.summary);
 
   if (sessions.length === 0) {
-    return Response.json({ report: null, message: 'Henüz tamamlanmış seans bulunmuyor.' });
+    return Response.json({
+      report: null,
+      message: `Henüz tamamlanmış seans bulunmuyor. (${allSessions.length} aktif seans var, seansları sonlandırarak rapor oluşturabilirsiniz.)`
+    });
   }
 
   const totalHomework = sessions.reduce((acc, s) => acc + (s.homework?.length ?? 0), 0);
@@ -72,7 +75,12 @@ ${sessionsSummary}`,
     report.generatedAt = new Date().toISOString();
 
     return Response.json({ report });
-  } catch {
-    return Response.json({ report: null, message: 'Rapor oluşturulamadı.' }, { status: 500 });
+  } catch (error) {
+    console.error('Report generation error:', error);
+    return Response.json({
+      report: null,
+      message: 'AI rapor oluşturulamadı. Lütfen daha sonra tekrar deneyin.',
+      sessionCount: sessions.length
+    }, { status: 500 });
   }
 }

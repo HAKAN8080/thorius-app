@@ -385,9 +385,12 @@ export default function ReportPage() {
               ) : (
                 <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5 text-center">
                   <Sparkles className="h-8 w-8 mx-auto mb-2 text-amber-500" />
-                  <h3 className="font-semibold">AI Değerlendirmesi Hazırlanıyor</h3>
+                  <h3 className="font-semibold">AI Değerlendirmesi</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Daha fazla seans tamamladığınızda detaylı AI analizi burada görünecek.
+                    {message || 'Seanslarınızı sonlandırarak detaylı AI analizi oluşturabilirsiniz.'}
+                  </p>
+                  <p className="mt-2 text-xs text-muted-foreground/70">
+                    Not: Rapor için seansların "sonlandırılmış" olması gerekir.
                   </p>
                 </div>
               )

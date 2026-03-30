@@ -129,7 +129,7 @@ export function MentorSuggestionForm({ isLoggedIn, userEmail, userName }: Mentor
               type="text"
               value={field}
               onChange={(e) => setField(e.target.value)}
-              placeholder="Örn: Satış, Finans, Hukuk, İnsan Kaynakları, Sağlık..."
+              placeholder="Örn: Satış, Finans, İnsan Kaynakları..."
               className="w-full rounded-lg border border-border bg-white px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               disabled={!isLoggedIn}
             />
