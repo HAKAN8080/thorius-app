@@ -470,15 +470,6 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
 
       {/* ── Messages ────────────────────────────────────────────────── */}
       <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-y-auto bg-[#f5f0ff]">
-
-        {/* Konuşan avatar — ses çalarken kayarak açılır */}
-        <SpeakingAvatar
-          mentor={mentor}
-          isPlaying={!!playingId}
-          audioTime={audioTime}
-          wordTimings={playingId ? (wordTimingsRef.current.get(playingId) ?? []) : []}
-        />
-
         <div className="px-4 py-5 space-y-4 max-w-3xl mx-auto">
           <div className="space-y-4">
             {messages.length === 0 && (
@@ -581,6 +572,16 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
             <div ref={scrollRef} />
           </div>
         </div>
+
+      {/* ── Konuşma Animasyonu (Input üstünde sabit) ─────────────────── */}
+      <div className="shrink-0 bg-[#f5f0ff] border-t border-violet-100">
+        <SpeakingAvatar
+          mentor={mentor}
+          isPlaying={!!playingId}
+          audioTime={audioTime}
+          wordTimings={playingId ? (wordTimingsRef.current.get(playingId) ?? []) : []}
+        />
+      </div>
 
       {/* ── Input ───────────────────────────────────────────────────── */}
       <div className="shrink-0 border-t border-violet-100 bg-white px-4 pb-4 pt-3">
