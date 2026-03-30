@@ -71,34 +71,34 @@ export function SpeakingAvatar({ mentor, isPlaying, audioTime, wordTimings }: Sp
   return (
     <div className={cn(
       'overflow-hidden transition-all duration-300 ease-in-out',
-      isPlaying ? 'max-h-16 opacity-100' : 'max-h-0 opacity-0'
+      isPlaying ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'
     )}>
-      <div className="mx-auto flex items-center justify-center gap-3 py-2">
-        {/* Minimal avatar */}
-        <div className="h-8 w-8 rounded-full overflow-hidden border border-violet-200 shadow-sm">
+      <div className="mx-auto flex items-center justify-center gap-4 py-3">
+        {/* Avatar - büyütülmüş */}
+        <div className="h-12 w-12 rounded-full overflow-hidden border-2 border-violet-300 shadow-md ring-2 ring-violet-100">
           {isImageUrl(mentor.avatar) ? (
-            <Image src={mentor.avatar} alt={mentor.name} width={32} height={32} className="object-cover" />
+            <Image src={mentor.avatar} alt={mentor.name} width={48} height={48} className="object-cover w-full h-full" />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600 text-sm">
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600 text-lg">
               {mentor.avatar}
             </div>
           )}
         </div>
 
-        {/* Minimal ses çubukları */}
-        <div className="flex items-center gap-[2px]" style={{ height: '24px' }}>
+        {/* Ses çubukları */}
+        <div className="flex items-center gap-[3px]" style={{ height: '28px' }}>
           {barHeights.map((h, i) => (
             <div
               key={i}
-              className="w-[2px] rounded-full bg-violet-500/70 transition-none"
+              className="w-[3px] rounded-full bg-violet-500/80 transition-none"
               style={{ height: `${h}px` }}
             />
           ))}
         </div>
 
-        {/* Tek kelime gösterimi */}
+        {/* Kelime gösterimi */}
         {currentWord && (
-          <span className="text-xs text-violet-600 font-medium min-w-[60px]">{currentWord}</span>
+          <span className="text-sm text-violet-600 font-medium min-w-[70px]">{currentWord}</span>
         )}
       </div>
     </div>
