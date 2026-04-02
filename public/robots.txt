@@ -1,0 +1,14 @@
+# Thorius AI Coaching Platform
+# https://coaching.thorius.com.tr
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://coaching.thorius.com.tr/sitemap.xml
+
+# Disallow admin and API routes
+Disallow: /api/
+Disallow: /admin/
+Disallow: /profile/
+Disallow: /chat/
