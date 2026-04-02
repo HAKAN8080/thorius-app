@@ -87,7 +87,8 @@ export default function PrivacyPage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">8. Iletisim</h2>
             <p className="text-gray-700">
               Gizlilik ile ilgili sorulariniz icin bizimle iletisime gecebilirsiniz:<br />
-              E-posta: info@thorius.com.tr
+              <strong>E-posta:</strong> info@thorius.com.tr<br />
+              <strong>Adres:</strong> Sandalci Mecit Cd. No 9/1 Ortakoy / Besiktas - Istanbul
             </p>
           </section>
         </div>

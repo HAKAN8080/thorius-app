@@ -101,7 +101,7 @@ export default function KVKKPage() {
             </p>
             <p className="text-gray-700">
               <strong>E-posta:</strong> kvkk@thorius.com.tr<br />
-              <strong>Adres:</strong> [Sirket Adresi]
+              <strong>Adres:</strong> Sandalci Mecit Cd. No 9/1 Ortakoy / Besiktas - Istanbul
             </p>
           </section>
 
