@@ -160,12 +160,8 @@ export async function POST(req: NextRequest) {
 
   const plan = user.plan ?? 'free';
 
-  // Free plan: TTS yok
-  if (plan === 'free') {
-    return NextResponse.json({ error: 'TTS_NOT_AVAILABLE', plan }, { status: 403 });
-  }
-
-  // Karma ses (starter / pro): sadece 1., 2. ve 10. mesajda TTS
+  // Karma ses (free / starter / pro): sadece 1., 2. ve 10. mesajda TTS
+  // Full TTS (premium / kurumsal): her mesajda TTS
   const isFullTTS = FULL_TTS_PLANS.includes(plan as never);
   if (!isFullTTS && messageIndex != null && !KARMA_TTS_MESSAGES.has(messageIndex)) {
     return NextResponse.json({ error: 'TTS_KARMA_SKIP', messageIndex }, { status: 403 });
