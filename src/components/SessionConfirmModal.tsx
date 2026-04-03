@@ -1,6 +1,8 @@
 'use client';
 
-import { AlertTriangle, X } from 'lucide-react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { AlertTriangle, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface SessionConfirmModalProps {
@@ -10,6 +12,7 @@ interface SessionConfirmModalProps {
   title?: string;
   description?: string;
   type?: 'test' | 'session';
+  redirectPath?: string;
 }
 
 export function SessionConfirmModal({
@@ -19,8 +22,36 @@ export function SessionConfirmModal({
   title,
   description,
   type = 'session',
+  redirectPath,
 }: SessionConfirmModalProps) {
+  const router = useRouter();
+  const [checking, setChecking] = useState(false);
+
   if (!isOpen) return null;
+
+  async function handleConfirm() {
+    setChecking(true);
+    try {
+      // Giriş kontrolü yap
+      const res = await fetch('/api/auth/me');
+      const data = await res.json();
+
+      if (!data.user) {
+        // Giriş yapılmamış - login sayfasına yönlendir
+        const returnUrl = redirectPath || window.location.pathname;
+        router.push(`/auth/login?redirect=${encodeURIComponent(returnUrl)}`);
+        return;
+      }
+
+      // Giriş yapılmış - devam et
+      onConfirm();
+    } catch {
+      // Hata durumunda da login'e yönlendir
+      router.push('/auth/login');
+    } finally {
+      setChecking(false);
+    }
+  }
 
   const defaultTitle = type === 'test'
     ? 'Test Başlatılacak'
@@ -70,14 +101,23 @@ export function SessionConfirmModal({
             variant="outline"
             className="flex-1"
             onClick={onCancel}
+            disabled={checking}
           >
             Vazgeç
           </Button>
           <Button
             className="flex-1 bg-gradient-to-r from-primary to-secondary"
-            onClick={onConfirm}
+            onClick={handleConfirm}
+            disabled={checking}
           >
-            Onaylıyorum, Başla
+            {checking ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Kontrol ediliyor...
+              </>
+            ) : (
+              'Onaylıyorum, Başla'
+            )}
           </Button>
         </div>
       </div>

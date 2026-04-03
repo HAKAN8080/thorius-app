@@ -1,116 +1,204 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Sparkles, Zap, Crown, Building2, Check, ArrowRight } from 'lucide-react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import {
+  Check, X, Sparkles, Zap, Crown, Building2,
+  MessageSquare, Volume2, VolumeX, Users, ArrowRight,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-interface Package {
-  id: string;
+/* ── WooCommerce ödeme URL'leri ────────────────────────────────────────── */
+const WC_URLS: Record<string, string> = {
+  starter:  process.env.NEXT_PUBLIC_WC_STARTER_URL  ?? '',
+  premium:  process.env.NEXT_PUBLIC_WC_PREMIUM_URL  ?? '',
+  kurumsal: process.env.NEXT_PUBLIC_WC_KURUMSAL_URL ?? '',
+};
+
+/* ── Plan tanımları ────────────────────────────────────────────────────── */
+type PlanId = 'free' | 'starter' | 'premium' | 'kurumsal';
+
+interface Plan {
+  id: PlanId;
   name: string;
   price: string;
+  badge: string | null;
   description: string;
-  color: string;
-  bgColor: string;
-  borderColor: string;
-  gradientFrom: string;
-  gradientTo: string;
-  Icon: React.ElementType;
+  icon: React.ElementType;
+  gradient: string;
+  border: string;
+  bg: string;
+  sessions: number;
+  ttsMode: 'none' | 'karma' | 'full';
+  mentors: 'secili' | 'tum';
   features: string[];
-  highlight?: boolean;
+  notFeatures: string[];
+  cta: string;
 }
 
-const PACKAGES: Package[] = [
+const PLANS: Plan[] = [
   {
     id: 'free',
     name: 'Ücretsiz',
-    price: 'Ücretsiz',
-    description: 'AI koçluğu risksiz dene, karar sonra ver.',
-    color: 'text-slate-700',
-    bgColor: 'bg-slate-50',
-    borderColor: 'border-slate-200',
-    gradientFrom: 'from-slate-500',
-    gradientTo: 'to-slate-700',
-    Icon: Sparkles,
+    price: '0',
+    badge: 'Açılışa Özel',
+    description: 'Thorius\'u keşfetmek için tek seans dene',
+    icon: Sparkles,
+    gradient: 'from-slate-500 to-slate-700',
+    border: 'border-slate-200',
+    bg: 'bg-slate-50',
+    sessions: 1,
+    ttsMode: 'karma',
+    mentors: 'secili',
     features: [
-      '1 koçluk seansı',
+      '1 koçluk / mentorluk seansı',
+      'Seans başına 10 soru',
+      'Seçili AI koç ve mentorlar',
       'Karma ses — koç kritik anlarda konuşur',
-      'Seçili koç & mentorlar',
       'Seans özeti ve ödev',
     ],
+    notFeatures: ['Premium koç ve mentorlar'],
+    cta: 'Ücretsiz Başla',
   },
   {
     id: 'starter',
     name: 'Starter',
-    price: '₺1.990',
-    description: 'Düzenli gelişim alışkanlığı oluştur.',
-    color: 'text-blue-700',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
-    gradientFrom: 'from-blue-500',
-    gradientTo: 'to-blue-700',
-    Icon: Zap,
+    price: '1.990',
+    badge: null,
+    description: '10 seanslık paket — bitince tekrar al',
+    icon: Zap,
+    gradient: 'from-blue-500 to-blue-700',
+    border: 'border-blue-200',
+    bg: 'bg-blue-50/40',
+    sessions: 10,
+    ttsMode: 'karma',
+    mentors: 'secili',
     features: [
       '10 seans paketi',
-      'Karma ses — kritik anlarda sesli',
-      'Seçili koç & mentorlar',
-      'Gelişim raporları',
+      'Seans başına 10 soru',
+      'Seçili AI koç ve mentorlar',
+      'Karma ses — koç kritik anlarda konuşur',
       'Seans özetleri ve ödevler',
+      'Gelişim raporları',
     ],
+    notFeatures: ['Premium koç ve mentorlar', 'Tam sesli deneyim'],
+    cta: 'Starter\'a Geç',
   },
   {
     id: 'premium',
     name: 'Premium',
-    price: '₺14.900',
-    description: 'Tam sesli koçluk — gerçek dönüşüm için.',
-    color: 'text-amber-700',
-    bgColor: 'bg-amber-50',
-    borderColor: 'border-amber-300',
-    gradientFrom: 'from-amber-500',
-    gradientTo: 'to-orange-600',
-    Icon: Crown,
-    highlight: true,
+    price: '14.900',
+    badge: 'En Popüler',
+    description: '30 seanslık paket — tam sesli koçluk deneyimi',
+    icon: Crown,
+    gradient: 'from-amber-500 to-orange-600',
+    border: 'border-amber-300',
+    bg: 'bg-amber-50/40',
+    sessions: 30,
+    ttsMode: 'full',
+    mentors: 'tum',
     features: [
       '30 seans paketi',
-      'FULL sesli — her yanıt sesli',
-      'TÜM koç & mentorlar',
-      'Premium mentorlar dahil',
-      'Kişisel gelişim planı',
-      'Haftalık raporlar',
+      'Seans başına 10 soru',
+      'TÜM koç ve mentorlar',
+      'Premium koç ve mentorlar dahil',
+      'FULL Sesli — her yanıt seslendirilir',
+      'Seans özetleri ve ödevler',
+      'Gelişim raporları',
     ],
+    notFeatures: [],
+    cta: 'Premium\'a Geç',
   },
   {
     id: 'kurumsal',
     name: 'Kurumsal',
-    price: '₺49.000',
-    description: 'Ekibiniz için profesyonel koçluk çözümü.',
-    color: 'text-emerald-700',
-    bgColor: 'bg-emerald-50',
-    borderColor: 'border-emerald-200',
-    gradientFrom: 'from-emerald-600',
-    gradientTo: 'to-teal-700',
-    Icon: Building2,
+    price: '49.000',
+    badge: null,
+    description: '100 seanslık paket — ekibiniz için kurumsal koçluk',
+    icon: Building2,
+    gradient: 'from-emerald-600 to-teal-700',
+    border: 'border-emerald-200',
+    bg: 'bg-emerald-50/40',
+    sessions: 100,
+    ttsMode: 'full',
+    mentors: 'tum',
     features: [
       '100 seans paketi',
-      'FULL sesli deneyim',
-      'TÜM koç & mentorlar',
-      'Yönetici paneli',
-      'Ekip gelişim raporları',
+      'Seans başına 10 soru',
+      'TÜM koç ve mentorlar',
+      'Premium koç ve mentorlar dahil',
+      'FULL Sesli — her yanıt seslendirilir',
+      'Seans özetleri ve ödevler',
+      'Gelişim raporları',
       'Öncelikli destek',
     ],
+    notFeatures: [],
+    cta: 'Teklif Al',
   },
 ];
 
+/* ── TTS rozeti ─────────────────────────────────────────────────────────── */
+function TTSBadge({ mode }: { mode: Plan['ttsMode'] }) {
+  if (mode === 'full') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+        <Volume2 className="h-3 w-3" /> FULL Sesli
+      </span>
+    );
+  }
+  if (mode === 'karma') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+        <Volume2 className="h-3 w-3" /> Karma Ses
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">
+      <VolumeX className="h-3 w-3" /> Sessiz
+    </span>
+  );
+}
+
 export function PackageCarousel() {
+  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState<string | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % PACKAGES.length);
-    }, 3000);
-
+      setCurrentIndex((prev) => (prev + 1) % PLANS.length);
+    }, 4000);
     return () => clearInterval(interval);
   }, []);
+
+  async function handleSelectPlan(planId: PlanId) {
+    if (planId === 'free') {
+      router.push('/mentors');
+      return;
+    }
+    if (planId === 'kurumsal') {
+      window.location.href = 'mailto:info@thorius.com.tr?subject=Kurumsal Plan Talebi';
+      return;
+    }
+
+    setLoading(planId);
+
+    const meRes = await fetch('/api/auth/me');
+    if (!meRes.ok) {
+      router.push('/auth/login?redirect=/pricing');
+      return;
+    }
+
+    const wcUrl = WC_URLS[planId];
+    if (wcUrl) {
+      window.location.href = wcUrl;
+      return;
+    }
+
+    router.push('/pricing');
+    setLoading(null);
+  }
 
   return (
     <section className="py-16 bg-gradient-to-b from-muted/20 to-white overflow-hidden">
@@ -118,16 +206,16 @@ export function PackageCarousel() {
         <div className="mb-10 text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm text-primary">
             <Sparkles className="h-3.5 w-3.5" />
-            Paketleri Keşfet
+            Şeffaf Fiyatlandırma
           </div>
           <h2 className="mb-3 text-3xl font-bold tracking-tight">
-            Size Uygun{' '}
+            Gelişiminize{' '}
             <span className="bg-gradient-to-r from-violet-600 to-amber-500 bg-clip-text text-transparent">
-              Paketi Seçin
+              yatırım yapın
             </span>
           </h2>
           <p className="mx-auto max-w-2xl text-muted-foreground">
-            Her seviyeye uygun paketlerle gelişim yolculuğunuza başlayın.
+            İlk seansı ücretsiz dene. Paket biter, yenisi alınır — abonelik yok.
           </p>
         </div>
 
@@ -137,66 +225,105 @@ export function PackageCarousel() {
             className="flex transition-transform duration-500 ease-out"
             style={{ transform: `translateX(-${currentIndex * 100}%)` }}
           >
-            {PACKAGES.map((pkg) => {
-              const Icon = pkg.Icon;
+            {PLANS.map((plan) => {
+              const Icon = plan.icon;
+              const isLoading = loading === plan.id;
+              const isHighlighted = plan.id === 'premium';
+
               return (
-                <div key={pkg.id} className="w-full flex-shrink-0 px-4">
+                <div key={plan.id} className="w-full flex-shrink-0 px-4">
                   <div
-                    className={`mx-auto max-w-lg rounded-2xl border-2 ${pkg.borderColor} ${pkg.bgColor} p-8 ${
-                      pkg.highlight ? 'ring-2 ring-amber-400/50 shadow-xl' : 'shadow-lg'
+                    className={`relative mx-auto max-w-md flex flex-col rounded-2xl border ${plan.border} ${plan.bg} p-6 transition-all duration-200 ${
+                      isHighlighted
+                        ? 'shadow-lg ring-2 ring-amber-400/40'
+                        : 'shadow-md'
                     }`}
                   >
-                    {/* Badge */}
-                    {pkg.highlight && (
-                      <div className="mb-4 inline-flex items-center rounded-full bg-gradient-to-r from-amber-500 to-orange-600 px-3 py-1 text-xs font-semibold text-white">
-                        En Popüler
+                    {plan.badge && (
+                      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                        <span className={`rounded-full bg-gradient-to-r ${plan.gradient} px-3 py-1 text-xs font-semibold text-white shadow`}>
+                          {plan.badge}
+                        </span>
                       </div>
                     )}
 
-                    {/* Header */}
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className={`flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br ${pkg.gradientFrom} ${pkg.gradientTo}`}>
-                        <Icon className="h-7 w-7 text-white" />
+                    {/* İkon + İsim */}
+                    <div className="mb-4">
+                      <div className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${plan.gradient}`}>
+                        <Icon className="h-5 w-5 text-white" />
                       </div>
-                      <div>
-                        <h3 className={`text-2xl font-bold ${pkg.color}`}>{pkg.name}</h3>
-                        <p className="text-sm text-muted-foreground">{pkg.description}</p>
-                      </div>
+                      <h3 className="text-xl font-bold">{plan.name}</h3>
+                      <p className="mt-1 text-xs leading-snug text-muted-foreground">{plan.description}</p>
                     </div>
 
-                    {/* Price */}
-                    <div className="mb-6">
-                      <span className="text-4xl font-bold text-foreground">{pkg.price}</span>
-                      {pkg.price !== 'Ücretsiz' && (
-                        <span className="text-muted-foreground ml-1">/paket</span>
+                    {/* Fiyat */}
+                    <div className="mb-4">
+                      {plan.price === '0' ? (
+                        <span className="text-3xl font-bold">Ücretsiz</span>
+                      ) : (
+                        <>
+                          <div className="flex items-end gap-1">
+                            <span className="text-3xl font-bold">
+                              ₺{Math.round(parseInt(plan.price.replace('.', '')) / plan.sessions)}
+                            </span>
+                            <span className="mb-0.5 text-sm text-muted-foreground">/ seans</span>
+                          </div>
+                          <div className="mt-1 text-sm text-muted-foreground">
+                            ₺{plan.price} paket
+                          </div>
+                        </>
                       )}
                     </div>
 
-                    {/* Features */}
-                    <ul className="space-y-3 mb-6">
-                      {pkg.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-center gap-3">
-                          <div className={`flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br ${pkg.gradientFrom} ${pkg.gradientTo}`}>
-                            <Check className="h-3 w-3 text-white" />
-                          </div>
-                          <span className="text-sm text-foreground">{feature}</span>
+                    {/* Seans + Mentorlar + TTS */}
+                    <div className="mb-4 flex flex-col gap-2">
+                      <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-background/50 px-3 py-2">
+                        <MessageSquare className="h-3.5 w-3.5 shrink-0 text-primary" />
+                        <span className="text-sm font-semibold">{plan.sessions}</span>
+                        <span className="text-xs text-muted-foreground">seans</span>
+                      </div>
+                      <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-background/50 px-3 py-2">
+                        <Users className="h-3.5 w-3.5 shrink-0 text-primary" />
+                        <span className="text-xs font-medium">
+                          {plan.mentors === 'tum' ? 'Tüm koç & mentorlar' : 'Seçili koç & mentorlar'}
+                        </span>
+                      </div>
+                      <div className="px-1">
+                        <TTSBadge mode={plan.ttsMode} />
+                      </div>
+                    </div>
+
+                    {/* Özellikler */}
+                    <ul className="mb-5 flex-1 space-y-1.5">
+                      {plan.features.map((f) => (
+                        <li key={f} className="flex items-start gap-2 text-xs">
+                          <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-green-500" />
+                          <span>{f}</span>
+                        </li>
+                      ))}
+                      {plan.notFeatures.map((f) => (
+                        <li key={f} className="flex items-start gap-2 text-xs text-muted-foreground/50">
+                          <X className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                          <span className="line-through">{f}</span>
                         </li>
                       ))}
                     </ul>
 
-                    {/* CTA Button */}
-                    <Link href="/pricing">
-                      <Button
-                        className={`w-full gap-2 ${
-                          pkg.highlight
-                            ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700'
-                            : 'bg-primary text-white hover:bg-primary/90'
-                        }`}
-                      >
-                        {pkg.id === 'free' ? 'Ücretsiz Başla' : 'Planı Seç'}
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </Link>
+                    {/* CTA */}
+                    <Button
+                      onClick={() => handleSelectPlan(plan.id)}
+                      disabled={isLoading}
+                      variant={isHighlighted ? 'default' : 'outline'}
+                      className={`w-full gap-2 ${
+                        isHighlighted
+                          ? `bg-gradient-to-r ${plan.gradient} text-white hover:opacity-90 border-0`
+                          : ''
+                      }`}
+                      size="sm"
+                    >
+                      {isLoading ? 'İşleniyor...' : plan.cta}
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               );
@@ -205,13 +332,14 @@ export function PackageCarousel() {
 
           {/* Dots Indicator */}
           <div className="flex justify-center gap-2 mt-8">
-            {PACKAGES.map((pkg, idx) => (
-              <div
+            {PLANS.map((pkg, idx) => (
+              <button
                 key={pkg.id}
+                onClick={() => setCurrentIndex(idx)}
                 className={`h-2 rounded-full transition-all duration-300 ${
                   idx === currentIndex
                     ? 'w-8 bg-primary'
-                    : 'w-2 bg-gray-300'
+                    : 'w-2 bg-gray-300 hover:bg-gray-400'
                 }`}
               />
             ))}
