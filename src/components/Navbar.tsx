@@ -17,6 +17,7 @@ interface AuthUser {
 const NAV_LINKS = [
   { href: '/', label: 'Ana Sayfa' },
   { href: '/mentors', label: 'Koç & Mentorlar' },
+  { href: '/tests', label: 'Testler' },
   { href: '/kocluk-mentorluk', label: 'Koçluk & Mentorluk' },
   { href: '/etik-standartlar', label: 'Etik Standartlar' },
   { href: '/pricing', label: 'Fiyatlandırma' },
