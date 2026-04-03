@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Menu, LogOut, User, LayoutDashboard, BarChart3, X, ChevronDown, Shield, Mail, Info } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
@@ -195,11 +196,13 @@ export function Navbar() {
 
             {/* Logo */}
             <Link href="/" className="flex shrink-0 items-center gap-2.5 group">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-violet-600 shadow-sm">
-                <svg width="16" height="16" viewBox="0 0 512 512" fill="none">
-                  <path d="M130 260 L220 350 L390 170" stroke="white" strokeWidth="60" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                </svg>
-              </div>
+              <Image
+                src="/thorius-logo.png"
+                alt="Thorius"
+                width={32}
+                height={32}
+                className="h-8 w-auto"
+              />
               <span className="text-lg font-800 tracking-tight text-foreground group-hover:text-primary transition-colors">
                 Thorius
               </span>

@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Sparkles, Zap, Crown, Building2, Check } from 'lucide-react';
+import { Sparkles, Zap, Crown, Building2, Check, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 interface Package {
   id: string;
@@ -32,7 +34,7 @@ const PACKAGES: Package[] = [
     Icon: Sparkles,
     features: [
       '1 koçluk seansı',
-      'Gerçek seans deneyimi',
+      'Karma ses — koç kritik anlarda konuşur',
       'Seçili koç & mentorlar',
       'Seans özeti ve ödev',
     ],
@@ -59,7 +61,7 @@ const PACKAGES: Package[] = [
   {
     id: 'premium',
     name: 'Premium',
-    price: '₺19.000',
+    price: '₺14.900',
     description: 'Tam sesli koçluk — gerçek dönüşüm için.',
     color: 'text-amber-700',
     bgColor: 'bg-amber-50',
@@ -80,7 +82,7 @@ const PACKAGES: Package[] = [
   {
     id: 'kurumsal',
     name: 'Kurumsal',
-    price: '₺59.000',
+    price: '₺49.000',
     description: 'Ekibiniz için profesyonel koçluk çözümü.',
     color: 'text-emerald-700',
     bgColor: 'bg-emerald-50',
@@ -171,7 +173,7 @@ export function PackageCarousel() {
                     </div>
 
                     {/* Features */}
-                    <ul className="space-y-3">
+                    <ul className="space-y-3 mb-6">
                       {pkg.features.map((feature, idx) => (
                         <li key={idx} className="flex items-center gap-3">
                           <div className={`flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br ${pkg.gradientFrom} ${pkg.gradientTo}`}>
@@ -181,6 +183,20 @@ export function PackageCarousel() {
                         </li>
                       ))}
                     </ul>
+
+                    {/* CTA Button */}
+                    <Link href="/pricing">
+                      <Button
+                        className={`w-full gap-2 ${
+                          pkg.highlight
+                            ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700'
+                            : 'bg-primary text-white hover:bg-primary/90'
+                        }`}
+                      >
+                        {pkg.id === 'free' ? 'Ücretsiz Başla' : 'Planı Seç'}
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               );

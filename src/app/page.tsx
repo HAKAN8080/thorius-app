@@ -412,9 +412,13 @@ export default async function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
-                <span className="text-xs font-bold text-white">T</span>
-              </div>
+              <Image
+                src="/thorius-logo.png"
+                alt="Thorius"
+                width={28}
+                height={28}
+                className="h-7 w-auto"
+              />
               <span className="font-bold text-foreground">Thorius</span>
             </div>
             <p className="text-xs text-muted-foreground">

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 export function Footer() {
   return (
@@ -7,6 +8,13 @@ export function Footer() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           {/* Logo & Copyright */}
           <div className="flex items-center gap-2">
+            <Image
+              src="/thorius-logo.png"
+              alt="Thorius"
+              width={24}
+              height={24}
+              className="h-6 w-auto"
+            />
             <span className="text-lg font-semibold text-primary">Thorius</span>
             <span className="text-sm text-gray-500">
               &copy; {new Date().getFullYear()} Tüm hakları saklıdır.
