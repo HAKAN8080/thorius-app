@@ -46,22 +46,23 @@ const PLANS: Plan[] = [
     name: 'Ücretsiz',
     price: '0',
     priceUsd: '0',
-    badge: null,
+    badge: 'Açılışa Özel',
     description: 'Thorius\'u keşfetmek için tek seans dene',
     icon: Sparkles,
     gradient: 'from-slate-500 to-slate-700',
     border: 'border-slate-200',
     bg: 'bg-slate-50',
     sessions: 1,
-    ttsMode: 'none',
+    ttsMode: 'karma',
     mentors: 'secili',
     features: [
       '1 koçluk / mentorluk seansı',
       'Seans başına 10 soru',
       'Seçili AI koç ve mentorlar',
+      'Karma ses — koç kritik anlarda konuşur',
       'Seans özeti ve ödev',
     ],
-    notFeatures: ['Sesli yanıt', 'Premium koç ve mentorlar'],
+    notFeatures: ['Premium koç ve mentorlar'],
     cta: 'Ücretsiz Başla',
   },
   {
@@ -92,8 +93,8 @@ const PLANS: Plan[] = [
   {
     id: 'premium',
     name: 'Premium',
-    price: '19.000',
-    priceUsd: '250',
+    price: '14.900',
+    priceUsd: '200',
     badge: 'En Popüler',
     description: '30 seanslık paket — tam sesli koçluk deneyimi',
     icon: Crown,
@@ -118,8 +119,8 @@ const PLANS: Plan[] = [
   {
     id: 'kurumsal',
     name: 'Kurumsal',
-    price: '59.000',
-    priceUsd: '750',
+    price: '49.000',
+    priceUsd: '650',
     badge: null,
     description: '100 seanslık paket — ekibiniz için kurumsal koçluk',
     icon: Building2,
@@ -279,14 +280,21 @@ export default function PricingPage() {
 
                 {/* Fiyat */}
                 <div className="mb-4">
-                  <div className="flex items-end gap-1">
-                    <span className="text-3xl font-bold">
-                      {plan.price === '0' ? 'Ücretsiz' : `₺${plan.price}`}
-                    </span>
-                    {plan.price !== '0' && (
-                      <span className="mb-0.5 text-sm text-muted-foreground">/paket</span>
-                    )}
-                  </div>
+                  {plan.price === '0' ? (
+                    <span className="text-3xl font-bold">Ücretsiz</span>
+                  ) : (
+                    <>
+                      <div className="flex items-end gap-1">
+                        <span className="text-3xl font-bold">
+                          ₺{Math.round(parseInt(plan.price.replace('.', '')) / plan.sessions)}
+                        </span>
+                        <span className="mb-0.5 text-sm text-muted-foreground">/ seans</span>
+                      </div>
+                      <div className="mt-1 text-sm text-muted-foreground">
+                        ₺{plan.price} paket
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Seans + Mentorlar + TTS */}
@@ -414,7 +422,7 @@ export default function PricingPage() {
               <div>
                 <p className="text-sm font-medium">Sessiz</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  Tüm yanıtlar yalnızca yazılı. Ücretsiz planda geçerli.
+                  Tüm yanıtlar yalnızca yazılı. Ses desteği yok.
                 </p>
               </div>
             </div>
@@ -423,7 +431,7 @@ export default function PricingPage() {
               <div>
                 <p className="text-sm font-medium">Karma Ses</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  Koç, açılış ve kapanış mesajlarında sesli konuşur. Diğer sorular yazılı yanıt alır.
+                  Koç, kritik anlarda sesli konuşur — açılış, kapanış ve önemli mesajlar. Ücretsiz ve Starter'da geçerli.
                 </p>
               </div>
             </div>
@@ -466,11 +474,11 @@ export default function PricingPage() {
                     { label: 'Soru / Seans',      vals: ['10', '10', '10', '10'] },
                     { label: 'Koç & Mentor',      vals: ['Seçili', 'Seçili', 'Tümü', 'Tümü'] },
                     { label: 'Premium Koç',       vals: ['✗', '✗', '✓', '✓'] },
-                    { label: 'Ses Modeli',        vals: ['Sessiz', 'Karma', 'FULL', 'FULL'] },
+                    { label: 'Ses Modeli',        vals: ['Karma', 'Karma', 'FULL', 'FULL'] },
                     { label: 'Seans Özetleri',    vals: ['✓', '✓', '✓', '✓'] },
                     { label: 'Gelişim Raporları', vals: ['✓', '✓', '✓', '✓'] },
                     { label: 'Öncelikli Destek',  vals: ['✗', '✗', '✗', '✓'] },
-                    { label: 'Paket Fiyatı',      vals: ['Ücretsiz', '₺1.990', '₺19.000', '₺59.000'] },
+                    { label: 'Paket Fiyatı',      vals: ['Ücretsiz', '₺1.990', '₺14.900', '₺49.000'] },
                   ].map((row) => (
                     <tr key={row.label} className="transition-colors hover:bg-muted/10">
                       <td className="p-4 font-medium text-muted-foreground">{row.label}</td>
