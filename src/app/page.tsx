@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { MentorCard } from '@/components/MentorCard';
 import { DEFAULT_MENTORS } from '@/lib/types';
-import { Sparkles, Zap, Target, ShieldCheck, ArrowRight, CheckCircle, Star } from 'lucide-react';
+import { Sparkles, Zap, Target, ShieldCheck, ArrowRight, CheckCircle, Star, Brain, Crown, Timer, ClipboardList, Clock } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FreeTrialBanner } from '@/components/FreeTrialBanner';
@@ -156,8 +156,100 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── Koçlar ──────────────────────────────────────────────────── */}
+      {/* ── Testler ─────────────────────────────────────────────────── */}
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mb-12 flex flex-col items-center text-center">
+          <span className="mb-3 inline-block rounded-full border border-amber-500/25 bg-amber-500/8 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-amber-600">
+            Akademik Tabanlı Testler
+          </span>
+          <h2 className="mb-3 text-3xl font-bold text-foreground">Kendinizi Tanıyın, Potansiyelinizi Keşfedin</h2>
+          <p className="max-w-2xl text-muted-foreground">
+            Costa & McCrae, Bar-On, Bass & Avolio gibi uluslararası akademik çerçevelere dayanan,
+            güvenilirliği ve tutarlılığı kanıtlanmış envanter testleri ile kendinizi objektif olarak değerlendirin.
+          </p>
+        </div>
+
+        {/* Öne Çıkan Testler */}
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+          {[
+            {
+              id: 'personality',
+              title: 'Big Five Kişilik Envanteri',
+              description: 'Beş Faktör Kişilik Modeli ile dışadönüklük, uyumluluk, sorumluluk, duygusal denge ve açıklık boyutlarınızı keşfedin.',
+              icon: Brain,
+              duration: '15-20 dk',
+              questions: 50,
+              color: 'from-purple-500 to-indigo-600',
+              academic: 'Costa & McCrae',
+            },
+            {
+              id: 'leadership',
+              title: 'Liderlik Tarzı Envanteri',
+              description: 'Dönüşümcü, İşlemci, Hizmetkar veya Vizyoner — liderlik yaklaşımınızı ve güçlü yönlerinizi belirleyin.',
+              icon: Crown,
+              duration: '10-15 dk',
+              questions: 48,
+              color: 'from-violet-500 to-purple-600',
+              academic: 'Bass & Avolio',
+              badge: 'Popüler',
+            },
+            {
+              id: 'procrastination',
+              title: 'Erteleme Profili Testi',
+              description: 'Erteleme alışkanlıklarınızı anlayın, tetikleyicilerinizi keşfedin ve kişiselleştirilmiş aksiyon planı alın.',
+              icon: Timer,
+              duration: '8-10 dk',
+              questions: 28,
+              color: 'from-red-500 to-orange-500',
+              academic: 'Piers Steel',
+            },
+          ].map((test) => (
+            <Link key={test.id} href={`/tests/${test.id}`}>
+              <div className="group relative h-full overflow-hidden rounded-2xl border border-border bg-card p-5 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5">
+                {test.badge && (
+                  <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                    {test.badge}
+                  </span>
+                )}
+                <div className={`mb-4 w-12 h-12 rounded-xl bg-gradient-to-br ${test.color} flex items-center justify-center`}>
+                  <test.icon className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors">
+                  {test.title}
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                  {test.description}
+                </p>
+                <div className="flex flex-wrap items-center gap-3 text-xs">
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    {test.duration}
+                  </span>
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <ClipboardList className="h-3 w-3" />
+                    {test.questions} soru
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground text-[10px]">
+                    Ref: {test.academic}
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        <div className="text-center">
+          <Link href="/tests">
+            <Button variant="outline" className="gap-2 border-primary/30 text-primary hover:bg-primary/5">
+              Tüm Testleri Gör
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+      </section>
+
+      {/* ── Koçlar ──────────────────────────────────────────────────── */}
+      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 bg-muted/10">
         <div className="mb-12 flex flex-col items-center text-center">
           <span className="mb-3 inline-block rounded-full border border-primary/25 bg-primary/8 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
             AI Koçlar
