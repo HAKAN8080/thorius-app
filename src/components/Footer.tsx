@@ -9,23 +9,23 @@ export function Footer() {
           <div className="flex items-center gap-2">
             <span className="text-lg font-semibold text-primary">Thorius</span>
             <span className="text-sm text-gray-500">
-              &copy; {new Date().getFullYear()} Tum haklari saklidir.
+              &copy; {new Date().getFullYear()} Tüm hakları saklıdır.
             </span>
           </div>
 
           {/* Links */}
           <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
             <Link href="/about" className="text-gray-600 hover:text-primary transition-colors">
-              Hakkimizda
+              Hakkımızda
             </Link>
             <Link href="/contact" className="text-gray-600 hover:text-primary transition-colors">
-              Iletisim
+              İletişim
             </Link>
             <Link href="/privacy" className="text-gray-600 hover:text-primary transition-colors">
-              Gizlilik Politikasi
+              Gizlilik Politikası
             </Link>
             <Link href="/terms" className="text-gray-600 hover:text-primary transition-colors">
-              Kullanim Kosullari
+              Kullanım Koşulları
             </Link>
             <Link href="/kvkk" className="text-gray-600 hover:text-primary transition-colors">
               KVKK

@@ -219,7 +219,7 @@ Bu yükümlülükler hesap aktifliği süresince ve hesap kapatılmasından sonr
 korumaya devam eder.
 
 5. TELİF HAKKI BİLDİRİMİ
-© 2025 Thorius AI Koçluk Platformu. Tüm hakları saklıdır.
+© 2026 Thorius AI Koçluk Platformu. Tüm hakları saklıdır.
 Thorius®, tescil edilmiş veya tescil başvurusunda bulunulmuş bir markadır.
 Platform içeriği 5846 sayılı FSEK kapsamında korunmaktadır.
 İzinsiz kopyalama, çoğaltma ve dağıtım hukuki işlem başlatılmasına neden olabilir.

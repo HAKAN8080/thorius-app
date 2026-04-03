@@ -326,7 +326,7 @@ export default async function HomePage() {
               <span className="font-bold text-foreground">Thorius</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              © 2025 Thorius AI Koçluk Platformu. Tüm hakları saklıdır.
+              © 2026 Thorius AI Koçluk Platformu. Tüm hakları saklıdır.
             </p>
             <p className="max-w-xl text-xs leading-relaxed text-muted-foreground/70">
               Platform içerikleri, AI koç/mentor kişilikleri ve seans yapıları 5846 Sayılı Fikir ve Sanat Eserleri Kanunu kapsamında Thorius'un münhasır fikri mülkiyetidir.
