@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Check, X, Sparkles, Zap, BarChart3, Crown, Building2,
-  MessageSquare, Volume2, VolumeX, Users, ChevronDown, Plus,
+  MessageSquare, Volume2, VolumeX, Users, ChevronDown, Plus, Lock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -16,6 +16,15 @@ const WC_URLS: Record<string, string> = {
   kurumsal: process.env.NEXT_PUBLIC_WC_KURUMSAL_URL ?? '',
   seans5:   process.env.NEXT_PUBLIC_WC_SEANS5_URL   ?? '',
   seans10:  process.env.NEXT_PUBLIC_WC_SEANS10_URL  ?? '',
+};
+
+/* ── Plan hiyerarşisi (aşağı geçiş engellenir) ───────────────────────────── */
+const PLAN_HIERARCHY: Record<string, number> = {
+  free: 0,
+  starter: 1,
+  pro: 2,
+  premium: 3,
+  kurumsal: 4,
 };
 
 /* ── Plan tanımları ────────────────────────────────────────────────────── */
@@ -174,8 +183,49 @@ export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showTable, setShowTable] = useState(false);
+  const [userPlan, setUserPlan] = useState<string | null>(null);
+
+  // Kullanıcının mevcut planını al
+  useEffect(() => {
+    async function fetchUserPlan() {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          setUserPlan(data.user?.plan ?? 'free');
+        }
+      } catch {
+        // Kullanıcı giriş yapmamış
+      }
+    }
+    fetchUserPlan();
+  }, []);
+
+  // Aşağı plana geçiş kontrolü
+  function canUpgradeTo(targetPlan: PlanId): boolean {
+    if (!userPlan) return true; // Giriş yapmamış kullanıcılar her planı seçebilir
+    const currentLevel = PLAN_HIERARCHY[userPlan] ?? 0;
+    const targetLevel = PLAN_HIERARCHY[targetPlan] ?? 0;
+    return targetLevel > currentLevel; // Sadece yukarı geçiş mümkün
+  }
+
+  // Mevcut plan kontrolü
+  function isCurrentPlan(planId: PlanId): boolean {
+    return userPlan === planId;
+  }
 
   async function handleSelectPlan(planId: PlanId) {
+    // Mevcut plan kontrolü
+    if (isCurrentPlan(planId)) {
+      return;
+    }
+
+    // Aşağı geçiş kontrolü
+    if (!canUpgradeTo(planId) && planId !== 'free') {
+      setError('Mevcut planınızdan daha düşük bir plana geçiş yapamazsınız.');
+      return;
+    }
+
     if (planId === 'free') {
       router.push('/mentors');
       return;
@@ -332,19 +382,41 @@ export default function PricingPage() {
                 </ul>
 
                 {/* CTA */}
-                <Button
-                  onClick={() => handleSelectPlan(plan.id)}
-                  disabled={isLoading}
-                  variant={isHighlighted ? 'default' : 'outline'}
-                  className={`w-full text-sm ${
-                    isHighlighted
-                      ? `bg-gradient-to-r ${plan.gradient} text-white hover:opacity-90 border-0`
-                      : ''
-                  }`}
-                  size="sm"
-                >
-                  {isLoading ? 'İşleniyor...' : plan.cta}
-                </Button>
+                {isCurrentPlan(plan.id) ? (
+                  <Button
+                    disabled
+                    variant="outline"
+                    className="w-full text-sm border-green-500 text-green-600 bg-green-50"
+                    size="sm"
+                  >
+                    <Check className="mr-2 h-4 w-4" />
+                    Mevcut Planınız
+                  </Button>
+                ) : !canUpgradeTo(plan.id) && plan.id !== 'free' ? (
+                  <Button
+                    disabled
+                    variant="outline"
+                    className="w-full text-sm opacity-50 cursor-not-allowed"
+                    size="sm"
+                  >
+                    <Lock className="mr-2 h-4 w-4" />
+                    Geçiş Yapılamaz
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => handleSelectPlan(plan.id)}
+                    disabled={isLoading}
+                    variant={isHighlighted ? 'default' : 'outline'}
+                    className={`w-full text-sm ${
+                      isHighlighted
+                        ? `bg-gradient-to-r ${plan.gradient} text-white hover:opacity-90 border-0`
+                        : ''
+                    }`}
+                    size="sm"
+                  >
+                    {isLoading ? 'İşleniyor...' : plan.cta}
+                  </Button>
+                )}
               </div>
             );
           })}

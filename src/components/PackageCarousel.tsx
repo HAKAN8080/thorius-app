@@ -160,10 +160,22 @@ function TTSBadge({ mode }: { mode: Plan['ttsMode'] }) {
   );
 }
 
-export function PackageCarousel() {
+interface PackageCarouselProps {
+  userPlan?: string | null;
+}
+
+// Premium veya üstü planlar - bu kullanıcılara satın alma gösterilmez
+const TOP_TIER_PLANS = ['premium', 'kurumsal'];
+
+export function PackageCarousel({ userPlan }: PackageCarouselProps) {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState<string | null>(null);
+
+  // Premium veya kurumsal kullanıcılara carousel gösterme
+  if (userPlan && TOP_TIER_PLANS.includes(userPlan)) {
+    return null;
+  }
 
   useEffect(() => {
     const interval = setInterval(() => {

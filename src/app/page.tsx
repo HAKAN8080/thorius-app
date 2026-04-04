@@ -395,17 +395,20 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Fiyatlandırma - Carousel */}
-      <PackageCarousel />
+      {/* Fiyatlandırma - Carousel (Premium/Kurumsal kullanıcılara gösterilmez) */}
+      <PackageCarousel userPlan={userPlan} />
 
-      <div className="pb-10 text-center">
-        <Link href="/pricing">
-          <Button variant="ghost" className="gap-2 text-primary hover:text-primary/80">
-            Tüm plan detaylarını gör
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </Link>
-      </div>
+      {/* Premium/Kurumsal kullanıcılara pricing linki gösterilmez */}
+      {(!userPlan || !['premium', 'kurumsal'].includes(userPlan)) && (
+        <div className="pb-10 text-center">
+          <Link href="/pricing">
+            <Button variant="ghost" className="gap-2 text-primary hover:text-primary/80">
+              Tüm plan detaylarını gör
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="border-t border-border bg-muted/20 py-10">
