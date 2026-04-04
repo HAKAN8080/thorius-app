@@ -109,11 +109,20 @@ export async function POST(req: NextRequest) {
   let systemPrompt = customSystemPrompt || mentor?.systemPrompt || 'Sen yardımcı bir asistansın.';
 
   // Kullanıcının test sonuçlarını system prompt'a ekle
+  // Her test türünden sadece en son sonucu al (farklı 3 test türü)
   if (userTests.length > 0) {
-    const testSummaries = userTests
+    const latestByType = new Map<string, typeof userTests[0]>();
+    userTests
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 3) // Son 3 test
-      .map(test => {
+      .forEach(test => {
+        if (!latestByType.has(test.testType)) {
+          latestByType.set(test.testType, test);
+        }
+      });
+
+    const uniqueTests = Array.from(latestByType.values()).slice(0, 3); // Farklı 3 test türü
+
+    const testSummaries = uniqueTests.map(test => {
         let summary = `\n**${test.testName}** (${new Date(test.createdAt).toLocaleDateString('tr-TR')}):\n`;
 
         // Skorları formatla
@@ -178,11 +187,30 @@ export async function POST(req: NextRequest) {
 
     systemPrompt += `\n\n🧠 **DANIŞANIN TEST SONUÇLARI:**
 Bu danışan aşağıdaki testleri tamamlamış. Bu bilgileri görüşme sırasında KULLAN:
-- Test sonuçlarına atıfta bulunabilirsin ("Kişilik testinde dışadönüklük skorun oldukça yüksek çıkmıştı...")
+
+⚠️ **KRİTİK KURAL — TEST SORULDUĞUNDA:**
+Danışan "test sonuçlarım", "kişilik testim", "testlerim ne diyor", "test sonuçlarıma bak" gibi ifadeler kullanırsa:
+→ MUTLAKA aşağıdaki test sonuçlarına atıfta bulun ve yorum yap
+→ Skorları değerlendir, güçlü ve gelişim alanlarını belirt
+→ "Test sonuçlarına bakıyorum..." diye başla
+
+**GENEL KULLANIM:**
+- Uygun anlarda test sonuçlarına atıfta bulunabilirsin
 - Düşük skorlu alanlarda derinleştirici sorular sorabilirsin
 - Güçlü yönleri vurgulayabilirsin
 - Ancak HER YANITA test sonucu sıkıştırma, doğal akışta uygun olduğunda kullan
+
 ${testSummaries}`;
+  } else {
+    // Kullanıcının hiç test sonucu yok
+    systemPrompt += `\n\n🧪 **TEST DURUMU:**
+Bu danışanın henüz tamamlanmış bir testi yok.
+
+⚠️ **TEST SORULDUĞUNDA:**
+Danışan "test sonuçlarım", "kişilik testim", "testlerim ne diyor" gibi ifadeler kullanırsa:
+→ "Henüz platformumuzda bir test çözmemişsin" de
+→ Şu testleri öner: Kişilik Envanteri (Big Five), Liderlik Tarzı Testi, Duygusal Zeka Testi, Yaşam Skoru Testi
+→ "Test sonuçların olursa bir sonraki seansımızda birlikte değerlendirebiliriz" de`;
   }
 
   // Düşünce liderleri ve kitap bilgilerini ekle (öğrenci koçu hariç)
@@ -326,6 +354,11 @@ Danışan kendini tanıttıktan sonra:
       ? `\n📚 **Kitap Önerisi (Bu Seans İçin Ödev):** "${book.title}" – ${book.author} kitabını oku. Bu kitap, konuştuğumuz konularla doğrudan bağlantılı ve gelişim yolculuğuna katkı sağlayacak.`
       : '';
 
+    // Test yoksa test yönlendirmesi ekle
+    const testLine = userTests.length === 0
+      ? `\n🧪 **Test Önerisi:** Kendini daha iyi tanımak için platformumuzdaki testlerden birini çözebilirsin (Kişilik Envanteri, Liderlik Tarzı, Duygusal Zeka vb.). Sonuçları bir sonraki seansımızda birlikte değerlendirebiliriz.`
+      : '';
+
     // Seans hakkı bittiyse yeniden gelmeye davet et
     const sessionLimit = user.sessionLimit ?? (user.plan ? PLAN_LIMITS[user.plan] : 1);
     const isLimitReached = snap.size + 1 >= sessionLimit;
@@ -342,7 +375,7 @@ Bu seanstaki son yanıttır. Aşağıdaki formatı AYNEN uygula, soru sormak YAS
 **Bu seanstan çıkan ödevlerin:**
 1. [Somut eylem adımı — tarih veya ölçüt içersin]
 2. [Somut eylem adımı — tarih veya ölçüt içersin]
-3. [Somut eylem adımı — tarih veya ölçüt içersin]${bookLine}
+3. [Somut eylem adımı — tarih veya ölçüt içersin]${bookLine}${testLine}
 ${inviteLine}
 
 [Kısa, sıcak veda — "Başarılar!", "Seninle çalışmak güzeldi!" gibi]
