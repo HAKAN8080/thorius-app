@@ -34,7 +34,7 @@ const SLIDES = [
     author: {
       name: 'Dr. Elif Uğur',
       title: 'Kurucu & Eğitmen',
-      image: '/avatars/elif.jpg',
+      image: '/dr-elif-ugur.jpg',
     },
   },
   {
