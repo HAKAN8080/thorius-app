@@ -13,6 +13,7 @@ import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import { SessionConfirmModal } from '@/components/SessionConfirmModal';
 import { SpeakingAvatar } from '@/components/SpeakingAvatar';
+import { useRouter } from 'next/navigation';
 
 const MAX_USER_MESSAGES = 10;
 const MIN_CHAR_COUNT = 50;   // Minimum karakter sayısı
@@ -73,6 +74,7 @@ interface LimitInfo {
 }
 
 export function ChatInterface({ mentor }: ChatInterfaceProps) {
+  const router = useRouter();
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null); // overflow-y-auto div
   const [input, setInput] = useState('');
@@ -539,16 +541,17 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
               );
             })}
 
-            {/* Yükleme göstergesi — her iki modda da */}
+            {/* Yükleme göstergesi — "Thinking for the best answer..." */}
             {status === 'submitted' && (
               <div className="flex gap-2.5">
                 <div className="shrink-0"><MentorAvatar size="sm" /></div>
-                <div className="flex items-center gap-2 rounded-3xl rounded-tl-lg bg-white shadow-sm border border-violet-100 px-4 py-3">
+                <div className="flex items-center gap-3 rounded-3xl rounded-tl-lg bg-white shadow-sm border border-violet-100 px-4 py-3">
                   <div className="flex gap-1">
                     <span className="h-2 w-2 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '0s' }} />
                     <span className="h-2 w-2 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '0.15s' }} />
                     <span className="h-2 w-2 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '0.3s' }} />
                   </div>
+                  <span className="text-sm text-violet-500 italic">Thinking for the best answer...</span>
                 </div>
               </div>
             )}
@@ -737,7 +740,10 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
               <Button
                 variant="outline"
                 className="flex-1"
-                onClick={() => setShowRating(false)}
+                onClick={() => {
+                  setShowRating(false);
+                  router.push('/panel');
+                }}
               >
                 Geç
               </Button>
@@ -758,7 +764,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="relative mx-4 w-full max-w-md rounded-2xl border border-border bg-card p-6 text-center shadow-xl">
             <button
-              onClick={() => setRatingSubmitted(false)}
+              onClick={() => router.push('/panel')}
               className="absolute right-3 top-3 rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -768,12 +774,20 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
             <p className="mb-4 text-sm text-muted-foreground">
               Değerlendirmeniz için teşekkür ederiz.
             </p>
-            <Button
-              onClick={() => window.location.reload()}
-              className="bg-gradient-to-r from-primary to-secondary"
-            >
-              Yeni Seans Başlat
-            </Button>
+            <div className="flex gap-3 justify-center">
+              <Button
+                variant="outline"
+                onClick={() => router.push('/panel')}
+              >
+                Panele Dön
+              </Button>
+              <Button
+                onClick={() => window.location.reload()}
+                className="bg-gradient-to-r from-primary to-secondary"
+              >
+                Yeni Seans Başlat
+              </Button>
+            </div>
           </div>
         </div>
       )}
