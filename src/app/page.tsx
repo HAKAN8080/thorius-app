@@ -74,8 +74,26 @@ export default async function HomePage() {
             {/* Sağ: Görsel */}
             <div className="flex flex-1 justify-center lg:justify-end">
               <div className="relative w-full max-w-md">
+                {/* Dr. Elif Uğur Badge - Resmin üstünde */}
+                <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 rounded-2xl border border-primary/30 bg-gradient-to-r from-white via-violet-50 to-white px-5 py-3 shadow-xl animate-pulse">
+                  <div className="relative h-12 w-12 overflow-hidden rounded-full ring-2 ring-primary/40 shadow-md">
+                    <Image
+                      src="/dr-elif-ugur.jpg"
+                      alt="Dr. Elif Uğur"
+                      fill
+                      className="object-cover"
+                      sizes="48px"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-foreground">Dr. Elif Uğur</p>
+                    <p className="text-[10px] text-muted-foreground font-medium">ICF-MCC</p>
+                    <p className="text-xs text-primary font-medium">Tarafından Eğitildi</p>
+                  </div>
+                </div>
+
                 {/* Ana görsel */}
-                <div className="overflow-hidden rounded-2xl shadow-2xl shadow-primary/10 ring-1 ring-border">
+                <div className="overflow-hidden rounded-2xl shadow-2xl shadow-primary/10 ring-1 ring-border mt-8">
                   <Image
                     src="/login-coaching.png"
                     alt="Thorius AI Koçluk Seansı"
@@ -95,7 +113,7 @@ export default async function HomePage() {
                     <p className="text-xs text-muted-foreground">7/24 erişim</p>
                   </div>
                 </div>
-                <div className="absolute -top-4 -right-4 flex items-center gap-3 rounded-xl border border-border bg-white px-4 py-3 shadow-lg">
+                <div className="absolute -bottom-4 -right-4 flex items-center gap-3 rounded-xl border border-border bg-white px-4 py-3 shadow-lg">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/12">
                     <Target className="h-5 w-5 text-primary" />
                   </div>
