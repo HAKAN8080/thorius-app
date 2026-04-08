@@ -40,9 +40,7 @@ export function Navbar() {
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Chat sayfasında Navbar'ı gizle (seans odaklı deneyim için)
-  if (pathname?.startsWith('/chat/')) {
-    return null;
-  }
+  const isHidden = pathname?.startsWith('/chat/');
 
   // Auth durumunu kontrol eden fonksiyon
   const checkAuth = () => {
@@ -93,7 +91,7 @@ export function Navbar() {
   const planLabel = user?.plan === 'premium' ? 'Premium' : user?.plan === 'essential' ? 'Essential' : user ? 'Free' : null;
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md">
+    <header className={`sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md ${isHidden ? 'hidden' : ''}`}>
       {/* Üst Satır - About, Contact, Hesabım */}
       <div className="border-b border-border/50 bg-muted/30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
