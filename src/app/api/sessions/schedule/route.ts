@@ -44,7 +44,13 @@ export async function POST(req: NextRequest) {
   const sessionLimit = user.sessionLimit ?? (user.plan ? PLAN_LIMITS[user.plan] : 1);
   const usedSnap = await getDb().collection('sessions').where('userId', '==', user.id).get();
   const scheduledSnap = await getDb().collection('scheduled_sessions').where('userId', '==', user.id).get();
-  const totalUsed = usedSnap.size + scheduledSnap.size;
+
+  // Sadece TAMAMLANMIŞ seansları say (aktif seanslar hariç)
+  const completedCount = usedSnap.docs.filter(d => {
+    const status = d.data().status;
+    return status === 'completed' || !status;
+  }).length;
+  const totalUsed = completedCount + scheduledSnap.size;
 
   if (totalUsed >= sessionLimit) {
     return Response.json({ error: 'Seans limitiniz doldu' }, { status: 403 });

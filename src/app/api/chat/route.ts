@@ -61,11 +61,15 @@ export async function POST(req: NextRequest) {
     d.data().mentorId === mentorId && d.data().status === 'active'
   );
 
-  // Aktif seans yoksa ve bu ilk mesaj değilse, limit kontrolü yap
+  // Aktif seans yoksa limit kontrolü yap (yeni seans başlatılacak demek)
   if (!activeSession) {
     const sessionLimit = user.sessionLimit ?? (user.plan ? PLAN_LIMITS[user.plan] : 1);
-    // Tamamlanmış + aktif seansları say
-    if (snap.size >= sessionLimit) {
+    // Sadece TAMAMLANMIŞ seansları say (aktif seanslar hariç)
+    const completedCount = snap.docs.filter(d => {
+      const status = d.data().status;
+      return status === 'completed' || !status; // eski seanslar status field'ı olmayabilir
+    }).length;
+    if (completedCount >= sessionLimit) {
       return new Response(
         JSON.stringify({ error: 'SESSION_LIMIT_REACHED', plan: user.plan ?? 'free' }),
         { status: 403, headers: { 'Content-Type': 'application/json' } }

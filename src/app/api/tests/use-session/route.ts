@@ -29,14 +29,19 @@ export async function POST(req: Request) {
     .collection('sessions')
     .where('userId', '==', user.id)
     .get();
-  const sessionCount = snap.size;
 
-  if (sessionCount >= sessionLimit) {
+  // Sadece TAMAMLANMIŞ seansları say (aktif seanslar hariç)
+  const completedCount = snap.docs.filter(d => {
+    const status = d.data().status;
+    return status === 'completed' || !status;
+  }).length;
+
+  if (completedCount >= sessionLimit) {
     return new Response(
       JSON.stringify({
         error: 'SESSION_LIMIT_REACHED',
         plan: plan ?? 'free',
-        sessionCount,
+        sessionCount: completedCount,
         sessionLimit,
       }),
       { status: 403, headers: { 'Content-Type': 'application/json' } }

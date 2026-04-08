@@ -16,9 +16,29 @@ export async function GET() {
     .collection('sessions')
     .where('userId', '==', user.id)
     .get();
+
+  // Aktif ve tamamlanmış seansları ayır
+  const activeSessions = snap.docs.filter(d => d.data().status === 'active');
+  const completedSessions = snap.docs.filter(d => d.data().status === 'completed' || !d.data().status);
+
+  // Toplam seans sayısı (tamamlanmış + aktif)
   const sessionCount = snap.size;
+  // Tamamlanmış seans sayısı
+  const completedCount = completedSessions.length;
+  // Aktif seans var mı?
+  const hasActiveSession = activeSessions.length > 0;
 
-  const limitReached = sessionCount >= sessionLimit;
+  // Limit kontrolü: Aktif seans varsa limit dolmamış sayılır (devam edebilir)
+  // Aktif seans yoksa, tamamlanmış seanslar limite ulaştıysa limit dolmuş
+  const limitReached = !hasActiveSession && completedCount >= sessionLimit;
 
-  return Response.json({ plan, sessionCount, sessionLimit, limitReached, isFree: !plan });
+  return Response.json({
+    plan,
+    sessionCount,
+    completedCount,
+    sessionLimit,
+    limitReached,
+    hasActiveSession,
+    isFree: !plan,
+  });
 }

@@ -68,8 +68,10 @@ function getTextContent(message: { content?: string; parts?: Array<{ type: strin
 interface LimitInfo {
   plan: string | null;
   sessionCount: number;
+  completedCount: number;
   sessionLimit: number;
   limitReached: boolean;
+  hasActiveSession: boolean;
   isFree: boolean;
 }
 
@@ -103,6 +105,20 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
     setClosingSent(false);
   }, []);
 
+  // Seans başladıysa sayfa kapatma/yenileme uyarısı
+  useEffect(() => {
+    if (!sessionConfirmed || sessionSaved) return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      // Modern tarayıcılarda custom mesaj gösterilmez ama uyarı gösterilir
+      return '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [sessionConfirmed, sessionSaved]);
+
   // Detaylı değerlendirme soruları
   const [ratings, setRatings] = useState({
     contentQuality: 0,    // İçerik yeterliliği
@@ -123,6 +139,9 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
   const [sessionConfirmed, setSessionConfirmed] = useState(false);
   const pendingInputRef = useRef<string>('');
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+
+  // Seans çıkış uyarı modalı
+  const [showExitWarning, setShowExitWarning] = useState(false);
 
   async function handleSpeak(messageId: string, text: string) {
     if (playingId === messageId) {
@@ -418,12 +437,22 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
 
       {/* ── Header ──────────────────────────────────────────────────── */}
       <div className="shrink-0 flex items-center gap-3 bg-gradient-to-r from-violet-600 to-purple-700 px-4 py-3.5 z-10">
-        <Link
-          href="/mentors"
-          className="rounded-xl p-1.5 text-white/70 hover:bg-white/15 hover:text-white transition-colors"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
+        {/* Seans aktifken çıkış uyarısı göster, değilse direkt git */}
+        {sessionConfirmed && !sessionSaved ? (
+          <button
+            onClick={() => setShowExitWarning(true)}
+            className="rounded-xl p-1.5 text-white/70 hover:bg-white/15 hover:text-white transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+        ) : (
+          <Link
+            href="/mentors"
+            className="rounded-xl p-1.5 text-white/70 hover:bg-white/15 hover:text-white transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+        )}
 
         <MentorAvatar size="sm" />
 
@@ -799,8 +828,48 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
         onCancel={() => setShowSessionConfirm(false)}
         type="session"
         title="Seans Başlatılacak"
-        description={`${mentor.title} ile koçluk/mentorluk seansı başlatmak üzeresiniz. 10 soruluk bir görüşme yapacak ve sonunda ödev ile özet alacaksınız.`}
+        description={`${mentor.title} ile koçluk/mentorluk seansı başlatmak üzeresiniz. 10 soruluk bir görüşme yapacak ve sonunda ödev ile ��zet alacaksınız.`}
       />
+
+      {/* Seans Çıkış Uyarı Modalı */}
+      {showExitWarning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl border border-red-200 bg-white dark:bg-gray-900 p-6 shadow-2xl">
+            <div className="flex justify-center mb-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
+                <AlertTriangle className="h-7 w-7 text-red-600 dark:text-red-400" />
+              </div>
+            </div>
+            <h3 className="mb-2 text-center text-lg font-bold text-gray-900 dark:text-white">
+              Seanstan Ayrılmak İstiyor musunuz?
+            </h3>
+            <p className="mb-6 text-center text-sm text-gray-600 dark:text-gray-400">
+              Seansınız henüz tamamlanmadı. Şimdi ayrılırsanız{' '}
+              <span className="font-semibold text-red-600 dark:text-red-400">seans hakkınız yanacaktır</span> ve
+              bu görüşmeye geri dönemezsiniz.
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowExitWarning(false)}
+              >
+                Seansa Dön
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1"
+                onClick={() => {
+                  setShowExitWarning(false);
+                  router.push('/mentors');
+                }}
+              >
+                Yine de Çık
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

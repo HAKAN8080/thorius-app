@@ -26,7 +26,12 @@ export async function POST(req: Request) {
       const snap = await tx.get(
         db.collection('sessions').where('userId', '==', user.id) as FirebaseFirestore.Query
       );
-      if (snap.size >= sessionLimit) {
+      // Sadece TAMAMLANMIŞ seansları say (aktif seanslar yeni seans başlatmayı engellemez)
+      const completedCount = snap.docs.filter(d => {
+        const status = d.data().status;
+        return status === 'completed' || !status; // eski seanslar status field'ı olmayabilir
+      }).length;
+      if (completedCount >= sessionLimit) {
         throw new Error('SESSION_LIMIT_REACHED');
       }
       tx.set(newRef, {
