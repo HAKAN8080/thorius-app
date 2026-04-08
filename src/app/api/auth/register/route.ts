@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { createUser, getUserByEmail, hashPassword, PlanType } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { Resend } from 'resend';
-import { randomBytes } from 'crypto';
+import { randomBytes, createHash } from 'crypto';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
@@ -69,10 +69,11 @@ export async function POST(req: NextRequest) {
 
   // Email doğrulama token'ı oluştur ve gönder
   const verifyToken = randomBytes(32).toString('hex');
+  const verifyTokenHash = createHash('sha256').update(verifyToken).digest('hex');
   const verifyExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 saat
 
   await getDb().collection('email_verifications').doc(normalizedEmail).set({
-    token: verifyToken,
+    tokenHash: verifyTokenHash, // Hash olarak sakla (güvenlik için)
     expiry: verifyExpiry,
     userId: user.id,
     createdAt: new Date().toISOString(),

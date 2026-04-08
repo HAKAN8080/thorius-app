@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createHmac } from 'crypto';
+import { createHmac, timingSafeEqual } from 'crypto';
 import { Resend } from 'resend';
 import { getDb } from '@/lib/db';
 import { PlanType } from '@/lib/auth';
@@ -34,7 +34,16 @@ const PLAN_SESSIONS: Partial<Record<PlanType, string>> = {
 function verifySignature(body: string, signature: string | null, secret: string): boolean {
   if (!signature) return false;
   const expected = createHmac('sha256', secret).update(body, 'utf8').digest('base64');
-  return expected === signature;
+
+  // Timing-safe karşılaştırma (timing attack koruması)
+  try {
+    return timingSafeEqual(
+      Buffer.from(expected, 'base64'),
+      Buffer.from(signature, 'base64')
+    );
+  } catch {
+    return false;
+  }
 }
 
 function buildEmailHtml(plan: PlanType, firstName: string): string {

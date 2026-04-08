@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { createHash } from 'crypto';
 import { getDb } from '@/lib/db';
 
 export async function GET(req: Request) {
@@ -19,10 +20,11 @@ export async function GET(req: Request) {
     return NextResponse.redirect(new URL('/auth/verify-email?error=invalid', req.url));
   }
 
-  const verifyData = verifyDoc.data() as { token: string; expiry: string; userId: string };
+  const verifyData = verifyDoc.data() as { tokenHash: string; expiry: string; userId: string };
 
-  // Token eşleşme kontrolü
-  if (verifyData.token !== token) {
+  // Token hash eşleşme kontrolü (güvenli karşılaştırma)
+  const incomingHash = createHash('sha256').update(token).digest('hex');
+  if (verifyData.tokenHash !== incomingHash) {
     return NextResponse.redirect(new URL('/auth/verify-email?error=invalid', req.url));
   }
 

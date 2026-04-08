@@ -57,9 +57,30 @@ export interface StoredUser extends User {
   passwordHash: string;
 }
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? 'thorius-dev-secret-CHANGE-IN-PRODUCTION'
-);
+// JWT_SECRET - runtime'da lazy load edilir (build sırasında hata vermemesi için)
+let _jwtSecret: Uint8Array | null = null;
+
+function getJwtSecret(): Uint8Array {
+  if (_jwtSecret) return _jwtSecret;
+
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PHASE) {
+      throw new Error('JWT_SECRET environment variable is required in production');
+    }
+    console.warn('⚠️ Using default JWT secret - DO NOT use in production');
+    _jwtSecret = new TextEncoder().encode('thorius-dev-secret-FOR-DEV-ONLY');
+    return _jwtSecret;
+  }
+
+  if (secret.length < 32) {
+    throw new Error('JWT_SECRET must be at least 32 characters');
+  }
+
+  _jwtSecret = new TextEncoder().encode(secret);
+  return _jwtSecret;
+}
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12);
@@ -74,12 +95,12 @@ export async function signToken(payload: { userId: string; email: string }): Pro
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')
-    .sign(JWT_SECRET);
+    .sign(getJwtSecret());
 }
 
 export async function verifyToken(token: string): Promise<{ userId: string; email: string } | null> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, getJwtSecret());
     return payload as { userId: string; email: string };
   } catch {
     return null;
