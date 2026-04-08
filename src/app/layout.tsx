@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { Navbar } from "@/components/Navbar";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { MetaPixel } from "@/components/MetaPixel";
 import { CookieConsent } from "@/components/CookieConsent";
 import { Footer } from "@/components/Footer";
 import "./globals.css";
@@ -78,6 +79,7 @@ export default function RootLayout({
     <html lang="tr" className={`${jakarta.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-white text-foreground">
         <GoogleAnalytics />
+        <MetaPixel />
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />
