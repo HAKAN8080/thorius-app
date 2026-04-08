@@ -2,20 +2,14 @@
 
 import Script from 'next/script';
 
-const LINKEDIN_PARTNER_ID = '9914449';
-
 export function LinkedInInsight() {
   return (
     <>
-      <Script id="linkedin-insight-init" strategy="afterInteractive">
-        {`
-          _linkedin_partner_id = "${LINKEDIN_PARTNER_ID}";
-          window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
-          window._linkedin_data_partner_ids.push(_linkedin_partner_id);
-        `}
-      </Script>
       <Script id="linkedin-insight" strategy="afterInteractive">
         {`
+          _linkedin_partner_id = "9914449";
+          window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
+          window._linkedin_data_partner_ids.push(_linkedin_partner_id);
           (function(l) {
             if (!l){window.lintrk = function(a,b){window.lintrk.q.push([a,b])};
             window.lintrk.q=[]}
@@ -33,7 +27,7 @@ export function LinkedInInsight() {
           width="1"
           style={{ display: 'none' }}
           alt=""
-          src={`https://px.ads.linkedin.com/collect/?pid=${LINKEDIN_PARTNER_ID}&fmt=gif`}
+          src="https://px.ads.linkedin.com/collect/?pid=9914449&fmt=gif"
         />
       </noscript>
     </>
