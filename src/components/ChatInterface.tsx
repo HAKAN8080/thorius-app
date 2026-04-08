@@ -105,20 +105,6 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
     setClosingSent(false);
   }, []);
 
-  // Seans başladıysa sayfa kapatma/yenileme uyarısı
-  useEffect(() => {
-    if (!sessionConfirmed || sessionSaved) return;
-
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      // Modern tarayıcılarda custom mesaj gösterilmez ama uyarı gösterilir
-      return '';
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [sessionConfirmed, sessionSaved]);
-
   // Detaylı değerlendirme soruları
   const [ratings, setRatings] = useState({
     contentQuality: 0,    // İçerik yeterliliği
@@ -142,6 +128,20 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
 
   // Seans çıkış uyarı modalı
   const [showExitWarning, setShowExitWarning] = useState(false);
+
+  // Seans başladıysa sayfa kapatma/yenileme uyarısı
+  useEffect(() => {
+    if (!sessionConfirmed || sessionSaved) return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      // Modern tarayıcılarda custom mesaj gösterilmez ama uyarı gösterilir
+      return '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [sessionConfirmed, sessionSaved]);
 
   async function handleSpeak(messageId: string, text: string) {
     if (playingId === messageId) {

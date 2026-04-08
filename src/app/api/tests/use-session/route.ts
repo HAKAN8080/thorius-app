@@ -72,7 +72,7 @@ export async function POST(req: Request) {
     return Response.json({
       success: true,
       sessionId: ref.id,
-      remainingSessions: sessionLimit - sessionCount - 1,
+      remainingSessions: sessionLimit - completedCount - 1,
     });
   } catch (error) {
     console.error('Test session create error:', error);
