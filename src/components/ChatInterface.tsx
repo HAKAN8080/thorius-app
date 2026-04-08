@@ -828,7 +828,7 @@ export function ChatInterface({ mentor }: ChatInterfaceProps) {
         onCancel={() => setShowSessionConfirm(false)}
         type="session"
         title="Seans Başlatılacak"
-        description={`${mentor.title} ile koçluk/mentorluk seansı başlatmak üzeresiniz. 10 soruluk bir görüşme yapacak ve sonunda ödev ile ��zet alacaksınız.`}
+        description={`${mentor.title} ile koçluk/mentorluk seansı başlatmak üzeresiniz. 10 soruluk bir görüşme yapacak ve sonunda ödev ile özet alacaksınız.`}
       />
 
       {/* Seans Çıkış Uyarı Modalı */}
