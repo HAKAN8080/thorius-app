@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import { Navbar } from "@/components/Navbar";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { MetaPixel } from "@/components/MetaPixel";
+import { LinkedInInsight } from "@/components/LinkedInInsight";
 import { CookieConsent } from "@/components/CookieConsent";
 import { Footer } from "@/components/Footer";
 import "./globals.css";
@@ -80,6 +81,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-white text-foreground">
         <GoogleAnalytics />
         <MetaPixel />
+        <LinkedInInsight />
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />
