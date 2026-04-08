@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Menu, LogOut, User, LayoutDashboard, BarChart3, X, ChevronDown, Shield, Mail, Info } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface AuthUser {
   id: string;
@@ -31,12 +31,18 @@ const TOP_LINKS = [
 
 export function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [sessionInfo, setSessionInfo] = useState<{ sessionCount: number; sessionLimit: number } | null>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Chat sayfasında Navbar'ı gizle (seans odaklı deneyim için)
+  if (pathname?.startsWith('/chat/')) {
+    return null;
+  }
 
   // Auth durumunu kontrol eden fonksiyon
   const checkAuth = () => {

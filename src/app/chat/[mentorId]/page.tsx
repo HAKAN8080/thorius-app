@@ -16,7 +16,7 @@ export default async function ChatPage({ params }: ChatPageProps) {
   }
 
   return (
-    <div className="h-[calc(100vh-4rem)] bg-gradient-to-br from-violet-100 via-purple-50 to-fuchsia-50 flex p-2 sm:p-5">
+    <div className="h-screen bg-gradient-to-br from-violet-100 via-purple-50 to-fuchsia-50 flex p-2 sm:p-5">
       {/* Ana Chat Alanı */}
       <div className="flex-1 min-h-0 max-w-3xl mx-auto w-full flex flex-col">
         <ChatInterface mentor={mentor} />
