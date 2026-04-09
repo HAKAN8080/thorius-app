@@ -261,7 +261,7 @@ export default async function HomePage() {
           <h2 className="mb-3 text-3xl font-bold text-foreground">Koçlarımızla Tanışın</h2>
           <p className="max-w-2xl text-muted-foreground">
             Uluslararası Koçluk etik standartlarında eğitilmiş, GROW metodolojisiyle çalışan AI koçlar.
-            <span className="font-medium text-primary"> Dr. Elif Uğur (ICF-MCC)</span> tarafından özenle eğitilmiş,
+            <span className="font-medium text-primary"> Alanında uzman uluslararası sertifikalı koç ve mentorlar</span> tarafından özenle eğitilmiş,
             sıradan yapay zeka yanıtları değil, profesyonel koçluk deneyimi sunan AI koçlarımız.
           </p>
         </div>
