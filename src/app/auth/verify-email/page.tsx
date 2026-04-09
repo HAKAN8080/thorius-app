@@ -71,12 +71,12 @@ function VerifyEmailContent() {
   if (error) {
     const errorMessages: Record<string, { title: string; message: string }> = {
       invalid: {
-        title: 'Geçersiz Link',
-        message: 'Bu doğrulama linki geçersiz. Lütfen e-postanızdaki linki kontrol edin veya yeni kayıt olun.',
+        title: 'Link Kullanılamıyor',
+        message: 'Bu doğrulama linki daha önce kullanılmış veya geçersiz. Hesabınız zaten doğrulanmış olabilir — lütfen giriş yapmayı deneyin.',
       },
       expired: {
         title: 'Süre Dolmuş',
-        message: 'Bu doğrulama linkinin süresi dolmuş. Lütfen yeni bir kayıt oluşturun.',
+        message: 'Bu doğrulama linkinin süresi dolmuş (24 saat). Lütfen yeni bir kayıt oluşturun.',
       },
     };
 
@@ -90,14 +90,14 @@ function VerifyEmailContent() {
         <h1 className="mb-2 text-2xl font-bold text-foreground">{errorInfo.title}</h1>
         <p className="mb-6 text-muted-foreground">{errorInfo.message}</p>
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <Link href="/auth/register">
+          <Link href="/auth/login">
             <Button className="w-full bg-primary text-white hover:bg-primary/90 sm:w-auto">
-              Yeni Kayıt Ol
+              Giriş Yapmayı Dene
             </Button>
           </Link>
-          <Link href="/auth/login">
+          <Link href="/auth/register">
             <Button variant="outline" className="w-full sm:w-auto">
-              Giriş Yap
+              Yeni Kayıt Ol
             </Button>
           </Link>
         </div>
