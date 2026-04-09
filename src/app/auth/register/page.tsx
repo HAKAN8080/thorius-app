@@ -6,26 +6,18 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, ChevronDown, ChevronUp, CheckCircle2, AlertTriangle, Shield, Target, Brain, Check, ArrowLeft } from 'lucide-react';
+import { Loader2, ChevronDown, CheckCircle2, Shield, Target, Brain, Check, ArrowLeft } from 'lucide-react';
 import { TERMS_OF_SERVICE, PRIVACY_POLICY, COACHING_SERVICE_AGREEMENT, AI_DISCLAIMER, KVKK_CONSENT, CONFIDENTIALITY_AND_IP } from '@/lib/agreements';
 
-interface AgreementItem {
-  key: 'agreedToTerms' | 'agreedToPrivacy' | 'agreedToCoachingService' | 'agreedToAiDisclaimer' | 'agreedToKvkk' | 'agreedToConfidentiality';
-  title: string;
-  content: string;
-  required: string;
-  highlight?: boolean;
-  badge?: string;
-}
-
-const AGREEMENTS: AgreementItem[] = [
-  { key: 'agreedToTerms', title: 'Kullanım Koşulları', content: TERMS_OF_SERVICE, required: 'Kullanım Koşullarını okudum ve kabul ediyorum.' },
-  { key: 'agreedToPrivacy', title: 'Gizlilik Politikası', content: PRIVACY_POLICY, required: 'Gizlilik Politikasını okudum ve kabul ediyorum.' },
-  { key: 'agreedToKvkk', title: 'KVKK Aydınlatma & Açık Rıza', content: KVKK_CONSENT, required: '6698 Sayılı KVKK kapsamında kişisel verilerimin işlenmesine açık rıza veriyorum.', badge: 'KVKK' },
-  { key: 'agreedToConfidentiality', title: 'Gizlilik, Fikri Mülkiyet & Telif', content: CONFIDENTIALITY_AND_IP, required: 'Seans içeriklerinin gizliliğine ve Thorius\'un fikri mülkiyet haklarına saygı göstereceğimi kabul ediyorum.', highlight: true, badge: 'Yasal' },
-  { key: 'agreedToCoachingService', title: 'Hizmet Sözleşmesi', content: COACHING_SERVICE_AGREEMENT, required: 'Hizmet Sözleşmesini okudum ve kabul ediyorum.' },
-  { key: 'agreedToAiDisclaimer', title: 'Yapay Zeka Bildirimi', content: AI_DISCLAIMER, required: 'Yapay Zeka Sorumluluk Reddini okudum ve kabul ediyorum.', highlight: true },
-];
+// Sözleşme içerikleri için map
+const AGREEMENT_CONTENTS: Record<string, { title: string; content: string }> = {
+  terms: { title: 'Kullanım Koşulları', content: TERMS_OF_SERVICE },
+  privacy: { title: 'Gizlilik Politikası', content: PRIVACY_POLICY },
+  kvkk: { title: 'KVKK Aydınlatma Metni', content: KVKK_CONSENT },
+  confidentiality: { title: 'Gizlilik ve Fikri Mülkiyet', content: CONFIDENTIALITY_AND_IP },
+  coaching: { title: 'Hizmet Sözleşmesi', content: COACHING_SERVICE_AGREEMENT },
+  ai: { title: 'Yapay Zeka Bildirimi', content: AI_DISCLAIMER },
+};
 
 const INTEREST_OPTIONS = [
   'Kariyer Gelişimi', 'Liderlik', 'Girişimcilik', 'Kişisel Gelişim',
@@ -48,19 +40,11 @@ export default function RegisterPage() {
   const [interests, setInterests] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const [agreed, setAgreed] = useState({
-    agreedToTerms: false,
-    agreedToPrivacy: false,
-    agreedToKvkk: false,
-    agreedToConfidentiality: false,
-    agreedToCoachingService: false,
-    agreedToAiDisclaimer: false,
-  });
+  const [viewingAgreement, setViewingAgreement] = useState<string | null>(null);
+  const [agreedToGeneral, setAgreedToGeneral] = useState(false);
+  const [agreedToKvkk, setAgreedToKvkk] = useState(false);
 
-  const totalAgreements = AGREEMENTS.length;
-  const allAgreed = Object.values(agreed).every(Boolean);
-  const agreedCount = Object.values(agreed).filter(Boolean).length;
+  const allAgreed = agreedToGeneral && agreedToKvkk;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -71,7 +55,15 @@ export default function RegisterPage() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, company, jobTitle, interests, ...agreed }),
+        body: JSON.stringify({
+          name, email, password, company, jobTitle, interests,
+          agreedToTerms: agreedToGeneral,
+          agreedToPrivacy: agreedToGeneral,
+          agreedToCoachingService: agreedToGeneral,
+          agreedToAiDisclaimer: agreedToGeneral,
+          agreedToConfidentiality: agreedToGeneral,
+          agreedToKvkk,
+        }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? 'Kayıt olunamadı.'); return; }
@@ -249,107 +241,82 @@ export default function RegisterPage() {
               </div>
 
               {/* Sözleşmeler */}
-              <div>
-                <div className="mb-3 flex items-center justify-between">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Sözleşmeler <span className="text-destructive">*</span>
-                  </p>
-                  <span className={`text-xs font-medium tabular-nums ${agreedCount === totalAgreements ? 'text-green-500' : 'text-muted-foreground'}`}>
-                    {agreedCount}/{totalAgreements} onaylandı
-                  </span>
-                </div>
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Sözleşmeler <span className="text-destructive">*</span>
+                </p>
 
-                {/* Progress bar */}
-                <div className="mb-4 h-1.5 w-full rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-secondary to-primary transition-all duration-500"
-                    style={{ width: `${(agreedCount / totalAgreements) * 100}%` }}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  {AGREEMENTS.map((agreement) => (
-                    <div key={agreement.key}
-                      className={`rounded-xl border overflow-hidden transition-colors ${
-                        agreed[agreement.key]
-                          ? 'border-green-500/30 bg-green-500/5'
-                          : agreement.highlight
-                          ? 'border-amber-500/40 bg-amber-500/5'
-                          : 'border-border/50 bg-card/30'
-                      }`}>
-                      <button type="button"
-                        className="flex w-full items-center justify-between px-4 py-3 text-left"
-                        onClick={() => setExpanded(expanded === agreement.key ? null : agreement.key)}>
-                        <div className="flex items-center gap-2.5">
-                          {agreed[agreement.key] ? (
-                            <CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />
-                          ) : agreement.highlight ? (
-                            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
-                          ) : (
-                            <div className="h-4 w-4 shrink-0 rounded-full border-2 border-muted-foreground/30" />
-                          )}
-                          <span className="text-sm font-medium">{agreement.title}</span>
-                          {agreement.badge && (
-                            <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-primary">
-                              {agreement.badge}
-                            </span>
-                          )}
-                        </div>
-                        {expanded === agreement.key
-                          ? <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" />
-                          : <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />}
-                      </button>
-
-                      {expanded === agreement.key && (
-                        <div className="border-t border-border/40 px-4 pb-4 pt-3">
-                          <div className="mb-3 max-h-40 overflow-y-auto rounded-lg bg-background/40 p-3">
-                            <pre className="whitespace-pre-wrap font-sans text-xs leading-relaxed text-muted-foreground">
-                              {agreement.content.trim()}
-                            </pre>
-                          </div>
-                        </div>
-                      )}
-
-                      <label className="flex cursor-pointer items-center gap-3 px-4 pb-3 pt-0">
-                        <input type="checkbox"
-                          className="h-4 w-4 shrink-0 cursor-pointer accent-primary"
-                          checked={agreed[agreement.key]}
-                          onChange={(e) => setAgreed((prev) => ({ ...prev, [agreement.key]: e.target.checked }))} />
-                        <span className="text-xs leading-tight text-muted-foreground">{agreement.required}</span>
-                      </label>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Tümünü Onayla */}
-                <label className={`mt-3 flex cursor-pointer items-center gap-3 rounded-xl border-2 px-4 py-3 transition-all ${
-                  allAgreed
-                    ? 'border-green-500/40 bg-green-500/6'
-                    : 'border-primary/30 bg-primary/4 hover:border-primary/50'
+                {/* Genel Sözleşmeler */}
+                <label className={`flex cursor-pointer items-start gap-3 rounded-xl border-2 px-4 py-3.5 transition-all ${
+                  agreedToGeneral
+                    ? 'border-green-500/40 bg-green-500/5'
+                    : 'border-border hover:border-primary/40'
                 }`}>
                   <input
                     type="checkbox"
-                    className="h-4 w-4 shrink-0 cursor-pointer accent-primary"
-                    checked={allAgreed}
-                    onChange={(e) => {
-                      const val = e.target.checked;
-                      setAgreed({
-                        agreedToTerms: val,
-                        agreedToPrivacy: val,
-                        agreedToKvkk: val,
-                        agreedToConfidentiality: val,
-                        agreedToCoachingService: val,
-                        agreedToAiDisclaimer: val,
-                      });
-                    }}
+                    className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-primary"
+                    checked={agreedToGeneral}
+                    onChange={(e) => setAgreedToGeneral(e.target.checked)}
                   />
-                  <span className="text-sm font-semibold text-foreground">
-                    Tümünü okudum ve kabul ediyorum
+                  <span className="text-sm leading-relaxed text-foreground">
+                    <button type="button" onClick={() => setViewingAgreement('terms')} className="text-primary hover:underline font-medium">Kullanım Koşulları</button>,{' '}
+                    <button type="button" onClick={() => setViewingAgreement('privacy')} className="text-primary hover:underline font-medium">Gizlilik Politikası</button>,{' '}
+                    <button type="button" onClick={() => setViewingAgreement('coaching')} className="text-primary hover:underline font-medium">Hizmet Sözleşmesi</button>,{' '}
+                    <button type="button" onClick={() => setViewingAgreement('confidentiality')} className="text-primary hover:underline font-medium">Gizlilik ve Fikri Mülkiyet</button>{' '}ve{' '}
+                    <button type="button" onClick={() => setViewingAgreement('ai')} className="text-primary hover:underline font-medium">Yapay Zeka Bildirimi</button>'ni okudum ve kabul ediyorum.
                   </span>
-                  {allAgreed && (
-                    <CheckCircle2 className="ml-auto h-4 w-4 shrink-0 text-green-500" />
-                  )}
+                  {agreedToGeneral && <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />}
                 </label>
+
+                {/* KVKK Onayı */}
+                <label className={`flex cursor-pointer items-start gap-3 rounded-xl border-2 px-4 py-3.5 transition-all ${
+                  agreedToKvkk
+                    ? 'border-green-500/40 bg-green-500/5'
+                    : 'border-border hover:border-primary/40'
+                }`}>
+                  <input
+                    type="checkbox"
+                    className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-primary"
+                    checked={agreedToKvkk}
+                    onChange={(e) => setAgreedToKvkk(e.target.checked)}
+                  />
+                  <span className="text-sm leading-relaxed text-foreground">
+                    <button type="button" onClick={() => setViewingAgreement('kvkk')} className="text-primary hover:underline font-medium">KVKK Aydınlatma Metni</button>'ni okudum, kişisel verilerimin işlenmesine açık rıza veriyorum.
+                  </span>
+                  {agreedToKvkk && <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />}
+                </label>
+
+                {/* Sözleşme Görüntüleme Modal */}
+                {viewingAgreement && AGREEMENT_CONTENTS[viewingAgreement] && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="relative max-h-[80vh] w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+                      <div className="flex items-center justify-between border-b px-6 py-4">
+                        <h3 className="text-lg font-semibold">{AGREEMENT_CONTENTS[viewingAgreement].title}</h3>
+                        <button
+                          type="button"
+                          onClick={() => setViewingAgreement(null)}
+                          className="rounded-lg p-2 hover:bg-muted transition-colors"
+                        >
+                          <ChevronDown className="h-5 w-5" />
+                        </button>
+                      </div>
+                      <div className="max-h-[60vh] overflow-y-auto px-6 py-4">
+                        <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-muted-foreground">
+                          {AGREEMENT_CONTENTS[viewingAgreement].content.trim()}
+                        </pre>
+                      </div>
+                      <div className="border-t px-6 py-4">
+                        <Button
+                          type="button"
+                          onClick={() => setViewingAgreement(null)}
+                          className="w-full"
+                        >
+                          Kapat
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {error && (
