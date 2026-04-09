@@ -10,6 +10,7 @@ import { CherryBlossom } from '@/components/CherryBlossom';
 import { PackageCarousel } from '@/components/PackageCarousel';
 import { UserDashboard } from '@/components/UserDashboard';
 import { HeroRotatingText } from '@/components/HeroRotatingText';
+import { StatsCounter } from '@/components/StatsCounter';
 
 export default async function HomePage() {
   const user = await getCurrentUser();
@@ -109,6 +110,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ── İstatistikler ─────────────────────────────────────────────── */}
+      <StatsCounter />
 
       {/* ── Özellikler ──────────────────────────────────────────────── */}
       <section className="relative overflow-hidden" style={{
