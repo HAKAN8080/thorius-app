@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -17,8 +17,10 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
+  Trash2,
+  Shield,
+  ShieldOff,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface UserWithStats {
   id: string;
@@ -27,6 +29,8 @@ interface UserWithStats {
   plan?: string;
   sessionLimit?: number;
   emailVerified?: boolean;
+  isAdmin?: boolean;
+  freeTestsRemaining?: number;
   createdAt: string;
   sessionCount: number;
   completedSessionCount: number;
@@ -37,18 +41,30 @@ interface UserWithStats {
 type SortField = 'name' | 'email' | 'createdAt' | 'sessionCount' | 'plan';
 type SortOrder = 'asc' | 'desc';
 
+const PLAN_OPTIONS = [
+  { value: 'free', label: 'Ücretsiz', color: 'bg-gray-500' },
+  { value: 'starter', label: 'Starter', color: 'bg-blue-500' },
+  { value: 'premium', label: 'Premium', color: 'bg-amber-500' },
+  { value: 'kurumsal', label: 'Kurumsal', color: 'bg-emerald-500' },
+];
+
 export default function AdminUsers() {
   const [users, setUsers] = useState<UserWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [sortField, setSortField] = useState<SortField>('createdAt');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchUsers = () => {
     fetch('/api/admin/users')
       .then((r) => r.json())
       .then((data) => setUsers(data.users || []))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchUsers();
   }, []);
 
   const handleSort = (field: SortField) => {
@@ -57,6 +73,81 @@ export default function AdminUsers() {
     } else {
       setSortField(field);
       setSortOrder('desc');
+    }
+  };
+
+  const handleDeleteUser = async (userId: string, email: string) => {
+    if (!confirm(`"${email}" kullanıcısını silmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz!`)) {
+      return;
+    }
+
+    setActionLoading(userId);
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+
+      if (res.ok) {
+        setUsers(users.filter((u) => u.id !== userId));
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Silme başarısız');
+      }
+    } catch {
+      alert('Bir hata oluştu');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleChangePlan = async (userId: string, plan: string) => {
+    setActionLoading(userId);
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, plan }),
+      });
+
+      if (res.ok) {
+        setUsers(users.map((u) => (u.id === userId ? { ...u, plan } : u)));
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Güncelleme başarısız');
+      }
+    } catch {
+      alert('Bir hata oluştu');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleToggleAdmin = async (userId: string, currentIsAdmin: boolean) => {
+    const action = currentIsAdmin ? 'admin yetkisini kaldırmak' : 'admin yapmak';
+    if (!confirm(`Bu kullanıcıyı ${action} istediğinize emin misiniz?`)) {
+      return;
+    }
+
+    setActionLoading(userId);
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, isAdmin: !currentIsAdmin }),
+      });
+
+      if (res.ok) {
+        setUsers(users.map((u) => (u.id === userId ? { ...u, isAdmin: !currentIsAdmin } : u)));
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Güncelleme başarısız');
+      }
+    } catch {
+      alert('Bir hata oluştu');
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -84,7 +175,7 @@ export default function AdminUsers() {
           cmp = a.sessionCount - b.sessionCount;
           break;
         case 'plan':
-          const planOrder = { premium: 2, essential: 1, free: 0 };
+          const planOrder = { kurumsal: 4, premium: 3, starter: 2, free: 1 };
           cmp = (planOrder[a.plan as keyof typeof planOrder] || 0) -
                 (planOrder[b.plan as keyof typeof planOrder] || 0);
           break;
@@ -99,17 +190,6 @@ export default function AdminUsers() {
     ) : (
       <ChevronDown className="h-4 w-4" />
     );
-  };
-
-  const getPlanBadge = (plan?: string) => {
-    switch (plan) {
-      case 'premium':
-        return <Badge className="bg-amber-500 hover:bg-amber-600">Premium</Badge>;
-      case 'essential':
-        return <Badge className="bg-blue-500 hover:bg-blue-600">Essential</Badge>;
-      default:
-        return <Badge variant="secondary">Ücretsiz</Badge>;
-    }
   };
 
   const formatDate = (date: string) => {
@@ -203,13 +283,16 @@ export default function AdminUsers() {
                     Durum
                   </th>
                   <th
-                    className="cursor-pointer px-4 py-3 text-right text-sm font-medium"
+                    className="cursor-pointer px-4 py-3 text-center text-sm font-medium"
                     onClick={() => handleSort('createdAt')}
                   >
-                    <div className="flex items-center justify-end gap-1">
+                    <div className="flex items-center justify-center gap-1">
                       Kayıt
                       <SortIcon field="createdAt" />
                     </div>
+                  </th>
+                  <th className="px-4 py-3 text-center text-sm font-medium">
+                    İşlemler
                   </th>
                 </tr>
               </thead>
@@ -217,30 +300,43 @@ export default function AdminUsers() {
                 {filteredUsers.map((user) => (
                   <tr key={user.id} className="border-b last:border-0 hover:bg-muted/30">
                     <td className="px-4 py-3">
-                      <div>
-                        <p className="font-medium">{user.name}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                      <div className="flex items-center gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{user.name}</p>
+                            {user.isAdmin && (
+                              <Badge className="bg-purple-500 text-xs">Admin</Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">{user.email}</p>
+                        </div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        {getPlanBadge(user.plan)}
-                        {user.plan === 'premium' && (
-                          <Crown className="h-4 w-4 text-amber-500" />
-                        )}
-                      </div>
+                      <select
+                        value={user.plan || 'free'}
+                        onChange={(e) => handleChangePlan(user.id, e.target.value)}
+                        disabled={actionLoading === user.id}
+                        className="rounded-md border border-border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        {PLAN_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
                     </td>
                     <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-1">
                         <MessageSquare className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">{user.sessionCount}</span>
                         <span className="text-sm text-muted-foreground">
-                          / {user.sessionLimit || (user.plan === 'premium' ? 30 : user.plan === 'essential' ? 10 : 1)}
+                          / {user.sessionLimit || 1}
                         </span>
                       </div>
-                      {user.lastSessionAt && (
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          Son: {formatDate(user.lastSessionAt)}
+                      {user.freeTestsRemaining !== undefined && user.freeTestsRemaining > 0 && (
+                        <p className="text-xs text-green-600 mt-0.5">
+                          {user.freeTestsRemaining} ücretsiz test
                         </p>
                       )}
                     </td>
@@ -257,8 +353,39 @@ export default function AdminUsers() {
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right text-sm text-muted-foreground">
+                    <td className="px-4 py-3 text-center text-sm text-muted-foreground">
                       {formatDate(user.createdAt)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-center gap-1">
+                        {/* Admin Toggle */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleToggleAdmin(user.id, !!user.isAdmin)}
+                          disabled={actionLoading === user.id}
+                          title={user.isAdmin ? 'Admin yetkisini kaldır' : 'Admin yap'}
+                          className={user.isAdmin ? 'text-purple-500 hover:text-purple-600' : 'text-muted-foreground hover:text-purple-500'}
+                        >
+                          {user.isAdmin ? <Shield className="h-4 w-4" /> : <ShieldOff className="h-4 w-4" />}
+                        </Button>
+
+                        {/* Delete */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteUser(user.id, user.email)}
+                          disabled={actionLoading === user.id}
+                          className="text-muted-foreground hover:text-red-500"
+                          title="Kullanıcıyı sil"
+                        >
+                          {actionLoading === user.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

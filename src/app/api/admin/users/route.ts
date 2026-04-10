@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { getCurrentUser, isAdminUser, User } from '@/lib/auth';
+import { NextResponse, NextRequest } from 'next/server';
+import { getCurrentUser, isAdminUser, User, PlanType, PLAN_LIMITS } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 
 interface UserWithStats extends User {
@@ -70,5 +70,83 @@ export async function GET() {
   } catch (err) {
     console.error('Admin users error:', err);
     return NextResponse.json({ error: 'Kullanıcılar yüklenemedi' }, { status: 500 });
+  }
+}
+
+// Kullanıcı güncelle (plan, admin, vb.)
+export async function PATCH(req: NextRequest) {
+  const user = await getCurrentUser();
+  if (!isAdminUser(user)) {
+    return NextResponse.json({ error: 'Yetkisiz' }, { status: 403 });
+  }
+
+  try {
+    const { userId, plan, isAdmin, freeTestsRemaining } = await req.json();
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Kullanıcı ID gerekli' }, { status: 400 });
+    }
+
+    const updates: Record<string, unknown> = {};
+
+    if (plan !== undefined) {
+      updates.plan = plan;
+      updates.sessionLimit = PLAN_LIMITS[plan as PlanType] || 1;
+      updates.planActivatedAt = new Date().toISOString();
+    }
+
+    if (isAdmin !== undefined) {
+      updates.isAdmin = isAdmin;
+    }
+
+    if (freeTestsRemaining !== undefined) {
+      updates.freeTestsRemaining = freeTestsRemaining;
+    }
+
+    await getDb().collection('users').doc(userId).update(updates);
+
+    return NextResponse.json({ success: true, updated: updates });
+  } catch (err) {
+    console.error('Admin update user error:', err);
+    return NextResponse.json({ error: 'Güncelleme başarısız' }, { status: 500 });
+  }
+}
+
+// Kullanıcı sil
+export async function DELETE(req: NextRequest) {
+  const user = await getCurrentUser();
+  if (!isAdminUser(user)) {
+    return NextResponse.json({ error: 'Yetkisiz' }, { status: 403 });
+  }
+
+  try {
+    const { userId } = await req.json();
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Kullanıcı ID gerekli' }, { status: 400 });
+    }
+
+    // Kendini silmeye çalışıyorsa engelle
+    if (userId === user?.id) {
+      return NextResponse.json({ error: 'Kendinizi silemezsiniz' }, { status: 400 });
+    }
+
+    // Kullanıcıyı sil
+    await getDb().collection('users').doc(userId).delete();
+
+    // Kullanıcının seanslarını da sil
+    const sessionsSnap = await getDb().collection('sessions').where('userId', '==', userId).get();
+    const batch = getDb().batch();
+    sessionsSnap.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+    if (!sessionsSnap.empty) {
+      await batch.commit();
+    }
+
+    return NextResponse.json({ success: true, deletedSessions: sessionsSnap.size });
+  } catch (err) {
+    console.error('Admin delete user error:', err);
+    return NextResponse.json({ error: 'Silme başarısız' }, { status: 500 });
   }
 }
