@@ -32,27 +32,27 @@ export default async function HomePage() {
             <div className="flex-1 text-center lg:text-left">
               <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/6 px-4 py-1.5 text-sm font-medium text-primary">
                 <Brain className="h-3.5 w-3.5" />
-                Üst Düzey Yöneticiler İçin
+                Yapay Zeka Koçluk Platformu
               </div>
 
-              {/* Ana Başlık - Soru ile Başla */}
+              {/* Ana Başlık */}
               <h1 className="mb-6 text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-5xl">
                 <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  Potansiyelinizin ne kadarını kullanıyorsunuz?
+                  Seni Her Gün Takip Eden AI Koçun
                 </span>
               </h1>
 
               {/* Alt Başlık */}
               <p className="mb-8 max-w-lg text-lg leading-relaxed text-muted-foreground lg:text-xl">
-                Ücretsiz üye olun, <span className="font-semibold text-foreground">2 kişilik test</span> hakkınızı kullanın.
-                AI koçluk ve mentorluk ile liderlik gücünüzü ortaya çıkarın.
+                Hedeflerini belirle, yapay zeka koç ve mentorların seni
+                her gün takip etsin. <span className="font-semibold text-foreground">Ödev versin, hatırlatsın, raporlasın.</span>
               </p>
 
               {/* Tek CTA */}
               <div className="mb-6">
                 <Link href={user ? "/mentors" : "/auth/register"}>
                   <Button size="lg" className="gap-2 bg-primary px-10 py-6 text-lg font-semibold text-white shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 transition-all">
-                    {user ? "Koçunu Seç" : "Ücretsiz Üye Ol"}
+                    {user ? "Koçunu Seç" : "Ücretsiz Başla"}
                     <ArrowRight className="h-5 w-5" />
                   </Button>
                 </Link>
@@ -65,17 +65,17 @@ export default async function HomePage() {
               <div className="flex flex-col items-center gap-3 sm:flex-row lg:items-start">
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="font-medium text-foreground">2 ücretsiz test</span>
+                  <span className="font-medium text-foreground">Günlük takip</span>
                 </div>
                 <div className="hidden sm:block h-4 w-px bg-border" />
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  AI koçluk seansları
+                  Kişisel ödevler
                 </div>
                 <div className="hidden sm:block h-4 w-px bg-border" />
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  Kişisel rapor
+                  7/24 erişim
                 </div>
               </div>
             </div>
@@ -345,21 +345,18 @@ export default async function HomePage() {
           />
           <div className="relative">
             <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl">
-              2 Test Ücretsiz, Koçluk Dahil
+              Hedeflerine Ulaşmanın Zamanı Geldi
             </h2>
             <p className="mx-auto mb-8 max-w-xl text-base leading-relaxed text-white/80">
-              Ücretsiz üye olun, 2 kişilik test hakkınızı kullanın ve AI koçluk/mentorluk seanslarından yararlanın.
+              AI koçun seni her gün takip etsin, ödev versin, hatırlatsın.
               Taahhüt yok, kredi kartı yok.
             </p>
             <Link href={user ? "/mentors" : "/auth/register"}>
               <Button size="lg" className="gap-2 bg-white px-10 py-6 text-lg font-semibold text-primary hover:bg-white/90 shadow-lg">
-                {user ? "Koçunu Seç" : "Ücretsiz Üye Ol"}
+                {user ? "Koçunu Seç" : "Ücretsiz Başla"}
                 <ArrowRight className="h-5 w-5" />
               </Button>
             </Link>
-            <p className="mt-4 text-sm text-white/60">
-              Hesap oluşturan herkese 2 ücretsiz test hakkı tanınır
-            </p>
           </div>
         </div>
       </section>
