@@ -59,6 +59,7 @@ export async function POST(req: NextRequest) {
     jobTitle: jobTitle ?? '',
     interests: interests ?? [],
     emailVerified: false,
+    freeTestsRemaining: 2, // Yeni üyelere 2 ücretsiz test hakkı
     ...(pending ? { plan: pending.plan, planActivatedAt: pending.activatedAt } : {}),
   });
 

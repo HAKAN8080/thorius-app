@@ -21,31 +21,37 @@ export async function POST(req: Request) {
     });
   }
 
-  // Kullanıcının seans limitini kontrol et
-  const plan = user.plan ?? null;
-  const sessionLimit = user.sessionLimit ?? (plan ? PLAN_LIMITS[plan] : FREE_SESSION_LIMIT);
+  // Önce ücretsiz test hakkını kontrol et
+  const freeTestsRemaining = user.freeTestsRemaining ?? 0;
+  const usingFreeTest = freeTestsRemaining > 0;
 
-  const snap = await getDb()
-    .collection('sessions')
-    .where('userId', '==', user.id)
-    .get();
+  // Eğer ücretsiz test hakkı yoksa, seans limitini kontrol et
+  if (!usingFreeTest) {
+    const plan = user.plan ?? null;
+    const sessionLimit = user.sessionLimit ?? (plan ? PLAN_LIMITS[plan] : FREE_SESSION_LIMIT);
 
-  // Sadece TAMAMLANMIŞ seansları say (aktif seanslar hariç)
-  const completedCount = snap.docs.filter(d => {
-    const status = d.data().status;
-    return status === 'completed' || !status;
-  }).length;
+    const snap = await getDb()
+      .collection('sessions')
+      .where('userId', '==', user.id)
+      .get();
 
-  if (completedCount >= sessionLimit) {
-    return new Response(
-      JSON.stringify({
-        error: 'SESSION_LIMIT_REACHED',
-        plan: plan ?? 'free',
-        sessionCount: completedCount,
-        sessionLimit,
-      }),
-      { status: 403, headers: { 'Content-Type': 'application/json' } }
-    );
+    // Sadece TAMAMLANMIŞ seansları say (aktif seanslar hariç)
+    const completedCount = snap.docs.filter(d => {
+      const status = d.data().status;
+      return status === 'completed' || !status;
+    }).length;
+
+    if (completedCount >= sessionLimit) {
+      return new Response(
+        JSON.stringify({
+          error: 'SESSION_LIMIT_REACHED',
+          plan: plan ?? 'free',
+          sessionCount: completedCount,
+          sessionLimit,
+        }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
   }
 
   // Test seansı oluştur
@@ -69,10 +75,19 @@ export async function POST(req: Request) {
 
   try {
     const ref = await getDb().collection('sessions').add(sessionDoc);
+
+    // Eğer ücretsiz test hakkı kullanıldıysa, hakkı azalt
+    if (usingFreeTest) {
+      await getDb().collection('users').doc(user.id).update({
+        freeTestsRemaining: freeTestsRemaining - 1,
+      });
+    }
+
     return Response.json({
       success: true,
       sessionId: ref.id,
-      remainingSessions: sessionLimit - completedCount - 1,
+      usedFreeTest: usingFreeTest,
+      freeTestsRemaining: usingFreeTest ? freeTestsRemaining - 1 : 0,
     });
   } catch (error) {
     console.error('Test session create error:', error);

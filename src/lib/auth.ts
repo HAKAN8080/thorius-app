@@ -36,6 +36,7 @@ export interface User {
   plan?: PlanType;
   planActivatedAt?: string;
   sessionLimit?: number;
+  freeTestsRemaining?: number;
   isPremium?: boolean;
   emailVerified?: boolean;
   isAdmin?: boolean;
