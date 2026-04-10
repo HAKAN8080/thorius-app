@@ -36,44 +36,45 @@ export default async function HomePage() {
               </div>
 
               {/* Ana Başlık - Soru ile Başla */}
-              <h1 className="mb-6 text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-                Potansiyelinizin ne kadarını
-                <br />
+              <h1 className="mb-6 text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-5xl">
                 <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  kullanıyorsunuz?
+                  Potansiyelinizin ne kadarını kullanıyorsunuz?
                 </span>
               </h1>
 
               {/* Alt Başlık */}
               <p className="mb-8 max-w-lg text-lg leading-relaxed text-muted-foreground lg:text-xl">
-                AI destekli koçluk ile liderlik gücünüzü ortaya çıkarın.
-                7/24 erişilebilir koç ve mentorlarla gelişiminizi hızlandırın.
+                Ücretsiz üye olun, <span className="font-semibold text-foreground">2 kişilik test</span> hakkınızı kullanın.
+                AI koçluk ve mentorluk ile liderlik gücünüzü ortaya çıkarın.
               </p>
 
               {/* Tek CTA */}
-              <div className="mb-8">
+              <div className="mb-6">
                 <Link href={user ? "/mentors" : "/auth/register"}>
                   <Button size="lg" className="gap-2 bg-primary px-10 py-6 text-lg font-semibold text-white shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 transition-all">
-                    {user ? "Koçunu Seç" : "Ücretsiz Dene"}
+                    {user ? "Koçunu Seç" : "Ücretsiz Üye Ol"}
                     <ArrowRight className="h-5 w-5" />
                   </Button>
                 </Link>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Kredi kartı gerekmez
+                </p>
               </div>
 
-              {/* Trust signals */}
+              {/* Value Props */}
               <div className="flex flex-col items-center gap-3 sm:flex-row lg:items-start">
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Clock className="h-4 w-4 text-primary" />
-                  5 dakika
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="font-medium text-foreground">2 ücretsiz test</span>
                 </div>
                 <div className="hidden sm:block h-4 w-px bg-border" />
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Shield className="h-4 w-4 text-primary" />
-                  Tamamen gizli
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  AI koçluk seansları
                 </div>
                 <div className="hidden sm:block h-4 w-px bg-border" />
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <CheckCircle className="h-4 w-4 text-primary" />
+                  <CheckCircle className="h-4 w-4 text-green-500" />
                   Kişisel rapor
                 </div>
               </div>
@@ -344,18 +345,21 @@ export default async function HomePage() {
           />
           <div className="relative">
             <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl">
-              İlk Seansınız Ücretsiz
+              2 Test Ücretsiz, Koçluk Dahil
             </h2>
             <p className="mx-auto mb-8 max-w-xl text-base leading-relaxed text-white/80">
-              Hemen kayıt olun, AI koçunuzu seçin ve ilk seansınızı ücretsiz deneyimleyin.
+              Ücretsiz üye olun, 2 kişilik test hakkınızı kullanın ve AI koçluk/mentorluk seanslarından yararlanın.
               Taahhüt yok, kredi kartı yok.
             </p>
             <Link href={user ? "/mentors" : "/auth/register"}>
               <Button size="lg" className="gap-2 bg-white px-10 py-6 text-lg font-semibold text-primary hover:bg-white/90 shadow-lg">
-                {user ? "Koçunu Seç" : "Ücretsiz Dene"}
+                {user ? "Koçunu Seç" : "Ücretsiz Üye Ol"}
                 <ArrowRight className="h-5 w-5" />
               </Button>
             </Link>
+            <p className="mt-4 text-sm text-white/60">
+              Hesap oluşturan herkese 2 ücretsiz test hakkı tanınır
+            </p>
           </div>
         </div>
       </section>
