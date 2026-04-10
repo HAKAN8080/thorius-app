@@ -25,9 +25,9 @@ const INTEREST_OPTIONS = [
 ];
 
 const BENEFITS = [
-  { icon: Brain, text: 'Kişiye özel AI koçluk seansları' },
-  { icon: Target, text: 'GROW modeliyle hedef odaklı gelişim' },
-  { icon: Shield, text: 'Yüksek etik standartlarla güvenli platform' },
+  { icon: Brain, text: 'Karar verme tarzınızı analiz edin' },
+  { icon: Target, text: 'Liderlik kör noktalarınızı keşfedin' },
+  { icon: Shield, text: 'Kişiselleştirilmiş gelişim önerileri alın' },
 ];
 
 export default function RegisterPage() {
@@ -119,11 +119,11 @@ export default function RegisterPage() {
               </Link>
 
               <h2 className="mb-4 text-4xl font-bold leading-tight">
-                Gelişim<br />
-                <span className="text-white/80">bugün başlıyor.</span>
+                Ücretsiz<br />
+                <span className="text-white/80">Liderlik Analizi</span>
               </h2>
               <p className="mb-10 max-w-xs text-base leading-relaxed text-white/65">
-                AI koç ve mentorlarla kariyer, liderlik ve kişisel gelişiminizi sistematik olarak yönetin.
+                5 dakikada karar verme tarzınızı görün. AI destekli içgörülerle liderlik potansiyelinizi keşfedin.
               </p>
 
               <div className="space-y-4">
@@ -160,9 +160,9 @@ export default function RegisterPage() {
 
             {/* Başlık */}
             <div className="mb-8">
-              <h1 className="text-2xl font-bold text-foreground">Hesap Oluştur</h1>
+              <h1 className="text-2xl font-bold text-foreground">Ücretsiz Başlayın</h1>
               <p className="mt-1.5 text-sm text-muted-foreground">
-                Zaten hesabınız var mı?{' '}
+                İlk liderlik analiziniz ücretsiz. Zaten hesabınız var mı?{' '}
                 <Link href="/auth/login" className="font-semibold text-primary hover:underline">
                   Giriş yapın
                 </Link>
@@ -328,7 +328,7 @@ export default function RegisterPage() {
               <Button type="submit"
                 className="w-full h-11 bg-gradient-to-r from-secondary to-primary hover:opacity-90 font-semibold text-base disabled:opacity-40"
                 disabled={loading || !allAgreed}>
-                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Hesabımı Oluştur'}
+                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Analize Başla'}
               </Button>
             </form>
           </div>
