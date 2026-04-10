@@ -35,19 +35,19 @@ export default async function HomePage() {
                 Üst Düzey Yöneticiler İçin
               </div>
 
-              {/* Ana Başlık - Sonuç Odaklı */}
+              {/* Ana Başlık - Soru ile Başla */}
               <h1 className="mb-6 text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-                Daha Net Kararlar.
+                Potansiyelinizin ne kadarını
                 <br />
                 <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  Daha Güçlü Liderlik.
+                  kullanıyorsunuz?
                 </span>
               </h1>
 
               {/* Alt Başlık */}
               <p className="mb-8 max-w-lg text-lg leading-relaxed text-muted-foreground lg:text-xl">
-                AI destekli analiz ile karar kalıplarınızı görün, kör noktalarınızı keşfedin.
-                Veri odaklı içgörülerle liderlik performansınızı artırın.
+                AI destekli koçluk ile liderlik gücünüzü ortaya çıkarın.
+                7/24 erişilebilir koç ve mentorlarla gelişiminizi hızlandırın.
               </p>
 
               {/* Tek CTA */}
