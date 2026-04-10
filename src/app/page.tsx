@@ -54,7 +54,7 @@ export default async function HomePage() {
               <div className="mb-8">
                 <Link href={user ? "/mentors" : "/auth/register"}>
                   <Button size="lg" className="gap-2 bg-primary px-10 py-6 text-lg font-semibold text-white shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 transition-all">
-                    {user ? "Analize Başla" : "Ücretsiz Analizi Başlat"}
+                    {user ? "Koçunu Seç" : "Ücretsiz Dene"}
                     <ArrowRight className="h-5 w-5" />
                   </Button>
                 </Link>
@@ -344,15 +344,15 @@ export default async function HomePage() {
           />
           <div className="relative">
             <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl">
-              Liderlik Kör Noktalarınızı Keşfedin
+              İlk Seansınız Ücretsiz
             </h2>
             <p className="mx-auto mb-8 max-w-xl text-base leading-relaxed text-white/80">
-              5 dakikalık ücretsiz analiz ile karar verme tarzınızı görün.
-              Kişisel raporunuz anında hazır.
+              Hemen kayıt olun, AI koçunuzu seçin ve ilk seansınızı ücretsiz deneyimleyin.
+              Taahhüt yok, kredi kartı yok.
             </p>
             <Link href={user ? "/mentors" : "/auth/register"}>
               <Button size="lg" className="gap-2 bg-white px-10 py-6 text-lg font-semibold text-primary hover:bg-white/90 shadow-lg">
-                {user ? "Analize Başla" : "Hemen Ücretsiz Başla"}
+                {user ? "Koçunu Seç" : "Ücretsiz Dene"}
                 <ArrowRight className="h-5 w-5" />
               </Button>
             </Link>
