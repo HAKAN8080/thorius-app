@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, ChevronDown, CheckCircle2, Shield, Target, Brain, Check, ArrowLeft } from 'lucide-react';
+import { Loader2, ChevronDown, CheckCircle2, Shield, Target, Brain, ArrowLeft } from 'lucide-react';
 import { TERMS_OF_SERVICE, PRIVACY_POLICY, COACHING_SERVICE_AGREEMENT, AI_DISCLAIMER, KVKK_CONSENT, CONFIDENTIALITY_AND_IP } from '@/lib/agreements';
 
 // Sözleşme içerikleri için map
@@ -19,10 +19,6 @@ const AGREEMENT_CONTENTS: Record<string, { title: string; content: string }> = {
   ai: { title: 'Yapay Zeka Bildirimi', content: AI_DISCLAIMER },
 };
 
-const INTEREST_OPTIONS = [
-  'Kariyer Gelişimi', 'Liderlik', 'Girişimcilik', 'Kişisel Gelişim',
-  'Teknoloji', 'İş Stratejisi', 'Öğrenci Koçluğu', 'Yöneticilik',
-];
 
 const BENEFITS = [
   { icon: Brain, text: 'Kişiye özel AI koçluk seansları' },
@@ -35,9 +31,6 @@ export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [company, setCompany] = useState('');
-  const [jobTitle, setJobTitle] = useState('');
-  const [interests, setInterests] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [viewingAgreement, setViewingAgreement] = useState<string | null>(null);
@@ -56,7 +49,7 @@ export default function RegisterPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name, email, password, company, jobTitle, interests,
+          name, email, password,
           agreedToTerms: agreedToGeneral,
           agreedToPrivacy: agreedToGeneral,
           agreedToCoachingService: agreedToGeneral,
@@ -197,46 +190,6 @@ export default function RegisterPage() {
                   <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••" required minLength={8} autoComplete="new-password"
                     className="h-11 border-border bg-white focus:border-primary/50" />
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label htmlFor="company" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Şirket <span className="normal-case font-normal text-muted-foreground/60">(opsiyonel)</span>
-                    </label>
-                    <Input id="company" type="text" value={company} onChange={(e) => setCompany(e.target.value)}
-                      placeholder="Şirket adı"
-                      className="h-11 border-border bg-white focus:border-primary/50" />
-                  </div>
-                  <div>
-                    <label htmlFor="jobTitle" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Pozisyon <span className="normal-case font-normal text-muted-foreground/60">(opsiyonel)</span>
-                    </label>
-                    <Input id="jobTitle" type="text" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)}
-                      placeholder="Ünvanınız"
-                      className="h-11 border-border bg-white focus:border-primary/50" />
-                  </div>
-                </div>
-                <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    İlgi Alanları <span className="normal-case font-normal text-muted-foreground/60">(opsiyonel)</span>
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {INTEREST_OPTIONS.map((opt) => {
-                      const selected = interests.includes(opt);
-                      return (
-                        <button key={opt} type="button"
-                          onClick={() => setInterests(selected ? interests.filter(i => i !== opt) : [...interests, opt])}
-                          className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
-                            selected
-                              ? 'border-primary bg-primary/15 text-primary'
-                              : 'border-border/60 bg-card/30 text-muted-foreground hover:border-primary/40'
-                          }`}>
-                          {selected && <Check className="h-3 w-3" />}
-                          {opt}
-                        </button>
-                      );
-                    })}
-                  </div>
                 </div>
               </div>
 
