@@ -96,10 +96,10 @@ export async function POST(req: NextRequest) {
 
   try {
     // Admin'e mail gönder
-    console.log('[Enterprise Request] Sending admin email to: admin@thorius.com.tr');
+    console.log('[Enterprise Request] Sending admin email to: mhakan_ugur@yahoo.com');
     const adminResult = await resend.emails.send({
       from: 'Thorius <destek@thorius.com.tr>',
-      to: 'admin@thorius.com.tr',
+      to: 'mhakan_ugur@yahoo.com',
       subject: `Kurumsal Plan Talebi - ${name}`,
       html,
       replyTo: email, // Müşteri doğrudan yanıt verebilir
