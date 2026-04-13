@@ -4,9 +4,19 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Check, X, Sparkles, Zap, BarChart3, Crown, Building2,
-  MessageSquare, Volume2, VolumeX, Users, ChevronDown, Plus, Lock,
+  MessageSquare, Volume2, VolumeX, Users, ChevronDown, Plus, Lock, Mail,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 /* ── WooCommerce ödeme URL'leri ────────────────────────────────────────── */
 const WC_URLS: Record<string, string> = {
@@ -150,7 +160,7 @@ const PLANS: Plan[] = [
       'Öncelikli destek',
     ],
     notFeatures: [],
-    cta: 'Teklif Al',
+    cta: 'Bize Ulaşın',
   },
 ];
 
@@ -184,6 +194,16 @@ export default function PricingPage() {
   const [error, setError] = useState<string | null>(null);
   const [showTable, setShowTable] = useState(false);
   const [userPlan, setUserPlan] = useState<string | null>(null);
+  const [showEnterpriseForm, setShowEnterpriseForm] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    company: '',
+    sessions: '',
+    description: '',
+  });
+  const [formLoading, setFormLoading] = useState(false);
+  const [formSuccess, setFormSuccess] = useState(false);
 
   // Kullanıcının mevcut planını al
   useEffect(() => {
@@ -214,6 +234,42 @@ export default function PricingPage() {
     return userPlan === planId;
   }
 
+  async function handleEnterpriseFormSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setFormLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch('/api/enterprise-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (res.ok) {
+        setFormSuccess(true);
+        setTimeout(() => {
+          setShowEnterpriseForm(false);
+          setFormSuccess(false);
+          setFormData({
+            name: '',
+            email: '',
+            company: '',
+            sessions: '',
+            description: '',
+          });
+        }, 2000);
+      } else {
+        const data = await res.json();
+        setError(data.error ?? 'Form gönderilemedi. Lütfen tekrar deneyin.');
+      }
+    } catch {
+      setError('Bağlantı hatası. Lütfen tekrar deneyin.');
+    } finally {
+      setFormLoading(false);
+    }
+  }
+
   async function handleSelectPlan(planId: PlanId) {
     // Mevcut plan kontrolü
     if (isCurrentPlan(planId)) {
@@ -231,7 +287,7 @@ export default function PricingPage() {
       return;
     }
     if (planId === 'kurumsal') {
-      window.location.href = 'mailto:info@thorius.com.tr?subject=Kurumsal Plan Talebi';
+      setShowEnterpriseForm(true);
       return;
     }
 
@@ -332,6 +388,11 @@ export default function PricingPage() {
                 <div className="mb-4">
                   {plan.price === '0' ? (
                     <span className="text-3xl font-bold">Ücretsiz</span>
+                  ) : plan.id === 'kurumsal' ? (
+                    <div className="flex flex-col gap-1">
+                      <span className="text-2xl font-bold text-primary">Bize Ulaşın</span>
+                      <span className="text-xs text-muted-foreground">Özel fiyatlandırma</span>
+                    </div>
                   ) : (
                     <>
                       <div className="flex items-end gap-1">
@@ -550,7 +611,7 @@ export default function PricingPage() {
                     { label: 'Seans Özetleri',    vals: ['✓', '✓', '✓', '✓'] },
                     { label: 'Gelişim Raporları', vals: ['✓', '✓', '✓', '✓'] },
                     { label: 'Öncelikli Destek',  vals: ['✗', '✗', '✗', '✓'] },
-                    { label: 'Paket Fiyatı',      vals: ['Ücretsiz', '₺1.990', '₺14.900', '₺49.000'] },
+                    { label: 'Paket Fiyatı',      vals: ['Ücretsiz', '₺1.990', '₺14.900', 'Bize Ulaşın'] },
                   ].map((row) => (
                     <tr key={row.label} className="transition-colors hover:bg-muted/10">
                       <td className="p-4 font-medium text-muted-foreground">{row.label}</td>
@@ -575,6 +636,121 @@ export default function PricingPage() {
         </div>
 
       </div>
+
+      {/* Kurumsal Plan İletişim Formu */}
+      <Dialog open={showEnterpriseForm} onOpenChange={setShowEnterpriseForm}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-primary" />
+              Kurumsal Plan Talebi
+            </DialogTitle>
+            <DialogDescription>
+              Kurumsal paketimiz hakkında bilgi almak için formu doldurun. En kısa sürede size dönüş yapacağız.
+            </DialogDescription>
+          </DialogHeader>
+
+          {formSuccess ? (
+            <div className="py-6 text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                <Check className="h-6 w-6 text-green-600" />
+              </div>
+              <p className="font-medium text-green-600">Talebiniz başarıyla gönderildi!</p>
+              <p className="mt-1 text-sm text-muted-foreground">En kısa sürede size dönüş yapacağız.</p>
+            </div>
+          ) : (
+            <form onSubmit={handleEnterpriseFormSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Ad Soyad *</Label>
+                <Input
+                  id="name"
+                  placeholder="Ad Soyad"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">E-posta *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="ornek@sirket.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="company">Şirket Adı</Label>
+                <Input
+                  id="company"
+                  placeholder="Şirket adınız"
+                  value={formData.company}
+                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="sessions">Planlanan Seans Sayısı *</Label>
+                <Input
+                  id="sessions"
+                  type="number"
+                  min="1"
+                  placeholder="Örn: 50"
+                  value={formData.sessions}
+                  onChange={(e) => setFormData({ ...formData, sessions: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">İhtiyaç Açıklaması *</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Kurumsal koçluk ihtiyacınızı kısaca açıklayın..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows={4}
+                  required
+                />
+              </div>
+
+              {error && (
+                <p className="text-sm text-red-500">{error}</p>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowEnterpriseForm(false)}
+                  disabled={formLoading}
+                  className="flex-1"
+                >
+                  İptal
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={formLoading}
+                  className="flex-1 gap-2"
+                >
+                  {formLoading ? (
+                    'Gönderiliyor...'
+                  ) : (
+                    <>
+                      <Mail className="h-4 w-4" />
+                      Gönder
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
