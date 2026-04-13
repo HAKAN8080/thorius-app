@@ -4,7 +4,7 @@ import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
-  const rl = await rateLimit(`enterprise-request:${ip}`, 3, 60); // saatte 3 istek
+  const rl = await rateLimit(`enterprise-request:${ip}`, 10, 60); // saatte 10 istek
   if (!rl.allowed) {
     return NextResponse.json(
       { error: 'Çok fazla istek. Lütfen daha sonra tekrar deneyin.' },
