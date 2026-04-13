@@ -39,7 +39,15 @@ export async function POST(req: NextRequest) {
         </tr>
         <tr>
           <td style="padding:40px 48px;">
-            <p style="margin:0 0 24px;color:#374151;font-size:16px;font-weight:600;">Yeni bir kurumsal plan talebi alındı:</p>
+            <div style="background:#dbeafe;border-left:4px solid #3b82f6;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+              <p style="margin:0 0 8px;color:#1e40af;font-size:13px;font-weight:600;text-transform:uppercase;">📧 Müşteri İletişim Bilgileri</p>
+              <p style="margin:0 0 4px;color:#1e3a8a;font-size:16px;font-weight:700;">${name}</p>
+              <p style="margin:0;color:#1e40af;font-size:14px;">
+                <a href="mailto:${email}" style="color:#1e40af;text-decoration:underline;">${email}</a>
+              </p>
+            </div>
+
+            <p style="margin:0 0 20px;color:#374151;font-size:15px;font-weight:600;">Talep Detayları:</p>
 
             <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
               <tr>
@@ -51,7 +59,9 @@ export async function POST(req: NextRequest) {
               <tr>
                 <td style="padding:12px;background:#f9fafb;border-radius:8px;margin-top:8px;">
                   <p style="margin:0 0 4px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">E-posta</p>
-                  <p style="margin:0;color:#111827;font-size:15px;font-weight:600;">${email}</p>
+                  <p style="margin:0;color:#111827;font-size:15px;font-weight:600;">
+                    <a href="mailto:${email}" style="color:#111827;text-decoration:none;">${email}</a>
+                  </p>
                 </td>
               </tr>
               ${company ? `
@@ -138,7 +148,7 @@ export async function POST(req: NextRequest) {
             </div>
 
             <p style="margin:0 0 16px;color:#6b7280;font-size:14px;line-height:1.6;">
-              Herhangi bir sorunuz varsa, lütfen <a href="mailto:admin@thorius.com.tr" style="color:#10b981;text-decoration:none;">admin@thorius.com.tr</a> adresinden bizimle iletişime geçin.
+              Herhangi bir sorunuz varsa, lütfen <a href="mailto:mhakan_ugur@yahoo.com" style="color:#10b981;text-decoration:none;">mhakan_ugur@yahoo.com</a> adresinden bizimle iletişime geçin.
             </p>
 
             <p style="margin:0;color:#6b7280;font-size:14px;">
@@ -149,7 +159,7 @@ export async function POST(req: NextRequest) {
         </tr>
         <tr>
           <td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:20px 48px;text-align:center;">
-            <p style="margin:0;color:#9ca3af;font-size:12px;">© 2026 Thorius · <a href="mailto:admin@thorius.com.tr" style="color:#10b981;text-decoration:none;">admin@thorius.com.tr</a></p>
+            <p style="margin:0;color:#9ca3af;font-size:12px;">© 2026 Thorius · <a href="mailto:mhakan_ugur@yahoo.com" style="color:#10b981;text-decoration:none;">mhakan_ugur@yahoo.com</a></p>
           </td>
         </tr>
       </table>

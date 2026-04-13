@@ -295,6 +295,14 @@ export default function PricingPage() {
       return;
     }
     if (planId === 'kurumsal') {
+      // Formu temizle
+      setFormData({
+        name: '',
+        email: '',
+        company: '',
+        sessions: '',
+        description: '',
+      });
       setShowEnterpriseForm(true);
       return;
     }
@@ -667,61 +675,71 @@ export default function PricingPage() {
               <p className="mt-1 text-sm text-muted-foreground">En kısa sürede size dönüş yapacağız.</p>
             </div>
           ) : (
-            <form onSubmit={handleEnterpriseFormSubmit} className="space-y-4">
+            <form onSubmit={handleEnterpriseFormSubmit} className="space-y-4" autoComplete="off">
               <div className="space-y-2">
-                <Label htmlFor="name">Ad Soyad *</Label>
+                <Label htmlFor="ent-name">Ad Soyad *</Label>
                 <Input
-                  id="name"
+                  id="ent-name"
+                  name="ent-name"
                   placeholder="Ad Soyad"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  autoComplete="off"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">E-posta *</Label>
+                <Label htmlFor="ent-email">E-posta *</Label>
                 <Input
-                  id="email"
+                  id="ent-email"
+                  name="ent-email"
                   type="email"
                   placeholder="ornek@sirket.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  autoComplete="off"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="company">Şirket Adı</Label>
+                <Label htmlFor="ent-company">Şirket Adı</Label>
                 <Input
-                  id="company"
+                  id="ent-company"
+                  name="ent-company"
                   placeholder="Şirket adınız"
                   value={formData.company}
                   onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                  autoComplete="off"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="sessions">Planlanan Seans Sayısı *</Label>
+                <Label htmlFor="ent-sessions">Planlanan Seans Sayısı *</Label>
                 <Input
-                  id="sessions"
+                  id="ent-sessions"
+                  name="ent-sessions"
                   type="number"
                   min="1"
                   placeholder="Örn: 50"
                   value={formData.sessions}
                   onChange={(e) => setFormData({ ...formData, sessions: e.target.value })}
+                  autoComplete="off"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">İhtiyaç Açıklaması *</Label>
+                <Label htmlFor="ent-description">İhtiyaç Açıklaması *</Label>
                 <Textarea
-                  id="description"
+                  id="ent-description"
+                  name="ent-description"
                   placeholder="Kurumsal koçluk ihtiyacınızı kısaca açıklayın..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={4}
+                  autoComplete="off"
                   required
                 />
               </div>
