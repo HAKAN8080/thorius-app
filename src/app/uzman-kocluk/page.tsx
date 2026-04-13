@@ -2,75 +2,16 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Calendar, Clock, Users, Video, Check, Mail, Sparkles, Heart } from 'lucide-react';
-import Image from 'next/image';
-
-interface ExpertCoach {
-  id: string;
-  name: string;
-  title: string;
-  avatar: string;
-  bio: string;
-  expertise: string[];
-  experience: string;
-  approach: string;
-  availability: string;
-}
-
-const EXPERT_COACHES: ExpertCoach[] = [
-  {
-    id: 'ayse-yilmaz',
-    name: 'Ayşe Yılmaz',
-    title: 'ICF PCC Sertifikalı Koç',
-    avatar: '/avatars/expert-1.jpg',
-    bio: '12 yıllık kurumsal deneyim ve 500+ koçluk seansı',
-    expertise: ['Liderlik Geliştirme', 'Kariyer Geçişi', 'Ekip Yönetimi'],
-    experience: '500+ seans | Fortune 500 deneyimi',
-    approach: 'GROW metodolojisi ile sistematik gelişim odaklı koçluk',
-    availability: 'Hafta içi akşam ve hafta sonu',
-  },
-  {
-    id: 'mehmet-kaya',
-    name: 'Mehmet Kaya',
-    title: 'Girişimcilik & Kariyer Koçu',
-    avatar: '/avatars/expert-2.jpg',
-    bio: 'Startup kurucusu, 300+ girişimciye mentorluk',
-    expertise: ['Girişimcilik', 'İş Geliştirme', 'Strateji'],
-    experience: '300+ girişimci ile çalıştı',
-    approach: 'Pratik odaklı, lean metodoloji ile hızlı sonuç',
-    availability: 'Hafta içi gündüz',
-  },
-  {
-    id: 'zeynep-demir',
-    name: 'Zeynep Demir',
-    title: 'Yaşam & İş Dengesi Koçu',
-    avatar: '/avatars/expert-3.jpg',
-    bio: 'Psikolog, 8 yıl kurumsal koçluk deneyimi',
-    expertise: ['İş-Yaşam Dengesi', 'Stres Yönetimi', 'Mindfulness'],
-    experience: '400+ kişiye koçluk',
-    approach: 'Farkındalık temelli, bütünsel yaklaşım',
-    availability: 'Esnek, online toplantı',
-  },
-];
+import { Calendar, Users, Video, Check, Mail, Sparkles, Heart } from 'lucide-react';
 
 export default function ExpertCoachingPage() {
-  const [showContactForm, setShowContactForm] = useState(false);
-  const [selectedCoach, setSelectedCoach] = useState<ExpertCoach | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    coachId: '',
     message: '',
   });
   const [formLoading, setFormLoading] = useState(false);
@@ -84,38 +25,26 @@ export default function ExpertCoachingPage() {
       const res = await fetch('/api/expert-coaching-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          coachName: selectedCoach?.name,
-        }),
+        body: JSON.stringify(formData),
       });
 
       if (res.ok) {
         setFormSuccess(true);
         setTimeout(() => {
-          setShowContactForm(false);
           setFormSuccess(false);
           setFormData({
             name: '',
             email: '',
             phone: '',
-            coachId: '',
             message: '',
           });
-          setSelectedCoach(null);
-        }, 2000);
+        }, 3000);
       }
     } catch (err) {
       console.error('Contact form error:', err);
     } finally {
       setFormLoading(false);
     }
-  };
-
-  const openContactForm = (coach: ExpertCoach) => {
-    setSelectedCoach(coach);
-    setFormData((prev) => ({ ...prev, coachId: coach.id }));
-    setShowContactForm(true);
   };
 
   return (
@@ -137,7 +66,7 @@ export default function ExpertCoachingPage() {
             <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
               1:1 Online{' '}
               <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Uzman Koçluk
+                Koçluk / Mentorluk
               </span>
             </h1>
 
@@ -204,12 +133,12 @@ export default function ExpertCoachingPage() {
               </ul>
             </div>
 
-            {/* 1:1 Uzman Koçluk */}
+            {/* 1:1 Koçluk / Mentorluk */}
             <div className="rounded-2xl border-2 border-primary bg-white p-8">
               <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500">
                 <Heart className="h-6 w-6 text-white" />
               </div>
-              <h3 className="mb-3 text-xl font-bold">1:1 Uzman Koçluk</h3>
+              <h3 className="mb-3 text-xl font-bold">1:1 Koçluk / Mentorluk</h3>
               <p className="mb-6 text-sm text-muted-foreground">
                 Daha derin bağ, sezgisel anlayış
               </p>
@@ -232,106 +161,23 @@ export default function ExpertCoachingPage() {
         </div>
       </section>
 
-      {/* Uzman Koçlar */}
-      <section className="py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-12 text-center">
-            <h2 className="mb-4 text-3xl font-bold">Uzman Koçlarımız</h2>
+      {/* İletişim Formu */}
+      <section className="py-20 bg-muted/20">
+        <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 text-center">
+            <h2 className="mb-4 text-3xl font-bold">İletişime Geçin</h2>
             <p className="text-muted-foreground">
-              Sertifikalı, deneyimli koçlar. Size en uygun olanını seçin.
+              Uzman koçlarımızla tanışmak ve seans planlamak için formu doldurun.
             </p>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {EXPERT_COACHES.map((coach) => (
-              <div
-                key={coach.id}
-                className="group rounded-2xl border border-border bg-white p-6 transition-all hover:shadow-lg"
-              >
-                {/* Avatar */}
-                <div className="mb-4 flex items-start gap-4">
-                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-muted">
-                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20 text-2xl font-bold text-primary">
-                      {coach.name.charAt(0)}
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold">{coach.name}</h3>
-                    <p className="text-sm text-muted-foreground">{coach.title}</p>
-                  </div>
-                </div>
-
-                {/* Bio */}
-                <p className="mb-4 text-sm text-muted-foreground">{coach.bio}</p>
-
-                {/* Uzmanlık */}
-                <div className="mb-4">
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Uzmanlık
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {coach.expertise.map((exp) => (
-                      <span
-                        key={exp}
-                        className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
-                      >
-                        {exp}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Deneyim */}
-                <div className="mb-4 flex items-center gap-2 text-xs text-muted-foreground">
-                  <Clock className="h-3.5 w-3.5" />
-                  <span>{coach.experience}</span>
-                </div>
-
-                {/* Yaklaşım */}
-                <p className="mb-6 text-xs italic text-muted-foreground">
-                  &quot;{coach.approach}&quot;
-                </p>
-
-                {/* CTA */}
-                <Button
-                  onClick={() => openContactForm(coach)}
-                  className="w-full"
-                  variant="outline"
-                >
-                  İletişime Geç
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* İletişim Formu Dialog */}
-      <Dialog open={showContactForm} onOpenChange={setShowContactForm}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedCoach ? `${selectedCoach.name} ile İletişime Geç` : 'İletişim'}
-            </DialogTitle>
-            <DialogDescription>
-              Bilgilerinizi bırakın, en kısa sürede size dönüş yapalım.
-            </DialogDescription>
-          </DialogHeader>
-
-          {formSuccess ? (
-            <div className="py-6 text-center">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                <Check className="h-6 w-6 text-green-600" />
-              </div>
-              <p className="font-medium text-green-600">Talebiniz alındı!</p>
-              <p className="mt-1 text-sm text-muted-foreground">En kısa sürede size ulaşacağız.</p>
-            </div>
-          ) : (
-            <form onSubmit={handleContactSubmit} className="space-y-4">
+          <div className="rounded-2xl border border-border bg-white p-8 shadow-lg">
+            <form onSubmit={handleContactSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="contact-name">Ad Soyad *</Label>
                 <Input
                   id="contact-name"
+                  placeholder="Adınız Soyadınız"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
@@ -343,6 +189,7 @@ export default function ExpertCoachingPage() {
                 <Input
                   id="contact-email"
                   type="email"
+                  placeholder="ornek@email.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
@@ -354,6 +201,7 @@ export default function ExpertCoachingPage() {
                 <Input
                   id="contact-phone"
                   type="tel"
+                  placeholder="05XX XXX XX XX"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 />
@@ -365,34 +213,39 @@ export default function ExpertCoachingPage() {
                   id="contact-message"
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  rows={4}
-                  placeholder="Koçluktan beklentilerinizi kısaca paylaşın..."
+                  rows={5}
+                  placeholder="1:1 koçluk hakkında beklentilerinizi, hangi alanlarda destek almak istediğinizi kısaca paylaşın..."
                 />
               </div>
 
-              <div className="flex gap-3 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowContactForm(false)}
-                  disabled={formLoading}
-                  className="flex-1"
-                >
-                  İptal
-                </Button>
-                <Button type="submit" disabled={formLoading} className="flex-1 gap-2">
-                  {formLoading ? 'Gönderiliyor...' : (
-                    <>
-                      <Mail className="h-4 w-4" />
-                      Gönder
-                    </>
-                  )}
-                </Button>
-              </div>
+              {formSuccess && (
+                <div className="rounded-lg bg-green-50 p-4 text-center">
+                  <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+                    <Check className="h-5 w-5 text-green-600" />
+                  </div>
+                  <p className="font-medium text-green-600">Talebiniz alındı!</p>
+                  <p className="text-sm text-green-600/80">En kısa sürede size ulaşacağız.</p>
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                disabled={formLoading || formSuccess}
+                className="w-full gap-2"
+                size="lg"
+              >
+                {formLoading ? 'Gönderiliyor...' : formSuccess ? 'Gönderildi!' : (
+                  <>
+                    <Mail className="h-4 w-4" />
+                    Gönder
+                  </>
+                )}
+              </Button>
             </form>
-          )}
-        </DialogContent>
-      </Dialog>
+          </div>
+        </div>
+      </section>
+
     </div>
   );
 }

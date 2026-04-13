@@ -12,14 +12,14 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { name, email, phone, coachId, coachName, message } = await req.json();
+  const { name, email, phone, message } = await req.json();
 
   // Validasyon
-  if (!name || !email || !coachId) {
+  if (!name || !email) {
     return NextResponse.json({ error: 'Zorunlu alanları doldurun.' }, { status: 400 });
   }
 
-  console.log('[Expert Coaching] Received:', { name, email, phone, coachId, coachName, message });
+  console.log('[Expert Coaching] Received:', { name, email, phone, message });
 
   const resend = new Resend(process.env.RESEND_API_KEY!);
 
@@ -47,24 +47,12 @@ export async function POST(req: NextRequest) {
               ${phone ? `<p style="margin:4px 0 0;color:#1e40af;font-size:14px;">📞 ${phone}</p>` : ''}
             </div>
 
-            <p style="margin:0 0 20px;color:#374151;font-size:15px;font-weight:600;">Talep Detayları:</p>
-
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
-              <tr>
-                <td style="padding:12px;background:#f9fafb;border-radius:8px;margin-bottom:8px;">
-                  <p style="margin:0 0 4px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">Talep Edilen Koç</p>
-                  <p style="margin:0;color:#111827;font-size:15px;font-weight:600;">${coachName || coachId}</p>
-                </td>
-              </tr>
-              ${message ? `
-              <tr>
-                <td style="padding:12px;background:#f9fafb;border-radius:8px;margin-top:8px;">
-                  <p style="margin:0 0 8px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">Mesaj</p>
-                  <p style="margin:0;color:#111827;font-size:14px;line-height:1.6;">${message}</p>
-                </td>
-              </tr>
-              ` : ''}
-            </table>
+            ${message ? `
+            <p style="margin:0 0 8px;color:#374151;font-size:15px;font-weight:600;">Mesaj:</p>
+            <div style="background:#f9fafb;border-radius:8px;padding:16px;margin-bottom:24px;">
+              <p style="margin:0;color:#111827;font-size:14px;line-height:1.6;">${message}</p>
+            </div>
+            ` : ''}
 
             <div style="background:#dbeafe;border:1px solid #93c5fd;border-radius:10px;padding:16px 20px;">
               <p style="margin:0;color:#1e40af;font-size:13px;line-height:1.6;">
@@ -105,10 +93,9 @@ export async function POST(req: NextRequest) {
             </p>
 
             <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:16px 20px;margin-bottom:24px;">
-              <p style="margin:0 0 8px;color:#166534;font-size:14px;font-weight:600;">Talep Özeti</p>
+              <p style="margin:0 0 8px;color:#166534;font-size:14px;font-weight:600;">İletişim Bilgileri</p>
               <p style="margin:0;color:#166534;font-size:13px;line-height:1.6;">
-                • Koç: <strong>${coachName || 'Belirtilmedi'}</strong><br/>
-                • İletişim: <strong>${email}</strong>
+                • E-posta: <strong>${email}</strong>${phone ? `<br/>• Telefon: <strong>${phone}</strong>` : ''}
               </p>
             </div>
 
