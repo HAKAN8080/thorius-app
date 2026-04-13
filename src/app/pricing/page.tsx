@@ -239,6 +239,8 @@ export default function PricingPage() {
     setFormLoading(true);
     setError(null);
 
+    console.log('[Enterprise Form] Submitting:', formData);
+
     try {
       const res = await fetch('/api/enterprise-request', {
         method: 'POST',
@@ -246,7 +248,11 @@ export default function PricingPage() {
         body: JSON.stringify(formData),
       });
 
+      console.log('[Enterprise Form] Response status:', res.status);
+
       if (res.ok) {
+        const data = await res.json();
+        console.log('[Enterprise Form] Success response:', data);
         setFormSuccess(true);
         setTimeout(() => {
           setShowEnterpriseForm(false);
@@ -261,9 +267,11 @@ export default function PricingPage() {
         }, 2000);
       } else {
         const data = await res.json();
+        console.error('[Enterprise Form] Error response:', data);
         setError(data.error ?? 'Form gönderilemedi. Lütfen tekrar deneyin.');
       }
-    } catch {
+    } catch (err) {
+      console.error('[Enterprise Form] Request failed:', err);
       setError('Bağlantı hatası. Lütfen tekrar deneyin.');
     } finally {
       setFormLoading(false);

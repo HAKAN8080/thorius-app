@@ -14,6 +14,9 @@ export async function POST(req: NextRequest) {
 
   const { name, email, company, sessions, description } = await req.json();
 
+  // Debug log
+  console.log('[Enterprise Request] Received:', { name, email, company, sessions, description });
+
   // Validasyon
   if (!name || !email || !sessions || !description) {
     return NextResponse.json({ error: 'Zorunlu alanları doldurun.' }, { status: 400 });
@@ -93,15 +96,18 @@ export async function POST(req: NextRequest) {
 
   try {
     // Admin'e mail gönder
-    await resend.emails.send({
+    console.log('[Enterprise Request] Sending admin email to: admin@thorius.com.tr');
+    const adminResult = await resend.emails.send({
       from: 'Thorius <destek@thorius.com.tr>',
       to: 'admin@thorius.com.tr',
       subject: `Kurumsal Plan Talebi - ${name}`,
       html,
       replyTo: email, // Müşteri doğrudan yanıt verebilir
     });
+    console.log('[Enterprise Request] Admin email sent:', adminResult);
 
     // Müşteriye onay maili gönder
+    console.log('[Enterprise Request] Sending customer email to:', email);
     const customerHtml = `<!DOCTYPE html>
 <html lang="tr">
 <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
@@ -152,17 +158,20 @@ export async function POST(req: NextRequest) {
 </body>
 </html>`;
 
-    await resend.emails.send({
+    const customerResult = await resend.emails.send({
       from: 'Thorius <destek@thorius.com.tr>',
       to: email,
       subject: 'Kurumsal Plan Talebiniz Alındı - Thorius',
       html: customerHtml,
     });
+    console.log('[Enterprise Request] Customer email sent:', customerResult);
+    console.log('[Enterprise Request] All emails sent successfully!');
 
   } catch (err) {
     console.error('[Enterprise Request] Email send failed:', err);
     return NextResponse.json({ error: 'E-posta gönderilemedi. Lütfen tekrar deneyin.' }, { status: 500 });
   }
 
+  console.log('[Enterprise Request] Request completed successfully');
   return NextResponse.json({ success: true });
 }
