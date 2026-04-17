@@ -26,7 +26,7 @@ const stories: Story[] = [
     id: 'leadership',
     scenario: 'Liderlik gelişimi',
     sceneName: 'İlk Yönetici Toplantısı',
-    quote: '"Ekip benden lider olmamı bekliyor. Ama ben sadece bir ekip üyesiydim dün..."',
+    quote: '"Ekip benden lider olmamı bekliyor. Ama ben daha düne kadar sadece bir ekip üyesiydim"',
     description: 'Liderlik yolculuğunuzda yanınızdayız. Ekip yönetimi, karar alma ve etki yaratma konularında profesyonel rehberlik alın.',
     userCount: 63,
   },
