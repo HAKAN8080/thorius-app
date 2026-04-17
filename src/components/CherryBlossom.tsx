@@ -27,7 +27,7 @@ export function CherryBlossom() {
   }, []);
 
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div className="pointer-events-none absolute inset-0 overflow-hidden z-50">
       {petals.map((petal) => (
         <div
           key={petal.id}
@@ -45,13 +45,13 @@ export function CherryBlossom() {
             fill="none"
             style={{
               transform: `rotate(${petal.rotation}deg)`,
-              filter: 'drop-shadow(0 2px 4px rgba(255, 158, 187, 0.3))',
+              filter: 'drop-shadow(0 0 6px rgba(255, 107, 157, 0.8)) drop-shadow(0 2px 4px rgba(255, 107, 157, 0.5))',
             }}
           >
-            {/* Kiraz çiçeği yaprağı */}
-            <ellipse cx="12" cy="8" rx="6" ry="8" fill="#FF9EBB" opacity="1" />
-            <ellipse cx="12" cy="8" rx="4" ry="6" fill="#FFB7D5" opacity="0.9" />
-            <circle cx="12" cy="6" r="1.5" fill="#FFE0F0" opacity="1" />
+            {/* Kiraz çiçeği yaprağı - Canlı pembe */}
+            <ellipse cx="12" cy="8" rx="6" ry="8" fill="#FF6B9D" opacity="1" />
+            <ellipse cx="12" cy="8" rx="4" ry="6" fill="#FF8FB5" opacity="1" />
+            <circle cx="12" cy="6" r="1.5" fill="#FFB7D5" opacity="1" />
           </svg>
         </div>
       ))}
@@ -73,7 +73,7 @@ export function CherryBlossom() {
           }
           100% {
             transform: translateY(100vh) rotate(360deg) translateX(-10px);
-            opacity: 0.3;
+            opacity: 0.6;
           }
         }
         .animate-fall {
