@@ -45,13 +45,13 @@ export function CherryBlossom() {
             fill="none"
             style={{
               transform: `rotate(${petal.rotation}deg)`,
-              filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))',
+              filter: 'drop-shadow(0 2px 4px rgba(255, 158, 187, 0.3))',
             }}
           >
             {/* Kiraz çiçeği yaprağı */}
-            <ellipse cx="12" cy="8" rx="6" ry="8" fill="#FFB7C5" opacity="0.9" />
-            <ellipse cx="12" cy="8" rx="4" ry="6" fill="#FFC0CB" opacity="0.7" />
-            <circle cx="12" cy="6" r="1.5" fill="#FFD1DC" />
+            <ellipse cx="12" cy="8" rx="6" ry="8" fill="#FF9EBB" opacity="1" />
+            <ellipse cx="12" cy="8" rx="4" ry="6" fill="#FFB7D5" opacity="0.9" />
+            <circle cx="12" cy="6" r="1.5" fill="#FFE0F0" opacity="1" />
           </svg>
         </div>
       ))}
