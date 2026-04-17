@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Sparkles } from 'lucide-react';
+import Image from 'next/image';
 
 interface Story {
   id: string;
@@ -90,24 +91,42 @@ export function HeroStorytelling() {
   return (
     <section
       className="relative overflow-hidden"
-      style={{
-        background: 'linear-gradient(135deg, #1a0533 0%, #4c0f8f 28%, #7c3aed 55%, #2563eb 80%, #0ea5e9 100%)',
-      }}
+      style={{ backgroundColor: '#0a1628' }}
     >
+      {/* Background Image - Blurred Coaching Session */}
+      <div className="pointer-events-none absolute inset-0">
+        <Image
+          src="/login-coaching.png"
+          alt=""
+          fill
+          className="object-cover opacity-[0.15]"
+          style={{ filter: 'blur(40px)' }}
+          priority
+        />
+      </div>
+
+      {/* Dark gradient overlay for readability */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: 'linear-gradient(135deg, rgba(10, 22, 40, 0.85) 0%, rgba(15, 32, 56, 0.9) 50%, rgba(10, 22, 40, 0.95) 100%)',
+        }}
+      />
+
       {/* Subtle pattern overlay */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.05]"
+        className="pointer-events-none absolute inset-0 opacity-[0.04]"
         style={{
           backgroundImage: 'radial-gradient(circle at 2px 2px, #c49e5a 1px, transparent 0)',
           backgroundSize: '32px 32px',
         }}
       />
 
-      {/* Glow effect */}
+      {/* Golden glow effect */}
       <div
         className="pointer-events-none absolute left-1/2 top-0 h-[500px] w-[800px] -translate-x-1/2 rounded-full blur-3xl"
         style={{
-          background: 'radial-gradient(circle, rgba(196, 158, 90, 0.12) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(196, 158, 90, 0.08) 0%, transparent 70%)',
         }}
       />
 
@@ -139,9 +158,9 @@ export function HeroStorytelling() {
               className="group relative overflow-hidden rounded-full px-6 py-2.5 text-sm font-medium transition-all duration-300"
               style={{
                 fontFamily: 'var(--font-dm-sans)',
-                backgroundColor: activeIndex === index ? '#c49e5a' : 'rgba(255, 255, 255, 0.08)',
-                color: activeIndex === index ? '#1a0533' : '#e5e7eb',
-                border: `1px solid ${activeIndex === index ? '#c49e5a' : 'rgba(196, 158, 90, 0.2)'}`,
+                backgroundColor: activeIndex === index ? '#c49e5a' : 'rgba(255, 255, 255, 0.05)',
+                color: activeIndex === index ? '#0a1628' : '#e5e7eb',
+                border: `1px solid ${activeIndex === index ? '#c49e5a' : 'rgba(196, 158, 90, 0.25)'}`,
               }}
             >
               {/* Hover shimmer */}
@@ -165,9 +184,10 @@ export function HeroStorytelling() {
               isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
             }`}
             style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.03)',
-              borderColor: 'rgba(196, 158, 90, 0.15)',
-              backdropFilter: 'blur(10px)',
+              backgroundColor: 'rgba(255, 255, 255, 0.04)',
+              borderColor: 'rgba(196, 158, 90, 0.2)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
             }}
           >
             {/* Glow effect in card */}
