@@ -19,7 +19,7 @@ const stories: Story[] = [
     scenario: 'İş mülakatı öncesi',
     sceneName: 'Mülakat Öncesi Gece',
     quote: '"Yarın çok önemli. Hazır olduğumu biliyorum ama... ya bir şey ters giderse?"',
-    description: 'Mülakat öncesi kaygıyı güce dönüştürün. AI koçunuz sizinle senaryolar üzerinde çalışıyor, güçlü yanlarınızı ortaya çıkarmanıza yardımcı oluyor.',
+    description: 'Mülakat öncesi kaygıyı güce dönüştürün. AI koçunuz sizinle senaryolar üzerinde çalışıyor, ücretsiz testler ile mülakat öncesi deneyim kazanmanıza ve güçlü yanlarınızı ortaya çıkarmanıza yardımcı oluyor.',
     userCount: 47,
   },
   {
@@ -220,7 +220,14 @@ export function HeroStorytelling() {
                 className="mb-6 text-base leading-relaxed text-gray-300 sm:text-lg"
                 style={{ fontFamily: 'var(--font-dm-sans)' }}
               >
-                {activeStory.description}
+                {activeStory.id === 'interview' ? (
+                  <>
+                    Mülakat öncesi kaygıyı güce dönüştürün. AI koçunuz sizinle senaryolar üzerinde çalışıyor,{' '}
+                    <span style={{ color: '#c49e5a', fontWeight: 600 }}>ücretsiz testler</span> ile mülakat öncesi deneyim kazanmanıza ve güçlü yanlarınızı ortaya çıkarmanıza yardımcı oluyor.
+                  </>
+                ) : (
+                  activeStory.description
+                )}
               </p>
 
               {/* User count info */}
