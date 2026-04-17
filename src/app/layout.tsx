@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans, DM_Serif_Display, DM_Sans } from "next/font/google";
 import { Navbar } from "@/components/Navbar";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { MetaPixel } from "@/components/MetaPixel";
@@ -13,6 +13,20 @@ const jakarta = Plus_Jakarta_Sans({
   variable: "--font-sans",
   display: "swap",
   weight: ["300", "400", "500", "600", "700", "800"],
+});
+
+const dmSerif = DM_Serif_Display({
+  subsets: ["latin"],
+  variable: "--font-serif",
+  display: "swap",
+  weight: ["400"],
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-dm-sans",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -77,7 +91,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr" className={`${jakarta.variable} h-full antialiased`}>
+    <html lang="tr" className={`${jakarta.variable} ${dmSerif.variable} ${dmSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-white text-foreground">
         <GoogleAnalytics />
         <MetaPixel />

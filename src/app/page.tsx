@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { getCurrentUser } from '@/lib/auth';
 import { UserDashboard } from '@/components/UserDashboard';
+import { HeroStorytelling } from '@/components/HeroStorytelling';
 
 export default async function HomePage() {
   const user = await getCurrentUser();
@@ -19,95 +20,9 @@ export default async function HomePage() {
       {user && <UserDashboard />}
 
       {/* ══════════════════════════════════════════════════════════════
-          HERO - Sonuç Odaklı
+          HERO - Storytelling
       ══════════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute -top-40 left-1/2 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-gradient-to-b from-primary/8 to-transparent blur-3xl" />
-        </div>
-
-        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center gap-14 lg:flex-row lg:gap-16">
-            {/* Sol: Metin */}
-            <div className="flex-1 text-center lg:text-left">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/6 px-4 py-1.5 text-sm font-medium text-primary">
-                <Brain className="h-3.5 w-3.5" />
-                Yapay Zeka Koçluk Platformu
-              </div>
-
-              {/* Ana Başlık */}
-              <h1 className="mb-6 text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-                <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  Seni Her Gün Takip Eden AI Koçun
-                </span>
-              </h1>
-
-              {/* Alt Başlık */}
-              <p className="mb-8 max-w-lg text-lg leading-relaxed text-muted-foreground lg:text-xl">
-                Hedeflerini belirle, yapay zeka koç ve mentorların seni
-                her gün takip etsin. <span className="font-semibold text-foreground">Ödev versin, hatırlatsın, raporlasın.</span>
-              </p>
-
-              {/* Tek CTA */}
-              <div className="mb-6">
-                <Link href={user ? "/mentors" : "/auth/register"}>
-                  <Button size="lg" className="gap-2 bg-primary px-10 py-6 text-lg font-semibold text-white shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 transition-all">
-                    {user ? "Koçunu Seç" : "Ücretsiz Başla"}
-                    <ArrowRight className="h-5 w-5" />
-                  </Button>
-                </Link>
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Kredi kartı gerekmez
-                </p>
-              </div>
-
-              {/* Value Props */}
-              <div className="flex flex-col items-center gap-3 sm:flex-row lg:items-start">
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="font-medium text-foreground">Günlük takip</span>
-                </div>
-                <div className="hidden sm:block h-4 w-px bg-border" />
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  Kişisel ödevler
-                </div>
-                <div className="hidden sm:block h-4 w-px bg-border" />
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  7/24 erişim
-                </div>
-              </div>
-            </div>
-
-            {/* Sağ: Görsel */}
-            <div className="flex flex-1 justify-center lg:justify-end">
-              <div className="relative w-full max-w-md">
-                <div className="overflow-hidden rounded-2xl shadow-2xl shadow-primary/10 ring-1 ring-border">
-                  <Image
-                    src="/login-coaching.png"
-                    alt="Yönetici Analizi"
-                    width={560}
-                    height={420}
-                    className="w-full object-cover"
-                    priority
-                  />
-                </div>
-                {/* Floating badge */}
-                <div className="absolute -bottom-4 -left-4 flex items-center gap-3 rounded-xl border border-border bg-white px-4 py-3 shadow-lg">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/15">
-                    <TrendingUp className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-foreground">Karar Kalitesi</p>
-                    <p className="text-xs text-muted-foreground">Ölçülebilir gelişim</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroStorytelling />
 
       {/* ══════════════════════════════════════════════════════════════
           PROBLEM ALANI
