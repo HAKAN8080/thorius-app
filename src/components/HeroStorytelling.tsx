@@ -90,11 +90,13 @@ export function HeroStorytelling() {
   return (
     <section
       className="relative overflow-hidden"
-      style={{ backgroundColor: '#1e3a5f' }}
+      style={{
+        background: 'linear-gradient(135deg, #1a0533 0%, #4c0f8f 28%, #7c3aed 55%, #2563eb 80%, #0ea5e9 100%)',
+      }}
     >
       {/* Subtle pattern overlay */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03]"
+        className="pointer-events-none absolute inset-0 opacity-[0.05]"
         style={{
           backgroundImage: 'radial-gradient(circle at 2px 2px, #c49e5a 1px, transparent 0)',
           backgroundSize: '32px 32px',
@@ -105,7 +107,7 @@ export function HeroStorytelling() {
       <div
         className="pointer-events-none absolute left-1/2 top-0 h-[500px] w-[800px] -translate-x-1/2 rounded-full blur-3xl"
         style={{
-          background: 'radial-gradient(circle, rgba(196, 158, 90, 0.08) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(196, 158, 90, 0.12) 0%, transparent 70%)',
         }}
       />
 
@@ -137,9 +139,9 @@ export function HeroStorytelling() {
               className="group relative overflow-hidden rounded-full px-6 py-2.5 text-sm font-medium transition-all duration-300"
               style={{
                 fontFamily: 'var(--font-dm-sans)',
-                backgroundColor: activeIndex === index ? '#c49e5a' : 'rgba(255, 255, 255, 0.06)',
-                color: activeIndex === index ? '#1e3a5f' : '#e5e7eb',
-                border: `1px solid ${activeIndex === index ? '#c49e5a' : 'rgba(196, 158, 90, 0.15)'}`,
+                backgroundColor: activeIndex === index ? '#c49e5a' : 'rgba(255, 255, 255, 0.08)',
+                color: activeIndex === index ? '#1a0533' : '#e5e7eb',
+                border: `1px solid ${activeIndex === index ? '#c49e5a' : 'rgba(196, 158, 90, 0.2)'}`,
               }}
             >
               {/* Hover shimmer */}
