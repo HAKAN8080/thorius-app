@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Sparkles } from 'lucide-react';
 import Image from 'next/image';
+import { CherryBlossom } from '@/components/CherryBlossom';
 
 interface Story {
   id: string;
@@ -93,6 +94,9 @@ export function HeroStorytelling() {
       className="relative overflow-hidden"
       style={{ backgroundColor: '#0a1628' }}
     >
+      {/* Kiraz çiçeği animasyonu */}
+      <CherryBlossom />
+
       {/* Background Image - Blurred Coaching Session */}
       <div className="pointer-events-none absolute inset-0">
         <Image
